@@ -1,0 +1,654 @@
+
+```{r setup_sentiment, include=FALSE}
+#knitr::opts_chunk$set(echo = TRUE)
+
+
+library(tidyverse)
+library(tidytext)
+library(textrecipes)
+library(tidymodels)
+library(tidytext)
+library(stringr)
+library(discrim)
+library(readr)
+library(tictoc)
+
+afinn <- tidytext::get_sentiments("afinn")
+```
+
+# Yelp Classification and Sentiment Test
+
+This notebook outlines my efforts to build a *classification model* that can predict Yelp star ratings based on Yelp review text. My previous attempts used linear regression to predict star rating as a real-valued function of input text. In this notebook, I will instead approach prediction as a classification problem and try to predict star ratings as discrete factors.
+
+Intead of trying to predict exact star ratings, I will follow standard practice and divide ratings into positive ("POS") and negative ("NEG") reviews. As @liu_sentiment_2015 notes, "Sentiment classification is usually formulated as a two-class classification problem: positive and negative ...A review with 4 or 5 stars is considered a positive review, and a review with 1 to 2 stars is considered a negative review. Most research papers do not use the neutral class (3-star ratings) to make the classification problem easier" (49). But if the results are good, we can always experiment with three- or five-class problems.
+
+A note on sourcing: My analysis here will closely follow the examples in @silge_supervised_2020 (which I will often refer to as "SMLTAR," for "Supervised Machine Learning and Text Analysis in R") and @silge_text_2020. In some cases I have used examples or hints from websites like Stack Overflow, and I've noted that where applicable.
+
+A note on aesthetics: in the interest of time I haven't piped my outputs through `kable()`. Most outputs are straight console printouts.
+
+## Yelp Dataset
+
+Let's begin with the Yelp dataset I collected. As a reminder, this dataset was collected in October 2020 and has 9,402 reviews for restaurants in Ottawa. Reviews were overwhelmingly positive, as can be seen in the following histogram.
+
+```{r load_data, message=FALSE, warning=FALSE}
+reviews_gr <- read_csv("../tests/data/goodreads_all.csv")
+reviews_mec <- read_csv("../tests/data/mec-reviews.csv")
+reviews_yelp <- read_csv("../tests/data/ottawa_yelp_reviews.csv") %>%
+  rename(rating_num = rating)
+
+
+ reviews_yelp %>%
+ ggplot(aes(x=rating_num)) +
+  geom_histogram(bins=5) +
+  labs(title = "Small Yelp Dataset: Histogram of Star Ratings (n=9,402)",
+       x = "Star Rating",
+       y = "Count")
+
+```
+
+The dataset is quite imbalanced: nearly 79% of reviews give 4 or 5 stars, our only about 9% give 1 or 2 stars. As we will see, this will create problems for our modeling.
+
+```{r pct_positive}
+reviews_yelp %>%
+  group_by(rating_num) %>%
+  summarise(n = n()) %>%
+  mutate(pct = n/sum(n))
+```
+
+
+
+### AFINN
+
+AFINN is a dictionary-based one-dimensional sentiment model that gives texts an integer score for how positive or negative they are. It treats texts as a "bag of words," which means it does not consider any syntax or semantics beyond the values given in its dictionary. Each word in a text is given a pre-determined positive or negative score, and those scores are summed to give an overall rating for a text.
+
+For example, here are the AFINN scores for the top 5 positive words. Strongly negative words are generally NSFW and so I won't print them here.
+
+```{r afinn_example}
+afinn %>%
+  arrange(desc(value)) %>%
+  head(5)
+
+
+```
+
+
+Following the [Tidytext](https://www.tidytextmining.com/tidytext.html) method from Silge & Robinson, we get an AFINN score for each Yelp review:
+
+```{r yelp_get_afinn, message=FALSE, warning=FALSE}
+
+
+afinn_yelp <- reviews_yelp %>%
+  select(comment, rating_num) %>%
+  rowid_to_column() %>%
+  tidytext::unnest_tokens(word, comment) %>%
+  left_join(afinn) %>%
+  group_by(rowid) %>%
+  summarise(afinn_sent = sum(value, na.rm = T),
+            rating_num = mean(rating_num))
+  
+```
+
+We can make a boxplot to show the distribution of AFINN scores for reviews grouped by star rating. This actually looks moderately promising, since we can see that higher star ratings seem to be associated with somewhat higher AFINN scores.
+
+```{r yelp_boxplot, message=FALSE, warning=FALSE}
+
+afinn_yelp %>%
+  mutate(rating_num = as.factor(rating_num)) %>%
+  ggplot(aes(x = rating_num, y=afinn_sent)) +
+  geom_boxplot() +
+  geom_smooth(method="lm") +
+  labs(
+    title = "AFINN Scores by Star Rating",
+    subtitle = "Small Yelp dataset (n=9402)",
+    x = "Star Rating",
+    y = "AFINN Sentiment Score"
+  )
+```
+
+### Classification: Naive Bayes Classifier
+
+To approach this as classification problem, we will divide reviews into two groups: positive (>3 stars) and negative (<3 stars).
+
+```{r yelp_factor}
+
+factor_yelp <- reviews_yelp %>%
+  bind_cols(afinn_yelp %>% select(afinn_sent)) %>%
+  filter(rating_num != 3) %>%
+  mutate(rating_factor = case_when(
+    rating_num <3 ~ "NEG",
+    rating_num >3 ~ "POS"),
+    rating_factor = as.factor(rating_factor))
+
+#factor_yelp
+```
+
+Here we'll follow [SMLTAR Ch 7](https://smltar.com/mlclassification.html) very closely and set up a naive Bayes classifier that takes AFINN sentiment as its only input and predicts positive or negative sentiment as its only output. The code here follows SMLTAR very closely except where otherwise specified. *Note* that SMLTAR actually uses the text itself, and not a real-valued variable like AFINN sentiment; we can try this next.
+
+First we set up testing and training split:
+
+```{r yelp_split}
+
+
+set.seed(1234)
+
+yelp_split <- initial_split(factor_yelp, strata = rating_factor)
+
+yelp_test <- testing(yelp_split)
+
+yelp_train <- training(yelp_split)
+```
+
+Then we set up a recipe, set up a workflow, specify a naive Bayes model, and fit this model to our training data:
+
+```{r yelp_recipe}
+yelp_rec <- recipe(rating_factor ~ afinn_sent,
+                   data = yelp_train)
+
+yelp_wf <- workflow() %>%
+  add_recipe(yelp_rec)
+
+nb_spec <- naive_Bayes() %>%
+  set_mode("classification") %>%
+  set_engine("naivebayes")
+
+nb_fit <- yelp_wf %>%
+  add_model(nb_spec) %>%
+  fit(data = yelp_train)
+
+nb_fit
+```
+
+We will use resampling to evaluate the model, again with 10 cross-fold validation sets.
+
+```{r relp_crossfold_validation}
+
+yelp_folds <- vfold_cv(yelp_train)
+
+nb_wf <- workflow() %>%
+  add_recipe(yelp_rec) %>%
+  add_model(nb_spec)
+
+nb_rs <- fit_resamples(
+  nb_wf,
+  yelp_folds,
+  control = control_resamples(save_pred = TRUE)
+)
+
+nb_rs_metrics <- collect_metrics(nb_rs)
+nb_rs_predictions <- collect_predictions(nb_rs)
+
+```
+
+Let's see the fit metrics:
+
+```{r yelp_nb_metrics}
+nb_rs_metrics
+```
+
+We can also plot an ROC curve, which is supposed to show a model's accuracy and how well a model trades off false positives and false negatives. Better models are associated with curves that bend farther away from the line y=x (*citation needed*). According to the standard story about ROC curves, this looks okay.
+
+```{r yelp_roc}
+nb_rs_predictions %>%
+  group_by(id) %>%
+  roc_curve(truth = rating_factor, .pred_NEG) %>%
+  autoplot() +
+  labs(
+    color = NULL,
+    title = "Receiver operator curve for small Yelp dataset",
+    subtitle = "Each resample fold is shown in a different color"
+  )
+```
+
+
+We can also look at a heat map and a confusion matrix to see how often the model was correct and incorrect.
+
+```{r yelp_confusionmatrix}
+nb_rs_predictions %>%
+  filter(id == "Fold01") %>%
+  conf_mat(rating_factor, .pred_class) %>%
+  autoplot(type = "heatmap")
+
+nb_rs_predictions %>%
+  filter(id == "Fold01") %>%
+  conf_mat(rating_factor, .pred_class)
+
+
+```
+
+But looking at the confusion matrix shows a problem: there are so many fewer true NEG cases that our model's performance doesn't mean much. The Bayes classifier achieved ~91.4% accuracy, but since ~89.7% of the data is classified as POS we could get nearly as much accuracy by just guessing "POS" in each case. The data is heavily *unbalanced*.
+
+```{r check_pct_positive}
+factor_yelp %>%
+  group_by(rating_factor) %>%
+  summarise(n = n()) %>%
+  mutate(pct = n/sum(n))
+```
+
+We need to *balance* our dataset so that there is a roughly equal number of positive and negative reviews. The easiest way is by downsampling, where you remove items from the larger set until you have two sets of about the same size. But to get a balanced dataset we would need to throw away nearly 80% of our data, and since our dataset is somewhat small we might not have enough to work with. *TODO* cite SMLTAR or Text Mining with R.
+
+There are more sophisticated balancing approaches that are out of scope here, but the easiest approach for our puposes is to find a much larger public dataset to work with.
+
+## Kaggle Yelp dataset
+
+Yelp makes a huge dataset available for teaching and research [at this link](https://www.kaggle.com/yelp-dataset/yelp-dataset) through Kaggle. A larger dataset will probably help us build a better model, especially if we need to balance our datasets to have roughly equal numbers of positive and negative reviews. The dataset is enormous: it has around 6 gigabytes of review text and around 5 million reviews. This is too big to load using conventional methods on my machine. After a few failures, I found [a discussion on StackOverflow](https://stackoverflow.com/questions/53277351/read-first-1000-lines-from-very-big-json-lines-file-r) that helped me read just the first n lines from the jsonLine file and parse them.
+
+For the present, we'll read the first 100k reviews:
+
+```{r yelp_big_load, message=FALSE, warning=FALSE}
+
+# figure out how to do it reading between the lines of this stackoverflow:
+# https://stackoverflow.com/questions/53277351/read-first-1000-lines-from-very-big-json-lines-file-r
+
+yelp_big <- readLines("../tests/data/yelp_academic_dataset_review.json", n = 100000) %>%
+  textConnection() %>%
+  jsonlite::stream_in(verbose=FALSE)
+
+yelp_big <- yelp_big %>%
+  select(stars, text)
+```
+
+And plot a histogram of the star distributions. The star distributions look very similar to the data I collected manually, but with a slight spike at 1 that we didn't find in my Yelp data. We did find this 1-spike in the MEC data, so there may be a common review phenomenon here.
+
+
+```{r yelp_big_hist}
+yelp_big %>%
+ ggplot(aes(x=stars)) +
+  geom_histogram(bins=5) +
+  labs(title = "Large Yelp Dataset: Histogram of Star Ratings (n=100,000)")
+
+```
+
+
+Let's classify the reviews into NEG and POS again, once more classifying reviews with fewer than 3 stars as negative, more than 3 stars as positive, and discarding reviews with 3 stars.
+
+```{r yelp_big_factor}
+yelp_big_factor <- yelp_big %>%
+  mutate(rating_factor = case_when(
+    stars < 3 ~ "NEG",
+    stars > 3 ~ "POS") %>%
+      as.factor()
+  ) %>%
+  select(-stars) %>%
+  drop_na()
+
+yelp_big_factor %>% summary()
+```
+
+This dataset is quite imbalanced: there are ~67k positive reviews and ~22 negative reviews. Since classification engines can have trouble with unbalanced sets, we will *downsample* our dataset by randomly removing some positive reviews so that we have around the same number of negatvie and positive reviews. This new balanced dataset will have ~22k positive and negative reviews, still far more than we had in the dataset I collected myself.
+
+
+```{r yelp_big_balance}
+set.seed(1234)
+yelp_balanced <- yelp_big_factor %>%
+  filter(rating_factor == "NEG") %>%
+  bind_rows(yelp_big_factor%>%
+              filter(rating_factor == "POS") %>%
+              slice_sample(n=yelp_big_factor %>% filter(rating_factor == "NEG") %>% nrow() ))
+
+yelp_balanced %>% summary()
+
+```
+
+
+
+Let's try AFINN again on the balanced set. First we'll get the AFINN sentiments for all our reviews.
+
+```{r yelp_big_afinn, warning=FALSE, message=FALSE}
+tic()
+afinn_yelp_big <- yelp_balanced %>%
+  rowid_to_column() %>%
+  tidytext::unnest_tokens(word, text) %>%
+  left_join(afinn) %>%
+  group_by(rowid) %>%
+  summarise(afinn_sent = sum(value, na.rm = T))
+toc()
+
+yelp_big_bal_afinn <- afinn_yelp_big %>%
+  left_join(yelp_balanced %>% rowid_to_column()) %>%
+  select(-rowid)
+```
+
+And we can make a boxplot of the AFINN distributions for POS and NEG reviews. There is enough difference between the POS and NEG reviews that this looks like it might plausibly work.
+
+```{r big_yelp_boxplot}
+yelp_big_bal_afinn %>%
+  ggplot(aes(x=rating_factor,y=afinn_sent)) +
+  geom_boxplot() +
+  labs(
+    title = "AFINN Scores by Star Rating",
+    subtitle = paste0("Big Yelp dataset (n=",nrow(yelp_big_bal_afinn),")"),
+    x = "Star Rating",
+    y = "AFINN Sentiment Score"
+  )
+```
+
+And for another view, here's a density plot:
+
+```{r big_yelp_density}
+yelp_big_bal_afinn %>%
+  ggplot(aes(x=afinn_sent, fill=rating_factor)) +
+  geom_density(alpha=0.5) +
+  labs(title = "Density Distributions of AFINN Sentiment for POS and NEG Reviews",
+       subtitle = "Large Balanced Yelp Dataset, n=43,855",
+       x = "AFINN Sentiment",
+       y ="Density")
+```
+
+
+### Naive Bayes Classifier
+
+We will again go through the tidymodels process of setting up a naive Bayes classifier. First we do a test/train split of our large balanced dataset.
+
+```{r big_split}
+set.seed(1234)
+
+yelp_split <- initial_split(yelp_big_bal_afinn, strata = rating_factor)
+
+yelp_test <- testing(yelp_split)
+
+yelp_train <- training(yelp_split)
+```
+
+Then we set up a recipe, a naive Bayes model, and a workflow, and then fit our model to our training data.
+
+```{r big_nb_rec}
+yelp_rec <- recipe(rating_factor ~ afinn_sent,
+                   data = yelp_train)
+
+yelp_wf <- workflow() %>%
+  add_recipe(yelp_rec)
+
+nb_spec <- naive_Bayes() %>%
+  set_mode("classification") %>%
+  set_engine("naivebayes")
+
+nb_fit <- yelp_wf %>%
+  add_model(nb_spec) %>%
+  fit(data = yelp_train)
+
+nb_fit
+```
+
+
+Then we use resampling to evaluate the model, again with 10 cross-fold validation sets.
+
+```{r big_nb_cfvalidation}
+
+yelp_folds <- vfold_cv(yelp_train)
+
+nb_wf <- workflow() %>%
+  add_recipe(yelp_rec) %>%
+  add_model(nb_spec)
+
+nb_rs <- fit_resamples(
+  nb_wf,
+  yelp_folds,
+  control = control_resamples(save_pred = TRUE)
+)
+
+nb_rs_metrics <- collect_metrics(nb_rs)
+nb_rs_predictions <- collect_predictions(nb_rs)
+
+```
+
+Let's see the fit metrics. Our accuracy is ~78.7%, which is quite a bit better than chance so there is good evidence that the model is getting something right.
+
+```{r big_nb_metrics}
+# create a character a vector with the accuracy % that we can use in the text later
+nb_acc <- nb_rs_metrics %>% pull(mean) %>% head(1) %>% round(3) %>% `*`(100) %>% paste0("%",.)
+
+# print out the metrics
+nb_rs_metrics
+```
+
+We can also look at the ROC curve, which again shows some good performance:
+
+```{r big_nb_ROC}
+nb_rs_predictions %>%
+  group_by(id) %>%
+  roc_curve(truth = rating_factor, .pred_NEG) %>%
+  autoplot() +
+  labs(
+    color = NULL,
+    title = "Receiver operator curve for big balanced Yelp dataset, AFINN sentiment",
+    subtitle = "Each resample fold is shown in a different color"
+  )
+```
+
+
+And a confusion matrix:
+
+```{r big_nb_confusion}
+nb_rs_predictions %>%
+  filter(id == "Fold01") %>%
+  conf_mat(rating_factor, .pred_class) %>%
+  autoplot(type = "heatmap")
+
+nb_rs_predictions %>%
+  filter(id == "Fold01") %>%
+  conf_mat(rating_factor, .pred_class)
+
+
+```
+
+Our naive Bayes classifier did quite a bit better than chance on our balanced dataset. We would have expected about 50% accuracy by chance, and it was accurate `r nb_acc` of the time on our training data.
+
+
+### Logistic Regression
+
+It's also worth trying a logistic regression, for at least two reasons:
+
+* It's good practice; and
+* It's a simple and common model.
+
+For the code here, I referred to [this website](https://rpubs.com/ryankelly/ml_logistic) to remind me of the basics of doing logistic regression in R. I elected not to do it in a tidymodels framework.
+
+We'll use the same big balanced dataset. First we'll split our data into testing and training:
+
+```{r logit_setup}
+index <- sample(c(T,F), 
+                size = nrow(yelp_big_bal_afinn),
+                replace = T,
+                prob=c(0.75,0.25))
+
+train <- yelp_big_bal_afinn[index,]
+
+test <- yelp_big_bal_afinn[!index,]
+```
+
+Then we'll use `glm()` to run a simple logistic regression, predicting the rating factor based on the AFINN sentiment score. Here is the model output:
+
+```{r run_logit}
+logit <- glm(data= train,
+             formula= rating_factor ~ afinn_sent,
+             family="binomial")
+
+summary(logit)
+
+```
+
+Our results are strongly significant, so we have some reason to take this model seriously.
+
+
+Referring to [this website for more pointers](https://www.machinelearningplus.com/machine-learning/logistic-regression-tutorial-examples-r/#:~:text=Logistic%20regression%20is%20a%20predictive,the%20probability%20of%20event%201.), we can use our logistic regression results to predict rating scores for our test dataset. The simplest way to do this is to say that we predict whichever outcome the model says is more likely. In other words, if a review has a predicted probability >0.5 of being positive, then we predict it's positive. How accurate would we be?
+
+```{r logit_predict}
+pred <- predict(logit, 
+        newdata = test,
+        type="response")
+
+test_results <- test %>%
+  bind_cols(tibble(pred = pred)) %>%
+  mutate(pred = if_else(pred > 0.5, "POS", "NEG")) %>%
+  mutate(correct = if_else (pred == rating_factor, T, F)) %>%
+  summarise(accuracy = sum(correct) / nrow(.))
+
+logit_acc <- test_results %>% `*`(100) %>% round(3) %>% paste0("%",.)
+
+```
+
+ For this data, a simple logistic regression was only a little bit less accurate than the naive Bayes classifier: `r logit_acc`, as opposed to `r nb_acc`.
+
+## NEXT STEPS
+
+* Consider another sentiment-detection algorithm / dictionary.
+* Naive Bayes classifier based on review text, intead of AFINN sentiment score.
+* Consider review length as a tuning paramter.
+
+
+```{r include=FALSE}
+# # Goodreads Sentiments
+# 
+# This section contains *preliminary* work on sentiment analysis, and is here more for discussion & debate.
+# 
+# ## AFINN
+# 
+# Looks bad
+# 
+# ```{r afinn_test}
+# 
+# afinn <- tidytext::get_sentiments("afinn")
+# 
+# afinn_gr <- reviews_gr %>%
+#   filter(genre == "scifi") %>%
+#   select(comment, rating_num) %>%
+#   rowid_to_column() %>%
+#   tidytext::unnest_tokens(word, comment) %>%
+#   left_join(afinn) %>%
+#   group_by(rowid) %>%
+#   summarise(afinn_sent = sum(value, na.rm = T),
+#             rating_num = mean(rating_num))
+#   
+# afinn_gr %>%
+#   ggplot(aes(as.factor(rating_num), afinn_sent)) +
+#   geom_boxplot() +
+#   labs(
+#   title = "scifi!"
+#   )
+# 
+# #```
+# 
+# A naive approach would be to use a linear regression to predict the star rating from the AFINN sentiment. If we do so on our scifi Goodreads dataset, we get the following model:
+# 
+# ```{r}
+# lm_gr <- lm(data = afinn_gr, formula= rating_num ~ afinn_sent )
+# 
+# summary(lm_gr)
+# 
+# #```
+# 
+# Although the p-values are excellent, the adjusted $R^2$ is terrible and this model is useless. 
+
+```
+
+
+
+```{r include=FALSE}
+
+## VADER
+
+# set.seed(1234)
+# vader_gr <- reviews_gr %>%
+#     filter(genre == "scifi") %>%
+#   select(comment, rating_num) %>%
+#   sample_n(10) %>%
+#   vader::vader_df(comment)
+# 
+# names(vader_gr)[2] <- "rating_num"
+# 
+# 
+# vader_gr %>%
+#   ggplot(aes(as.factor(rating_num), compound)) +
+#   geom_boxplot()
+# 
+# 
+# vader_gr %>%
+#   filter(compound < 0 & rating_num == 4)
+# ```
+# 
+# 
+# 
+# ```{r, eval=FALSE}
+# 
+# vader_gr <- reviews_gr %>%
+#     filter(genre == "scifi") %>%
+#   select(comment, rating_num) %>%
+#   vader::vader_df(comment)
+# 
+# names(vader_gr)[2] <- "rating_num"
+# 
+# write_csv(vader_gr, "vader_goodreads_scifi.csv")
+# ```
+# 
+# ```{r}
+# vader_gr <- read_csv("vader_goodreads_scifi.csv") %>%
+#   select(-word_scores)
+# 
+# vader_gr %>%
+#   ggplot(aes(as.factor(rating_num), (compound))) +
+#   geom_boxplot()
+# ```
+# 
+# ```{r}
+# vader_gr %>%
+#   ggplot(aes((rating_num), (compound))) +
+#   geom_point() +
+#   geom_smooth(method = "lm")
+# 
+# ```
+# 
+# ```{r}
+# vader_lm <- lm(rating_num ~ compound, data = vader_gr)
+# summary(vader_lm)
+# ```
+# 
+# 
+# 
+# 
+# ```{r}
+# vader_gr %>%
+#   ggplot(aes((rating_num), (pos))) +
+#   geom_point() +
+#   geom_smooth(method = "lm")
+# 
+# ```
+# ## negative?
+# 
+# ```{r}
+# vader_gr %>%
+#   ggplot(aes((rating_num), (neg))) +
+#   geom_point() +
+#   geom_smooth(method = "lm")
+# 
+# ```
+# ```{r, eval=F}
+# 
+# vader_lm_neg <- lm(rating_num ~ neg, data = vader_gr)
+# summary(vader_lm_neg)
+# 
+# predict.lm(vader_lm_neg)
+# ```
+# 
+# 
+# 
+# ## Testing byte compile
+# 
+# Byte-compiling `vader::get_vader()` makes no difference at all.
+# 
+# ```{r}
+# library(compiler)
+# 
+# cmp_vader <- cmpfun( vader::get_vader)
+# 
+# bench::mark(cmp_vader("Hello there. How does this do? Not bad.Not bad.Not bad.Not bad.Not bad.Not bad.Not bad.Not bad."))
+# 
+# bench::mark(vader::get_vader("Hello there. How does this do? Not bad.Not bad.Not bad.Not bad.Not bad.Not bad.Not bad.Not bad."))
+# ```
+
+```
+
+## SessionInfo
+
+```{r sessinfo}
+sessionInfo()
+```

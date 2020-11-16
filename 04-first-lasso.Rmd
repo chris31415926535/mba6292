@@ -1,0 +1,872 @@
+# A First LASSO Attempt
+
+```{r setup_lasso, include=FALSE}
+library(tidyverse)
+library(tidymodels)
+library(lubridate)
+library(textrecipes)
+library(tictoc)
+```
+
+
+## Introduction
+
+This analysis will use regression methods to attemp to predict star ratings from the text and/or titles of the reviews in our Yelp, Goodreads, and MEC datasets. My methods will closely follow those given in Chapter 6 of [Supervised Machine Learning for Text Analysis in R](https://smltar.com/mlregression.html) (SMLTAR) by Hvitfeldt & Silge. In the first case I will work through an example in detail to describe the steps (and to learn them!!), and in later sections I will move more quickly to try some different variations on the analysis.
+
+I'm going to use the `tidymodels` framework as much as possible, both because it's the approach used in SMLTAR and because I'm a fan of the  Tidyverse approach to software design and analysis.
+
+## A First Regression: Yelp Data
+
+I will begin with the Yelp data because we have a lot of it, and because based on our EDA it seemed to be "cleaner" than the Goodreads data which had a lot of duplicate posts, spam posts, plot summaries, etc.
+
+```{r}
+reviews_yelp <- read_csv("../tests/data/ottawa_yelp_reviews.csv") %>%
+  mutate(date = lubridate::mdy(date)) %>%
+  rename(text = comment,
+         rating_num = rating)
+
+reviews_yelp
+```
+
+
+### Splitting the data
+
+First we will split our data into a training set and a testing set. This is a standard practice, wherein we build a model using the training data but set aside some other data so we can test it later. Otherwise we might have concerns about overfitting or model validity.
+
+I'm setting the value `strata = "rating_num"` to ensure that our random sampling has about the same distribution of star ratings as our full population--see the documentation for `initial_split()`.
+
+```{r test_train_split, cache=TRUE}
+set.seed(1234)
+
+yelp_split <- reviews_yelp %>%
+  initial_split(strata = "rating_num")
+
+yelp_train <- yelp_split %>%
+  training()
+
+yelp_test <- yelp_split %>%
+  testing()
+```
+
+The next step is to define our preprocessing steps: the stuff we'll do to the text before we put it into a regression model. In the `tidymodels` approach we do this by creating a "recipe" objects and then adding a number of steps to it. We modify the object by using the pipe operator to add a bunch of steps to it using verb functions. This makes it easy to read the step-by-step process and understand what's going on.
+
+I'll note, though, that when I follow SMLTAR's guide the recipe still includes explicit references to the dataset we're analyzing, so it's not a completely generic object that could be applied to other datasets: we would need to make other recipes for MEC and Goodreads. There may be more advanced ways to create generic recipes that can be reused.
+
+Here, following SMLTAR, we will use a recipe with the following steps:
+
+* *Tokenizing* the text, which means breaking it down into constituent bits (words here),
+* *Filtering the tokens* based on frequency, taking only the 250 most-common tokens, (NOTE this is not many tokens!!)
+* *TFIDF*, or "term frequency inverse document frequency," which weights each token based on both how frequent it is and on how common it is across documents (see `step_tfidf()`'s help page for details), and then
+* *Normalizing* so our lasso regression will work properly.
+
+```{r first_recipe, cache=TRUE}
+num_tokens <- 250
+
+yelp_rec <- recipe(rating_num ~ text, data = yelp_train) %>%
+  step_tokenize(text) %>%
+  step_tokenfilter(text, max_tokens = num_tokens) %>%
+  step_tfidf(text) %>%
+  step_normalize(all_predictors())
+  
+rm(num_tokens)
+
+yelp_rec
+```
+
+Next, Hvitfeldt and Silge suggest we create a `workflow()` object that combines preprocessing steps and models. 
+
+```{r yelp_wf, cache=TRUE}
+
+yelp_wf <- workflow() %>%
+  add_recipe(yelp_rec) 
+  
+yelp_wf
+```
+
+We now define a lasso regression model using `parsnip`. My understanding is that this acts as a "tidy wrapper" around other functions/packages, in this case `glmnet`, that lets you use them in a tidy way. I believe it can also make it easier to swap out models or parameters without having to completely rewrite your codebase.
+
+Note that `penalty = 0.1` is arbitrary and we'll look into that parameter more closely later.
+
+```{r, cache=TRUE}
+lasso_model <- parsnip::linear_reg(penalty = 0.1, mixture = 1) %>%
+  set_mode("regression") %>%
+  set_engine("glmnet")
+
+lasso_model
+
+```
+
+Now we add the lasso model to the workflow and run the model. This takes about 9 seconds on my machine using only 250 tokens. (I expect we'll need to use more to get a good result.)
+
+```{r, cache=TRUE}
+tic()
+lasso_fit <- yelp_wf %>%
+  add_model(lasso_model) %>%
+  fit(data = yelp_train)
+toc()
+
+
+```
+
+We can look at the terms with the highest coefficients in the model:
+
+```{r yelp_fit_terms, cache=TRUE}
+lasso_fit %>%
+  pull_workflow_fit() %>%
+  tidy() %>%
+  arrange(-estimate)
+```
+
+This already doesn't look too promising; only 5 terms have positive coefficients, and the intercept is 4.16. But let's see how it goes.
+
+### Evaluating the first model
+
+Following SMLTAR, we'll evaluate the model using cross-fold validation, which is a way of trying to squeeze as much validation as you can out of a finite dataset. We will resample our training dataset to create 10 *new* datasets, and in each one we'll use 90% for training and 10% for assessment.
+
+```{r fit_first_lasso_resamples, cache=TRUE}
+set.seed(1234)
+yelp_folds <- vfold_cv(yelp_train)
+
+lasso_rs <- fit_resamples(
+  yelp_wf %>% add_model(lasso_model),
+  yelp_folds,
+  control = control_resamples(save_pred = TRUE)
+)
+
+tic()
+lasso_rs
+toc()
+```
+
+Our $R^2$ and RMSEs look really quite terrible:
+
+```{r, cache=TRUE}
+lasso_rs %>%
+  collect_metrics()
+```
+
+And when we plot predictions vs. true values, that also looks quite terrible:
+
+```{r, cache=TRUE}
+lasso_rs %>%
+  collect_predictions() %>%
+  ggplot(aes(rating_num, .pred, color = id)) +
+  geom_abline(slope=1, intercept = 0,color = "gray80", size = 1.5) +
+  geom_point(alpha = 0.3) +
+  labs(
+    x = "Truth",
+    y = "Predicted Rating",
+    color = NULL,
+    title = "Predicted and true star ratings for Yelp reviews",
+    subtitle = "Each cross-validation fold is shown in a different color"
+  )
+
+
+```
+
+The model generally predicts that everything will have a star rating of between 3 and 5, and is especially poor at predicting lower values. 
+
+We're now operating without much of a map, since the example in SMLTAR worked beautifully (predicting the year a USA Supreme Court decision was written based on its text). However, we can follow one last SMLTAR step by tuning our lasso hyperparameters.
+
+### Tuning model parameters
+
+We can repeat the process but use *model tuning* to set the paramters in our lasso regression. Now instead of choosing a random lasso penalty of 0.1, we're going to use the `tune()` function to figure out which penalty gives the best results on our training data.
+
+
+```{r, cache=TRUE}
+tune_model <- linear_reg(penalty = tune(), mixture = 1) %>%
+  set_mode("regression") %>%
+  set_engine("glmnet")
+
+tune_model
+```
+
+We create a grid of values to try:
+
+```{r, cache=TRUE}
+lambda_grid <- grid_regular(penalty(), levels = 30)
+```
+
+And now we use the function `tune_grid()` to fit our model at many different parameter values to see how they fare on our cross-fold validation set. *Note: this takes a long time, 81.5 seconds for the 250-token model on my machine.*
+
+```{r, cache=TRUE}
+set.seed(1234)
+tic()
+tune_rs <- tune_grid(
+  yelp_wf %>% add_model(tune_model),
+  yelp_folds,
+  grid = lambda_grid,
+  control = control_resamples(save_pred = TRUE)
+)
+toc()
+tune_rs
+
+
+```
+
+
+We can visualize our lasso model's performance for each parameter value:
+
+```{r, cache=TRUE}
+tune_rs %>%
+  collect_metrics() %>%
+  ggplot(aes(penalty, mean, color = .metric)) +
+  geom_errorbar(aes(
+    ymin = mean - std_err,
+    ymax = mean + std_err
+  ),
+  alpha = 0.5
+  ) +
+  geom_line(size = 1.5) +
+  facet_wrap(~.metric, scales = "free", nrow = 2) +
+  scale_x_log10() +
+  theme(legend.position = "none") +
+  labs(
+    title = "Lasso model performance across regularization penalties",
+    subtitle = "Performance metrics can be used to identity the best penalty"
+  )
+```
+
+We generally want to choose the value that minimizes our RMSE (*TODO source this claim*)
+
+
+```{r, cache=TRUE}
+tune_rs %>%
+  show_best("rmse")
+```
+
+And we can extract the penalty that gives us the lowest RMSE using the `select_best()` function as follows:
+
+```{r, cache=TRUE}
+lowest_rmse <- tune_rs %>%
+  select_best("rmse")
+```
+
+And we can put it all together into a final workflow:
+
+```{r, cache=TRUE}
+final_lasso <- finalize_workflow(
+  yelp_wf %>% add_model(tune_model),
+  lowest_rmse
+)
+
+```
+
+SMLTAR says that now it's ready to go, but I'm not sure how to test it... perhaps 
+
+```{r, cache=TRUE}
+lasso_fit <- final_lasso %>%
+  last_fit(split = yelp_split)
+  
+```
+
+
+```{r, cache=TRUE}
+lasso_fit %>%
+  collect_predictions() %>%
+    ggplot(aes(rating_num, .pred)) +
+  geom_abline(slope=1, intercept = 0,color = "gray80", size = 1.5) +
+  geom_point(alpha = 0.3) +
+  labs(
+    x = "Truth",
+    y = "Predicted Rating",
+    color = NULL,
+    title = "Final lasso model: Predicted and true star ratings for Yelp reviews"
+  )
+```
+
+This model looks better in some ways but worse in others. It's better in that it gives lower predictions for in-truth lower reviews; it's worse in that it predicts ratings over 5, and even over 6.5. The spread of predictions is also still quite large, but that may be to be expected with an $R^2$ of only about 0.25.
+
+## Trying lasso again
+
+### With 1000 tokens
+
+Here is the whole process again in a single code block using 1000 tokens.
+
+```{r yelp_lasso_1000_tokens, message=FALSE, warning=FALSE, cache=TRUE}
+
+num_tokens <- 1000
+
+set.seed(1234)
+
+# do initial split
+
+yelp_split <- reviews_yelp %>%
+  initial_split(strata = "rating_num")
+
+yelp_train <- yelp_split %>%
+  training()
+
+yelp_test <- yelp_split %>%
+  testing()
+
+# set up recipe
+
+yelp_rec <- recipe(rating_num ~ text, data = yelp_train) %>%
+  step_tokenize(text) %>%
+  step_tokenfilter(text, max_tokens = num_tokens) %>%
+  step_tfidf(text) %>%
+  step_normalize(all_predictors())
+  
+rm(num_tokens)
+
+yelp_wf <- workflow() %>%
+  add_recipe(yelp_rec)
+
+# set up our lasso model using tuning parameters
+tune_model <- linear_reg(penalty = tune(), mixture = 1) %>%
+  set_mode("regression") %>%
+  set_engine("glmnet")
+
+# create a grid of tuning parameters
+lambda_grid <- grid_regular(penalty(), levels = 30)
+
+# create cross-validation folds
+set.seed(1234)
+yelp_folds <- vfold_cv(yelp_train)
+
+# fit our model at many different parameter values using the cross-fold validation set
+set.seed(1234)
+tic()
+tune_rs <- tune_grid(
+  yelp_wf %>% add_model(tune_model),
+  yelp_folds,
+  grid = lambda_grid,
+  control = control_resamples(save_pred = TRUE)
+)
+toc()
+
+# extract penalty that gives us the lowest RMSE
+lowest_rmse <- tune_rs %>%
+  select_best("rmse")
+
+# put it into a final workflow
+final_lasso <- finalize_workflow(
+  yelp_wf %>% add_model(tune_model),
+  lowest_rmse
+)
+
+# do a last fit
+lasso_fit <- final_lasso %>%
+  last_fit(split = yelp_split)
+
+# see the metrics
+lasso_fit %>%
+  collect_metrics()
+
+# and plot it
+lasso_fit %>%
+  collect_predictions() %>%
+    ggplot(aes(rating_num, .pred)) +
+  geom_abline(slope=1, intercept = 0,color = "gray80", size = 1.5) +
+  geom_point(alpha = 0.3) +
+  labs(
+    x = "Truth",
+    y = "Predicted Rating",
+    color = NULL,
+    title = "Final lasso model: Predicted and true star ratings for Yelp reviews",
+    subtitle = "All reviews, 1000 tokens"
+  )
+```
+
+This has an $R^2$ of 0.37, which is a big improvement over the 250-token model, but it's still nowhere near good enough to use in practice.
+
+### Short reviews only: <125 words
+
+Let's try only using reviews under 125 words. It's possible that shorter reviews are "denser" and more to the point, and that longer reviews contain too much "noise." This leaves us with 6,323 reviews. I'm also going to try making a function to run the lasso regression with these different inputs.
+
+```{r define_lasso_function}
+run_lasso <- function(dataset, num_tokens){
+  
+  set.seed(1234)
+
+data_split <- dataset %>%
+  initial_split(strata = "rating_num")
+
+data_train <- data_split %>%
+  training()
+
+data_test <- data_split %>%
+  testing()
+
+data_rec <- recipe(rating_num ~ text, data = data_train) %>%
+  step_tokenize(text) %>%
+  step_tokenfilter(text, max_tokens = num_tokens) %>%
+  step_tfidf(text) %>%
+  step_normalize(all_predictors())
+  
+rm(num_tokens)
+
+data_wf <- workflow() %>%
+  add_recipe(data_rec)
+
+# set up our lasso model using tuning parameters
+tune_model <- linear_reg(penalty = tune(), mixture = 1) %>%
+  set_mode("regression") %>%
+  set_engine("glmnet")
+
+# create a grid of tuning parameters
+lambda_grid <- grid_regular(penalty(), levels = 30)
+
+# create cross-validation folds
+set.seed(1234)
+data_folds <- vfold_cv(data_train)
+
+# fit our model at many different parameter values using the cross-fold validation set
+set.seed(1234)
+tic()
+tune_rs <- tune_grid(
+  data_wf %>% add_model(tune_model),
+  data_folds,
+  grid = lambda_grid,
+  control = control_resamples(save_pred = TRUE)
+)
+toc()
+
+# extract penalty that gives us the lowest RMSE
+lowest_rmse <- tune_rs %>%
+  select_best("rmse")
+
+# put it into a final workflow
+final_lasso <- finalize_workflow(
+  data_wf %>% add_model(tune_model),
+  lowest_rmse
+)
+
+# do a last fit
+lasso_fit <- final_lasso %>%
+  last_fit(split = data_split)
+
+return(lasso_fit)
+}
+```
+
+
+```{r yelp_short_reviews_lasso, message=FALSE, warning=FALSE, cache=TRUE}
+
+max_length <- 125
+min_length <- 1
+
+wordcounts_yelp <- reviews_yelp %>%
+  select(text) %>%
+  rowid_to_column() %>%
+  tidytext::unnest_tokens(word, text) %>%
+  group_by(rowid) %>%
+  summarise(n = n()) %>%
+  left_join (reviews_yelp %>% rowid_to_column(), by ="rowid") %>%
+  select(-rowid)
+
+
+
+reviews_yelp_short <- wordcounts_yelp %>%
+  filter(n <= max_length & n >= min_length )
+
+
+
+lasso_results_short <- run_lasso(dataset = reviews_yelp_short, num_tokens = 1000)
+
+
+# see the metrics
+lasso_results_short %>%
+  collect_metrics()
+
+# and plot it
+lasso_results_short %>%
+  collect_predictions() %>%
+    ggplot(aes(rating_num, .pred)) +
+  geom_abline(slope=1, intercept = 0,color = "gray80", size = 1.5) +
+  geom_point(alpha = 0.3) +
+  labs(
+    x = "Truth",
+    y = "Predicted Rating",
+    color = NULL,
+    title = "Final lasso model: Predicted and true star ratings for Yelp reviews",
+    subtitle = "Short Reviews < 125 Words, 1000 Tokens"
+  )
+```
+
+This gives us an $R^2$ of 0.39, slightly better than our full dataset. But looking at the chart, we can see that this won't be useful in practice either.
+
+### Longer reviews > 125 words
+
+For completeness, we'll also try only using the long reviews > 125 words. It's possible that these reviews contain more useful information due to their length. This leaves us with 3,104 reviews.
+
+
+```{r yelp_long_reviews_lasso, message=FALSE, warning=FALSE, cache=TRUE}
+
+max_length <- 10000
+min_length <- 125
+
+wordcounts_yelp <- reviews_yelp %>%
+  select(text) %>%
+  rowid_to_column() %>%
+  tidytext::unnest_tokens(word, text) %>%
+  group_by(rowid) %>%
+  summarise(n = n()) %>%
+  left_join (reviews_yelp %>% rowid_to_column(), by ="rowid") %>%
+  select(-rowid)
+
+
+
+reviews_yelp_long <- wordcounts_yelp %>%
+  filter(n <= max_length & n >= min_length )
+
+
+
+lasso_results_long <- run_lasso(dataset = reviews_yelp_long, num_tokens = 1000)
+
+
+# see the metrics
+lasso_results_long %>%
+  collect_metrics()
+
+# and plot it
+lasso_results_long %>%
+  collect_predictions() %>%
+    ggplot(aes(rating_num, .pred)) +
+  geom_abline(slope=1, intercept = 0,color = "gray80", size = 1.5) +
+  geom_point(alpha = 0.3) +
+  labs(
+    x = "Truth",
+    y = "Predicted Rating",
+    color = NULL,
+    title = "Final lasso model: Predicted and true star ratings for Yelp reviews",
+    subtitle = "Long Reviews > 125 Words, 1000 Tokens"
+  )
+```
+
+Now our $R^2$ has gone up to 0.43, so it is possible that the longer reviews do in fact contain more information. And looking at the chart, the "cloud" of points does creep measurably higher for each true star rating. However, 
+
+## Removing stop words
+
+Stop words are common words that contain little information on their own, like "the" and "to." If using a bag-of-words approach, where you're not looking at the input text in a way that considers syntax (or, really, sentence-wise semantics) then it can be helpful to remove stop words.
+
+Here I will follow [SMLTAR s6.6](https://smltar.com/mlregression.html#casestudystopwords) to try using three different sets of stopwords, to see which performs best on this dataset.
+
+First, they build a wrapper function to make it easy to build recipes with different stopword sets.
+
+```{r}
+stopword_rec <- function(stopword_name) {
+  recipe(rating_num ~ text, data = yelp_train) %>%
+    step_tokenize(text) %>%
+    step_stopwords(text, stopword_source = stopword_name) %>%
+    step_tokenfilter(text, max_tokens = 1000) %>%
+    step_tfidf(text)
+}
+```
+
+Next we set up a workflow that only has a model, using our tunable regularized regression model from before:
+
+```{r}
+tunable_wf <- workflow() %>%
+  add_model(tune_model)
+
+tunable_wf
+```
+
+Now we will combine our functionized preprocessor with this tunable model and try three different stopword sets: snowball, smart, and stopwords-iso. *This takes about 8 minutes on my machine.*
+
+```{r, message=FALSE, warning=FALSE, cache=TRUE}
+set.seed(1234)
+tic()
+snowball_rs <- tune_grid(
+  tunable_wf %>% add_recipe(stopword_rec("snowball")),
+  yelp_folds,
+  grid = lambda_grid
+)
+toc()
+
+set.seed(1234)
+tic()
+smart_rs <- tune_grid(
+  tunable_wf %>% add_recipe(stopword_rec("smart")),
+  yelp_folds,
+  grid = lambda_grid
+)
+toc()
+
+set.seed(1234)
+tic()
+stopwords_iso_rs <- tune_grid(
+  tunable_wf %>% add_recipe(stopword_rec("stopwords-iso")),
+  yelp_folds,
+  grid = lambda_grid
+)
+toc()
+
+
+
+```
+
+And we plot their performance, using code straight from SMLTAR:
+
+```{r}
+word_counts <- tibble(name = c("snowball", "smart", "stopwords-iso")) %>%
+  mutate(words = map_int(name, ~ length(stopwords::stopwords(source = .))))
+
+list(
+  snowball = snowball_rs,
+  smart = smart_rs,
+  `stopwords-iso` = stopwords_iso_rs
+) %>%
+  map_dfr(show_best, "rmse", .id = "name") %>%
+  left_join(word_counts) %>%
+  mutate(name = paste0(name, " (", words, " words)")) %>%
+  ggplot(aes(fct_reorder(name, words), mean, color = name)) +
+  geom_point(size = 3, alpha = 0.8, show.legend = FALSE) +
+  labs(
+    x = NULL, y = "mean RMSE for five best models",
+    title = "Model performance for three stop word lexicons",
+    subtitle = "For this dataset, the Snowball lexicon performed best"
+  )
+```
+
+The RMSE is marginally better using the snowball set of stopwords, but is still quite terrible!
+
+## Adjusting n-grams
+
+When tokenizing, we can in general consider text strings of any length. So far we have been considering one-word strings, which we could call "unigrams." We could also consider two-word strings and three-word strings, called "bigrams" and "trigrams" respectively. We might expect using n-grams, where n>1, to increase our accuracy because it will let us capture more of the syntactic information in our text. For example, if we only consider 1-grams then the short phrase "Not bad!" becomes "not" and "bad," and our model has no way to differentiate between cases where they occur alone (which might be negative) and together (which might be positive). But if we also consider "not bad," then the model might learn that that phrase is associated with positive reviews.
+
+As before, we follow [SMLTAR s6.7](study-varying-n-grams) and set up a wrapper function that will let us easily change our model recipe to use different n-grams:
+
+```{r ngram_recipe_function}
+ngram_rec <- function(ngram_options) {
+  recipe(rating_num ~ text, data = yelp_train) %>%
+    step_tokenize(text, token = "ngrams", options = ngram_options) %>%
+    step_tokenfilter(text, max_tokens = 1e3) %>%
+    step_tfidf(text)
+}
+```
+
+`step_tokenize()` takes two arguments, `n` for the highest-n n-grams to consider, and `n_min` for the lowest-n ngrams to consider. We will pass these values in the variable `ngram_options`.
+
+We then out these all together into a wrapper function that will let us run many different models easily:
+
+```{r}
+tune_ngram <- function(ngram_options) {
+  tune_grid(
+    tunable_wf %>%
+      add_recipe(ngram_rec(ngram_options)),
+    yelp_folds,
+    grid = lambda_grid
+  )
+}
+
+```
+
+We will try three cases, using n-grams where n=1, n=1,2, and n=1,2,3. I've added `tic()/toc()` calls for loose benchmarking. The processing time goes up with each additional n-gram:
+
+* 1-grams: 186s
+* 2-grams: 267s
+* 3-grams: 495s
+
+```{r yelp_test_ngrams, cache=TRUE}
+set.seed(123)
+tic()
+unigram_rs <- tune_ngram(list(n = 1))
+toc()
+
+tic()
+set.seed(234)
+bigram_rs <- tune_ngram(list(n = 2, n_min = 1))
+toc()
+
+tic()
+set.seed(345)
+trigram_rs <- tune_ngram(list(n = 3, n_min = 1))
+toc()
+
+```
+
+And we can plot the results using a dot-plot, as per SMLTAR:
+
+```{r plot_ngrams, message=FALSE, warning=FALSE}
+list(
+  `1` = unigram_rs,
+  `1 and 2` = bigram_rs,
+  `1, 2, and 3` = trigram_rs
+) %>%
+  map_dfr(collect_metrics, .id = "name") %>%
+  filter(.metric == "rmse") %>%
+  ggplot(aes(name, mean, fill = name)) +
+  geom_dotplot(
+    binaxis = "y", stackdir = "center", binpositions = "all",
+    show.legend = FALSE
+  ) +
+  labs(
+    x = "Degree of n-grams", y = "mean RMSE",
+    title = "Model performance for different degrees of n-gram tokenization",
+    subtitle = "For the same number of tokens, unigrams alone performed best"
+  )
+```
+
+Amusingly, the fastest & simplest approach of using only 1-grams worked best.
+
+
+## Full final regression
+
+After working through each piece of the regression preprocessing and recipe, we'll now followed [SMLTAR s6.10](https://smltar.com/mlregression.html#the-full-game-regression)'s lead and put it all together.
+
+We will:
+
+* Train on the cross-validation resamples;
+* Tune *both* the lasso regularization parameter and the number of tokens used in the model;
+* Only include unigrams;
+* Remove the snowball stop words;
+* And evaluate on the testing set.
+
+Here is our final recipe. note that we are using `tune()` as our `max_tokens` value. This will let us fit the model to a grid of values and see which one performs best.
+
+```{r final_recipe}
+ final_rec <- recipe(rating_num ~ text, data = yelp_train) %>%
+  step_tokenize(text) %>%
+  step_stopwords(text, stopword_source = "snowball") %>%
+  step_tokenfilter(text, max_tokens = tune()) %>%
+  step_tfidf(text)
+
+final_rec
+```
+
+Then we specify our model again:
+
+```{r final_model}
+tune_model <- linear_reg( penalty = tune(), mixture = 1) %>%
+  set_mode("regression") %>%
+  set_engine("glmnet")
+
+tune_model
+
+```
+
+Then we set up our workflow:
+
+```{r final_workflow}
+tune_wf <- workflow() %>%
+  add_recipe(final_rec) %>%
+  add_model(tune_model)
+
+tune_wf
+```
+
+Next we'll tune the model. To do so, we need to choose the set of parameter values for the penalty and number of tokens we'll test. We do this by setting up a "grid" of the value combinations using `grid_regular()`. With 20 steps for the penalty and with 6 steps for the tokens, we'll have 120 combinations to test in total. *This took 2180s on my machine.*
+
+```{r final_grid}
+final_grid <- grid_regular(
+  penalty(range = c(-4,0)),
+  max_tokens(range = c(1e3, 6e3)),
+  levels = c(penalty = 20, max_tokens = 6)
+)
+
+final_grid %>%
+  head(10)
+```
+
+Next we train our models using the tuning grid:
+
+```{r final_tuning, cache= TRUE}
+
+tic()
+final_rs <- tune_grid(
+  tune_wf,
+  yelp_folds,
+  grid = final_grid,
+  metrics = metric_set(rmse, mae, mape)
+)
+toc()
+```
+
+
+```{r}
+final_rs %>%
+  collect_metrics() %>%
+  ggplot(aes(penalty, mean, color = as.factor(max_tokens))) +
+  geom_line(size = 1.5, alpha = 0.5) +
+  geom_point(size = 2, alpha = 0.9) +
+  facet_wrap(~.metric, scales = "free_y") +
+  scale_x_log10() +
+  labs(
+    color = "Number of tokens",
+    title = "Lasso model performance across regularization penalties and number of tokens",
+    subtitle = "The best model includes a high number of tokens but also significant regularization"
+  )
+```
+
+
+```{r}
+lowest_mae <- final_rs %>%
+  select_best("mae")
+
+lowest_mae
+```
+
+```{r}
+final_wf <- finalize_workflow(
+  tune_wf,
+  lowest_mae
+)
+
+final_wf
+```
+
+```{r}
+tic()
+final_fitted <- last_fit(final_wf, yelp_split)
+toc()
+
+collect_metrics(final_fitted)
+```
+
+
+
+```{r}
+library(vip)
+
+scotus_imp <- pull_workflow_fit(final_fitted$.workflow[[1]]) %>%
+  vi(lambda = lowest_mae$penalty)
+
+scotus_imp %>%
+  mutate(
+    Sign = case_when(
+      Sign == "POS" ~ "Better",
+      Sign == "NEG" ~ "Worse",
+    ),
+    Importance = abs(Importance),
+    Variable = str_remove_all(Variable, "tfidf_text_")
+  ) %>%
+  group_by(Sign) %>%
+  top_n(20, Importance) %>%
+  ungroup() %>%
+  ggplot(aes(
+    x = Importance,
+    y = fct_reorder(Variable, Importance),
+    fill = Sign
+  )) +
+  geom_col(show.legend = FALSE) +
+  scale_x_continuous(expand = c(0, 0)) +
+  facet_wrap(~Sign, scales = "free") +
+  labs(
+    y = NULL,
+    title = "Variable importance for predicting Yelp review star ratings"
+  )
+```
+
+
+
+```{r}
+final_fitted %>%
+  collect_predictions() %>%
+  ggplot(aes(rating_num, .pred)) +
+  geom_abline(lty = 2, color = "gray80", size = 1.5) +
+  geom_point(alpha = 0.3) +
+  labs(
+    x = "Truth",
+    y = "Predicted year",
+    title = "Predicted and true years for the testing set of Supreme Court opinions",
+    subtitle = "For the testing set, predictions are more reliable after 1850"
+  )
+```
+
+
+
+
+

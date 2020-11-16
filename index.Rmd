@@ -1,0 +1,22 @@
+--- 
+title: "Telfer 2020 Directed Reading: Natural Language Processing"
+author: "Christopher Belanger"
+date: "`r Sys.Date()`"
+site: bookdown::bookdown_site
+output: bookdown::gitbook
+documentclass: book
+bibliography: [book.bib, packages.bib, Exported Items.bib]
+biblio-style: apalike
+link-citations: yes
+github-repo: rstudio/bookdown-demo
+description: "This is Christopher Belanger's work product for the Telfer School of Management course *MBA6292*, Directed Readings in Natural Language Processing."
+output_dir: "docs"
+---
+
+# Preface
+
+This is a work product for the Telfer School of Management course *MBA6292*, Directed Readings in Natural Language Processing with Dr. Peter Rabinovitch.
+
+This document is intended as a final-work-in-progress: I will continue to revise and add through it during the semester, with the intention that at the end of the semester it will stand as a final product.
+
+This document is written in **RMarkdown** using **RStudio** and the **bookdown** package. For details and to learn how to create your own, see @R-bookdown.

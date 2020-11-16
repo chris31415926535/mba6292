@@ -1,0 +1,785 @@
+---
+title: "Week 2 Report: Data Summary, EDA, & Initial Model Attempts "
+author: "Christopher Belanger"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    code_folding: hide
+    toc: true
+    toc_float: true
+---
+
+
+```{r setup_eda, include=FALSE, warning=FALSE, message=FALSE}
+#knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+library(tidyverse)
+library(tidytext)
+
+```
+
+# Data Summary, EDA, & Initial Model Attempts 
+
+## Introduction
+
+
+I have three original datasets for analysis, both of which were collected from public websites between October 21 and 27, 2020.
+
+1. **Yelp Reviews:**  9,402 reviews for restaurants in Ottawa, which I believe includes all reviews available as of October 21. Each review includes:
+    * **Business Name:** The name the business is listed as operating under on Yelp. (Character)
+    * **Reviewer Name:** The screen name of the user who wrote the review. (Character)
+    * **Review Date:** The date the review was posted. (Character in mm/dd/yyyy format)
+    * **Review Text:** The full text of the review. (Character)
+    * **Star Rating:** The number of stars associated with the review (Integer from 1 to 5)
+    * **Review URL:** The URL from which the review was downloaded for traceability. (Character)
+1. **Goodreads Reviews:** 17,091 book reviews, culled from the first-page reviews of the "100 most-read books" in a number of genres. Each review includes:
+    * **Book Title:** The title of the book. (Character)
+    * **Book Genre:** The Goodreads-assigned genre of the book, e.g. "scifi" or "romance." (Character)
+    * **Book Author:** The author of the book. (Character)
+    * **Reviewer Name:** The screen name of the user who wrote the review. (Character)
+    * **Review Date:** The date the review was posted. (Character in yyyy-mm-dd format)
+    * **Review Text:** The full text of the review. (Character)
+    * **Star Text:** Goodreads' text equivalent for star ratings. (Character)
+    * **Star Rating:** The number of stars associated with the review (Integer from 1 to 5)
+    * **Review URL:** The URL from which the review was downloaded for traceability. (Character)
+1. **Mountain Equipment Co-op (MEC) Reviews:** 2,392 reviews for products for sale from MEC. Each review includes:
+    * **Product Type:** MEC's categorization for the product (e.g. mittens, bicycle components.) (Character)
+    * **Product Brand:** The brand under which the product is marketed on MEC's website. (Character)
+    * **Product Name:** The name of the product. (Character)
+    * **Product ID:** MEC's internal product ID, used to call the API. (Character)
+    * **Reviewer Name:** The username of the review writer. (Character)
+    * **Review Date:** The date the review was left. (Character)
+    * **Review Title:** The title of the review. (Character)
+    * **Review Text:** The complete text of the review. (Character)
+    * **Star Rating:** The number of stars associated with the review. (Integer from 1 to 5)
+
+
+In this section, I'll take a look at these two datasets to get a feel for the star ratings and review text. I will consider each dataset in turn.
+
+```{r load_data_eda, message=FALSE}
+reviews_yelp <- read_csv("../tests/data/ottawa_yelp_reviews.csv") %>%
+  rename(rating_num = rating)
+reviews_gr <- read_csv("../tests/data/goodreads_all.csv")
+
+reviews_mec <- read_csv("../tests/data/mec-reviews.csv") %>%
+  rename(comment = review_text,
+         date = review_date)
+```
+
+## Goodreads
+
+### Star Ratings
+
+The following histogram shows the overall distribution of star ratings. Reviews are overwhelmingly positive: there are move 5-star reviews than there are 1-, 2-, and 3-star reviews combined. This may make modeling more difficult, since there will be fewer low-star ratings to train our models.
+
+```{r gr_overall_hist}
+reviews_gr %>%
+  ggplot() +
+  geom_bar(aes(x=rating_num)) +
+  theme_minimal() +
+  labs(title = "Goodreads Ratings: Rating Count, Overall",
+       x="Star Rating",
+       y=NULL)
+
+```
+
+The next histogram shows that the pattern is broadly consistent across genres. There are some minor differences: for example, graphic-novel and mystery reviews have nearly the same number of 4- and 5-star ratings, whereas nonfiction and romance novels show markedly  more  5-star reviews than 4-star reviews. But for present purposes the overall pattern looks largely the same--for example, there are no U-shaped distributions, or exponential-type distributions with the opposite skew. 
+
+```{r gr_facet_hist}
+reviews_gr %>%
+  ggplot() +
+  geom_bar(aes(x=rating_num)) +
+  theme_minimal() +
+  labs(title = "Goodreads Ratings: Rating Count by Genre",
+       x = "Star Rating",
+       y=NULL) +
+  facet_wrap(facets = vars(genre))
+
+```
+
+
+However, if we look at the level of individual books, the distributions look a bit more interesting. All the histograms are unimodal, but some of them peak at 3 or 4. (Poor Brian K. Vaughan.)
+
+```{r gr_book_star_distributions}
+top_6_books <- reviews_gr %>%
+  group_by(book_title) %>%
+  summarise(n = n()) %>%
+  slice_max(n=6, order_by=n, with_ties=FALSE) %>%
+  pull(book_title) 
+
+reviews_gr %>%
+  filter(book_title %in% top_6_books) %>%
+  ggplot(aes(x = rating_num)) +
+  geom_histogram( binwidth=1, boundary=0.5, bins=5) +
+  facet_wrap(facets = vars(book_title)) +
+  theme_grey() +
+  labs(title = "Star Ratings for 6 of the Most-Reviewed Books",
+       subtitle = "Sampled randomly from across all genres.",
+       x = "Star Rating",
+       y = "# of Ratings")
+```
+
+
+
+### Word Count
+
+Turning to word count, the following graph shows the cumulative density of word counts in our review dataset. In other words, as word count increases on the x-axis, the y-axis shows us how many reviews have *at most* that many words. I have counted words here using `unnest_tokens()` from the `tidytext` package (as per [Tidy Text Mining](https://www.tidytextmining.com/tidytext.html)). There may be an easier way, but this worked!
+
+We find that most reviews are very short: about 15,000 are below 500 words, and they go as short as one word. Some reviews are quite long, and one stretches out past 3,500 words.
+
+```{r wordcounts_goodreads, message=FALSE}
+wordcounts_gr <- reviews_gr %>%
+  select(comment) %>%
+  rowid_to_column() %>%
+  tidytext::unnest_tokens(word, comment) %>%
+  group_by(rowid) %>%
+  summarise(n = n()) %>%
+  arrange(n)  %>%
+  mutate(id = 1,
+         cumdist = cumsum(id)) 
+
+wordcounts_gr %>%
+  ggplot() +
+  geom_point(aes(y=cumdist, x=n)) +
+  theme_minimal() +
+  labs(title ="Goodreads Reviews: Cumulative Distribution of Word-Lengths",
+       x = "Word Length",
+       y = "# of Reviews")
+  
+  
+
+```
+
+This distribution may also make our modeling task more difficult. With so many short reviews it's unlikely that they will have many words in common, and so a lasso regression at the word level may not work very well.
+
+However, short reviews may still be useful for sentiment analysis. The following table shows the five shortest reviews, since I wanted to check and make sure it wasn't a data error. One reviewer left a single word: "SUCKS." Concise and informative.
+
+
+```{r short_goodreads}
+wordcounts_gr %>%
+  arrange(n) %>%
+  head(5) %>%
+  pull(rowid) %>% 
+  slice(reviews_gr, .)  %>%
+  select(book_title,author_name, rating_num, comment) %>%
+  mutate(across(where(is.character), str_trunc, width=40)) %>%
+  knitr::kable(booktabs = T,
+        col.names = c("Book Title", "Book Author", "Stars", "Review"),
+        align = c("l","l","c","l")) 
+# 
+# %>%
+#   kableExtra::column_spec(column = 1:4,
+#                           width = c("15cm","10cm","3cm","10cm")) %>%
+#   kableExtra::kable_styling(bootstrap_options = "striped")
+
+```
+
+### Reviewers
+
+The following histogram shows that while most Goodreads users posted only a handful of reviews in our dataset, some posted over 50.
+
+```{r gr_reviewers_histogram}
+reviewers_gr <- reviews_gr %>%
+  group_by(names) %>%
+  summarise(n = n()) %>%
+  arrange(desc(n))
+
+reviewers_gr %>%
+  ggplot(aes(x=n)) +
+  geom_histogram() +
+  theme_minimal() +
+  labs(title = "Goodreads: Distribution of Reviews per User",
+       x = "# of Reviews",
+       y = "# of Users") 
+
+```
+
+Looking at the following table, we can see that the top 10 reviewers all posted over 50 reviews, and one posted 95.
+
+```{r gr_top_reviewers}
+reviewers_gr %>%
+  top_n(10, wt = n)
+```
+
+Out of curiosity (and as a check on our data quality), let's investigate the 95 reviews from our top poster, Ahmad Sharabiani:
+
+```{r check_top_reviewer}
+reviews_gr %>%
+  filter(names == "Ahmad Sharabiani") %>%
+  select(book_title, author_name, rating_num, comment) %>%
+  mutate (comment = str_trunc(comment, 80)) %>%
+  arrange(desc(author_name)) %>%
+  slice_head(n=10) %>%
+  knitr::kable(col.names = c("Book Title", "Book Author", "Stars", "Review"),
+               align = c("l","l","c","l"))
+# 
+# %>%
+#   kableExtra::kable_styling(bootstrap_options = "striped")
+```
+
+Something looks a bit suspicious here. First, many books have more than one review (for example, *Othello* has 2 and *The Catcher in the Rye* has 3). Second, the reviews all seem to begin with the title of the book and a factual summary without much personality.
+  
+If we do a Google search for the opening text of Ahmad's review for *Farenheit 451*, "Fahrenheit 451 is a dystopian novel by American", we find that exact text in [the first line of the book's Wikipedia page](https://en.wikipedia.org/wiki/Fahrenheit_451). Google also suggests we look at *Farenheit 451*'s [Goodreads page](https://www.goodreads.com/book/show/13079982-fahrenheit-451), which includes Ahmad's review.
+
+If we look at Ahmad's review more closely, we see that it includes an English-language summary and then a lot of text in a non-Latin alphabet.
+
+```{r fahrenheit_review}
+reviews_gr %>%
+  filter(names == "Ahmad Sharabiani" & book_title == "Fahrenheit 451") %>%
+  pull(comment) %>%
+  str_trunc(700)
+```
+
+Google Translate tells me the language is Persian, and the translated text includes a brief note--"Date of first reading: The third day of February 1984"--and then *another* summary of the book written in Persian. The text does not seem to have any actual review or opinion in it.
+
+I'm not sure what's going on here, but we have learned that:
+* Some users post a large number of reviews;
+* Some users post useless/non-review reviews, e.g. copy/pasting text from Wikipedia; and,
+* At least one super-poster posts such reviews.
+
+This bears looking into more, since reviews that are copy/pasted from Wikipedia are unlikely to have any predictive value at all and may need to be identified and filtered out in pre-processing. These users may even be bots, especially given the short timeframe for the Goodreads dataset (see below).
+
+
+## Yelp
+
+### Star Ratings
+
+Repeating the process for Yelp, this histogram shows the distribution of star ratings. Reviews are again very positive and show a similar distribution.
+
+
+```{r yp_overall_hist}
+reviews_yelp %>%
+  ggplot() +
+  geom_bar(aes(x=rating_num)) +
+  theme_minimal() +
+  labs(title = "Yelp Ratings by Star",
+       x="Star Rating",
+       y=NULL)
+
+```
+
+The Yelp data didn't include restaurant type, so we can't do a genre-specific investigation as we did for Goodreads.
+
+However, we can repeat the analysis where we look at star distributions for the top 6 businesses. Overall the distributions look the same, but here, finally, we get the first hint of bimodality in our distributions. Two restaurants, Sansotei Ramen and Shawarma Palace, have *slight* second peaks at 1 star. However, the overall story is the same and this could arguably be random fluctuations.
+
+```{r yp_restaurant_star_distributions}
+top_6_restos <- reviews_yelp %>%
+  group_by(business) %>%
+  summarise(n = n()) %>%
+  slice_max(n=6, order_by=n, with_ties=FALSE) %>%
+  pull(business) 
+
+reviews_yelp %>%
+  filter(business %in% top_6_restos) %>%
+  ggplot(aes(x = rating_num)) +
+  geom_histogram( binwidth=1, boundary=0.5, bins=5) +
+  facet_wrap(facets = vars(business)) +
+  theme_grey() +
+  labs(title = "Star Ratings for 6 of the Most-Reviewed Restaurants",
+       x = "Star Rating",
+       y = "# of Ratings")
+```
+
+
+
+### Word Count
+
+As with the Goodreads data, most Yelp reviews are very short. 
+
+```{r wordcounts_yelp, message=FALSE}
+wordcounts_yelp <- reviews_yelp %>%
+  select(comment) %>%
+  rowid_to_column() %>%
+  tidytext::unnest_tokens(word, comment) %>%
+  group_by(rowid) %>%
+  summarise(n = n()) %>%
+  arrange(n) %>%
+  mutate(id = 1,
+         cumdist = cumsum(id)) 
+
+wordcounts_yelp %>%
+  ggplot() +
+  geom_point(aes(y=cumdist, x=n)) +
+  theme_minimal() +
+  labs(title ="Yelp Reviews: Cumulative Distribution of Word-Lengths",
+       x = "Word Length",
+       y = "# of Reviews")
+  
+  
+
+```
+
+And again, let's review the five shortest Yelp reviews in the table below. They seem to be genuine good-faith reviews that include helpful words, and so may be workable for our models.
+
+
+```{r short_yelp_reviews}
+wordcounts_yelp %>%
+  arrange(n) %>%
+  head(5) %>%
+  pull(rowid) %>%
+  slice(reviews_yelp, .) %>%
+  select(business,rating_num,comment) %>%
+  mutate(across(where(is.character), str_trunc, width=40)) %>%
+  knitr::kable(booktabs = T,
+        col.names = c("Business", "Stars", "Review"),
+        align = c("l","c","l")) 
+
+# %>%
+#   kableExtra::column_spec(column = 1:3,
+#                           width = c("5cm","3cm","10cm")) %>%
+#   kableExtra::kable_styling()%>%
+#   kableExtra::kable_styling(bootstrap_options = "striped")
+
+
+```
+
+
+### Reviewers
+
+The following histogram shows how many reviews were posted be users. Its distribution is similar to the one we found for Goodreads: most users posted only a few times, but some posted over 50.
+
+```{r yp_reviewers_histogram}
+reviewers_yelp <- reviews_yelp %>%
+  group_by(name) %>%
+  summarise(n = n()) %>%
+  arrange(desc(n))
+
+reviewers_yelp %>%
+  ggplot(aes(x=n)) +
+  geom_histogram() +
+  theme_minimal() +
+  labs(title = "Yelp: Distribution of Reviews per User",
+       x = "# of Reviews",
+       y = "# of Users") 
+
+```
+
+Looking at our top-10 Yelp reviewers, the drop-off is quite a bit sharper than it was for Goodreads.
+
+```{r yp_top_reviewers}
+reviewers_yelp %>%
+  top_n(10, wt = n) %>%
+  knitr::kable(col.names = c("Name", "# Reviews"),
+               align = c("l","c"))
+# 
+# %>%
+#   kableExtra::kable_styling(bootstrap_options = "striped")
+```
+
+The following table shows the first 10 reviews by our top reviewer, Jennifer P., in chronological order.
+
+```{r yelp_top_reviewer}
+reviews_yelp %>%
+  filter(name == "Jennifer P.") %>%
+  select(date, business, rating_num, comment) %>%
+  mutate(date = lubridate::mdy(date),
+         comment = str_trunc(comment, 70)) %>%
+  arrange(date) %>%
+  slice_head(n=10) %>%
+  knitr::kable(booktabs = TRUE,
+               col.names = c("Date", "Business", "Stars", "Review"),
+               align = c("l","l","c","l"))
+# 
+# %>%
+#   kableExtra::kable_styling(bootstrap_options = "striped")
+```
+
+
+These all seem to be good-faith restaurant reviews. And since this user has been active since 2012, to write 78 reviews they would have to write fewer than one per month. From this brief glance, we have no reason to think that Yelp users are posting insincere reviews.
+
+However, I note that the reviews have some html junk in them: `&amp;#39;` instead of an apostrophe, for example. These will need to be cleaned up before we use the data.
+
+## Mountain Equipment Co-op (MEC)
+
+### Star Ratings 
+
+This histogram shows the distribution of star ratings for MEC reviews. It's broadly similar to the Yelp and Goodreads reviews, except there is a small second peak at 1 star.
+
+```{r mec_overall_hist}
+reviews_mec %>%
+  ggplot() +
+  geom_bar(aes(x=rating_num)) +
+  theme_minimal() +
+  labs(title = "MEC Ratings: Rating Count, Overall",
+       x="Star Rating",
+       y=NULL)
+
+```
+
+If we break out the reviews by category, we can see that they all follow the same kind of exponential distribution *except* bicycle components.
+
+
+```{r mec_product_type_hist}
+reviews_mec %>%
+  ggplot() +
+  geom_bar(aes(x=rating_num)) +
+  theme_minimal() +
+  labs(title = "MEC Ratings: Rating Count by Product Category",
+       x="Star Rating",
+       y=NULL) +
+  facet_wrap(~product_type)
+
+```
+
+We can break the bicycle compoenents category down further by individual product. The facet wrap is messy, but we can clearly see that there are a few produts with anomalous spikes in 1-star ratings, and that ecah of these products has the word "tube" in the title.
+
+
+```{r mec_products_hist}
+reviews_mec %>%
+  filter(product_type=="bike-components") %>%
+  ggplot() +
+  geom_bar(aes(x=rating_num)) +
+  theme_minimal() +
+  labs(title = "MEC Ratings: Rating Count by Product",
+       subtitle = "Bicycle Components",
+       x="Star Rating",
+       y=NULL) +
+  facet_wrap(~product_name)
+
+```
+
+We can conclude that MEC's reviews follow the same pattern as Yelp and Goodreads overall, *except* for bicycle inner tubes which have unusually high numbers of 1-star reviews. We should keep this in mind when modeling using the MEC data.
+
+### Word Counts 
+
+Most MEC reviews are very short. They look to be shortest of all three datasets, both in terms of the shape of the dsitribution and the maximum review lengths. We will see this below in a later section when we plot all three distributions at once.
+
+```{r wordcounts_mec, message=FALSE}
+wordcounts_mec <- reviews_mec %>%
+  select(comment) %>%
+  rowid_to_column() %>%
+  tidytext::unnest_tokens(word, comment) %>%
+  group_by(rowid) %>%
+  summarise(n = n()) %>%
+  arrange(n) %>%
+  mutate(id = 1,
+         cumdist = cumsum(id)) 
+
+wordcounts_mec %>%
+  ggplot() +
+  geom_point(aes(y=cumdist, x=n)) +
+  theme_minimal() +
+  labs(title ="MEC Reviews: Cumulative Distribution of Word-Lengths",
+       x = "Word Length",
+       y = "# of Reviews")
+  
+  
+
+```
+
+If we look at the five shortest reviews, they all seem to be short but legitimate so we can be comfortable with our data quality.
+
+```{r short_mec_reviews}
+wordcounts_mec %>%
+  arrange(n) %>%
+  head(5) %>%
+  pull(rowid) %>%
+  slice(reviews_mec, .) %>%
+  select(product_name,rating_num,comment) %>%
+  mutate(across(where(is.character), str_trunc, width=40)) %>%
+  knitr::kable(booktabs = T,
+        col.names = c("Business", "Stars", "Review"),
+        align = c("l","c","l"))
+
+ # %>%
+ #  kableExtra::column_spec(column = 1:3,
+ #                          width = c("5cm","3cm","10cm")) %>%
+ #  kableExtra::kable_styling()%>%
+ #  kableExtra::kable_styling(bootstrap_options = "striped")
+
+
+```
+
+### Reviewers
+
+As with the other datasets, it first appears that most users leave only a few reviews but there are some "super-users" who leave quite a few.
+
+```{r mec_reviewers_histogram}
+reviewers_mec <- reviews_mec %>%
+  group_by(user_name) %>%
+  summarise(n = n()) %>%
+  arrange(desc(n))
+
+reviewers_mec %>%
+  ggplot(aes(x=n)) +
+  geom_histogram() +
+  theme_minimal() +
+  labs(title = "MEC: Distribution of Reviews per User",
+       x = "# of Reviews",
+       y = "# of Users") 
+
+```
+
+Upon closer inspection, however, we see that our largest "user" is *NA*, suggesting that most users leave a smallish number of reviews but that some leave reviews anonymously.
+
+
+```{r mec_top_reviewers}
+reviewers_mec %>%
+  top_n(10, wt = n) %>%
+  knitr::kable(col.names = c("Name", "# Reviews"),
+               align = c("l","c"))%>%
+  kableExtra::kable_styling(bootstrap_options = "striped")
+```
+
+The following table shows all 9 reviews by our top reviewer, Matt, in chronological order.
+
+```{r mec_top_reviewer}
+reviews_mec %>%
+  filter(user_name == "Matt") %>%
+  select(date, product_name, rating_num, comment) %>%
+  mutate(comment = str_trunc(comment, 70)) %>%
+  arrange(date) %>%
+  knitr::kable(booktabs = TRUE,
+               col.names = c("Date", "Product", "Stars", "Review"),
+               align = c("l","l","c","l"))
+
+# %>%
+#   kableExtra::kable_styling(bootstrap_options = "striped")
+```
+
+This looks like a legit usage pattern with real reviews. However, we should also spot-check some reviews assigned to *NA*:
+
+```{r mec_NA-reviews}
+reviews_mec %>%
+  filter(is.na(user_name)) %>%
+  select(date, product_name, rating_num, comment) %>%
+  slice_head(n=10) %>%
+  mutate(comment = str_trunc(comment, 70)) %>%
+  arrange(date) %>%
+  knitr::kable(booktabs = TRUE,
+               col.names = c("Date", "Business", "Stars", "Review"),
+               align = c("l","l","c","l"))
+
+# # %>%
+#   kableExtra::kable_styling(bootstrap_options = "striped")
+```
+
+These also look like legitimate reviews, so it's possible that these were legitimately left anonymously or that there was a data-parsing issue with the API.
+
+## Comparing Goodreads, MEC, and Yelp
+
+### Star Ratings
+
+When we compare Yelp and Goodreads reviews by the number of star ratings, the distributions look very similar. There are fewer Yelp reviews, but the shape of the distribution looks like a scaled-down version of the Goodreads distribution. There are far fewer MEC reviews, and it looks like the distribution has a slight second peak at 1 star.
+
+```{r gr_yp_hist}
+gr <- reviews_gr %>%
+  group_by(rating_num) %>%
+  summarise(gr = n())
+
+yp <- reviews_yelp %>%
+  group_by(rating_num) %>%
+  summarise(yp = n())
+
+mc <- reviews_mec %>%
+  group_by(rating_num) %>%
+  summarise(mc = n())
+
+compare <- left_join(gr, yp) %>%
+  left_join(mc)
+  
+compare_long <- compare %>%
+  pivot_longer(cols = c("gr", "yp","mc"), names_to = "source", values_to = "num")
+
+compare_long %>%
+  ggplot() +
+  geom_col(aes(x=rating_num, y=num, group=source, fill=source), position = "dodge") +
+  theme_minimal() +
+  labs(title = "Goodreads, MEC, and Yelp Reviews: Total Counts by Rating",
+       x = "Star Rating",
+       y = "n",
+       fill = "Source") +
+    scale_fill_viridis_d(labels = c("Goodreads", "MEC", "Yelp"))
+```
+
+ To get a better feel for how the distributions vary, we can plot the proportional breakdown of star reviews for each source. The following plot shows that the Goodreads and Yelp distributions track each other somewhat closely but the MEC reviews are quite different.
+
+```{r plot_prop}
+compare_long %>%
+  group_by(source) %>%
+  mutate(prop = num / sum(num)) %>%
+  ggplot() +
+  geom_col(aes(x=rating_num, y=prop, group=source, fill=source), position = "dodge") +
+  theme_minimal() +
+  labs(title = "Goodreads, MEC, and Yelp Reviews: Proportion of Counts by Rating",
+       x = "Star Rating",
+       y = "Proportion",
+       fill = "Source") +
+    scale_fill_viridis_d(labels = c("Goodreads", "MEC", "Yelp"))
+
+
+```
+
+We can use a standard Pearson's Chi-squared test to see if the Goodreads and Yelp distributions differ meaningfully. 
+
+```{r chisquared}
+
+t <- chisq.test(compare$gr, compare$yp)
+tt <- chisq.test(matrix(c(compare$gr, compare$yp), ncol=5))
+tt
+```
+
+We find that *yes*, we can reject the null hypothesis that there is no difference between the two distributions with a large amount of confidence. However, the two review distributions are still *qualitatively* similar, it's not clear that the  difference between them is large or meaningful--we could look into that later.
+
+### Word Counts
+
+Out of interest, let's also check the differences in word-count distributions between the three datasets. From the figure below, we can see that Yelp reviews tend to be much shorter than Goodreads reviews. Just by visual inspection, we can estimate that the 80th percentile Goodreads review is about 500 words, whereas the 80th percentile Yelp review is only about half of that. The MEC reviews are shortest of all.
+
+```{r wordcount_diffs}
+wordcounts_all <- wordcounts_gr %>%
+  select(n, cumdist) %>%
+  mutate(source = "goodreads") %>%
+  bind_rows( wordcounts_yelp %>%
+               select(n, cumdist) %>%
+               mutate(source = "yelp")) %>%
+  bind_rows( wordcounts_mec %>%
+               select(n, cumdist) %>%
+               mutate(source = "mec"))
+
+wordcounts_all %>%
+  group_by(source) %>%
+  mutate (prop = cumdist / max(cumdist)) %>%
+  ggplot() +
+  geom_point(aes(y=prop, x=n, colour = source)) +
+  labs(title = "Cumulative Distribution of Word Lengths",
+         subtitle = "Comparing Goodreads, MEC, and Yelp",
+         x = "Word Length",
+         y = "Cumulative Probability",
+       colour = "Source") +
+  scale_color_viridis_d(labels = c("Goodreads", "MEC", "Yelp")) +
+  theme_minimal()
+
+```
+
+To test for difference, we can confirm do a non-parametric Kolmogorov-Smirnov test to see if the Goodreads and Yelp distributions differ.
+
+```{r kolmogorov_smirnov}
+
+# pull the word lengths for goodreads into a vector
+grd <- wordcounts_all %>%
+  filter(source == "goodreads") %>%
+  pull(n)
+
+# pull the word lengths for yelp into a vector
+ypd <- wordcounts_all %>%
+  filter(source == "yelp") %>%
+  pull(n)
+
+# run KS test comparing the two vectors
+ks.test(grd, ypd)
+
+# remove the vectors to keep environment clean
+rm(grd, ypd)
+
+```
+
+We can again reject the null hypothesis that there is no difference between the two distributions. We can hypothesize about why there might be a difference: Goodreads reviewers are writing about books, and so might be expected to be interested in expressing themselves through writing. Yelp reviewers, by and large, are interested in restaurants, and so may not put as much effort into writing full reports.
+
+We might expect the difference in distributions to have an effect on our future modeling, since shorter reviews may contain less information.
+
+
+
+## Reviews Over Time
+
+This section looks at how our review datasets change over time, to see how recent reviews are and if there are any trends in volume.
+
+### Goodreads
+
+The following chart shows the monthly volume of reviews in the Goodreads dataset.
+
+```{r gr_reviews_over_time}
+reviews_gr %>%
+  mutate(dates = lubridate::ymd(dates) %>% lubridate::floor_date("months")) %>%
+  group_by(dates) %>%
+  summarise(n = n()) %>%
+  ggplot(aes(x=dates,y=n)) +
+  geom_line() +
+  theme_minimal() +
+  labs(title = "Goodreads Reviews: Monthly Volume of New Reviews",
+       x = "Date",
+       y = "# of Reviews")
+```
+
+While some reviews date from as far back as 2005, most reviews are from 2020 and the majority are from the past few months. However, it's unlikely that this distribution represents an actual exponential growth in the number of reviews posted. Instead, recall that I collected reviews for the 100 most-read books in the past week across a few genres. In other words, I collected reviews from books that were being reviewed a lot at that moment in time, so my data collection is heavily biased towards more recent reviews. There may a trend in usage--for example, home-bound readers may be posting more reviews during COVID-19--but we can't draw any conclusions from this distribution.
+
+### Yelp
+
+The following chart shows the monthly volume of reviews in the Yelp dataset.
+
+```{r yp_reviews_over_time}
+reviews_yelp %>%
+  mutate(date = lubridate::mdy(date) %>% lubridate::floor_date("months")) %>%
+  group_by(date) %>%
+  summarise(n = n()) %>%
+  ggplot(aes(x=date,y=n)) +
+  geom_line() +
+  theme_minimal() + 
+  labs(title = "Yelp Reviews: Monthly Volume of New Reviews",
+       x = "Date",
+       y = "# of Reviews")
+```
+
+Since I collected all Yelp reviews for restaurants in Ottawa, we can use this dataset to make statements about how review volumes have changed over time. We can see a steep decline in the early months of 2020, coinciding with the start of the COVID-19 pandemic and worldwide lockdowns. However, the volumes also tell an interesting story pre-COVID. From 2010 to 2015 we can see what looks like slow but steady growth, and then after 2015 usage increases dramatically. From 2015-2020 we can see what look like seasonal trends, but it looks like overall volumes stopped growing and may have started declining. In other words, Yelp may have been in trouble before the pandemic hit.
+
+For our purposes, we can be satisfied that our restaurant review dataset spans a long period of time both pre- and post-COVID.
+
+### MEC
+
+The following chart shows the monthly volume of reviews in the MEC dataset for each complete month. The data was collected in the first few days of November, so I have left November out.
+
+```{r mec_reviews_over_time}
+reviews_mec %>%
+  mutate(date = lubridate::floor_date(date, "months")) %>%
+  group_by(date) %>%
+  summarise(n = n()) %>%
+  slice_head(n = nrow(.)-1) %>%
+  ggplot(aes(x=date,y=n)) +
+  geom_line() +
+  theme_minimal() + 
+  labs(title = "MEC Reviews: Monthly Volume of New Reviews",
+       x = "Date",
+       y = "# of Reviews")
+```
+
+We can expect several biases in the MEC data, so we will need to be cautious about making inferences from this time series. First, I collected MEC data from only a few product categories which may have seasonal trends (e.g. biking in the summer, snowshoeing in the winter). Second, MEC only lists products on its website if they're currently for sale, so the maximum review age is limited by the longevity of MEC's product lines. So we should expect to see a decay in review volume as we go further back in time caused by MEC naturally rotating its product line. 
+
+That said, we can still see a big dip in early 2020 and then a big spike in summer 2020. This could correspond to a big drop in sales with the COVID lockdown and associated uncertainty, and then a bike spike in outdoor sporting goods as people tried to find socially distanced ways of entertaining themselves over the summer.
+
+Out of curiosity, here are the 10 oldest reviews in our dataset:
+
+```{r oldest_mec_reviews}
+reviews_mec %>%
+  arrange(date) %>%
+  slice_head(n=10) %>%
+  select(date, product_name, review_title)
+```
+
+Not surprisingly, 9 out of 10 are for standard bicycle components that are more about function than fashion: it seems that MEC and SRAM have been offering the same brake pads and chains for more than 10 years. 
+
+And we can take a look at the first review for the Zamberlan boots:
+
+```{r mec_boots}
+reviews_mec %>%
+  filter(product_name=="Zamberlan Vioz GT Gore-Tex Backpacking Boots - Women's") %>%
+  slice_head(n=1) %>%
+  transmute(date = date,
+            comment = str_trunc(comment, 150)) 
+  
+```
+
+These boots seem to have been around for a while (and certainly seem to have committed fans), so we can be confident that these reviews are legit.
+
+## Proposed Next Steps
+
+* Sentiment analysis
+* Regression models
+  * LASSO regression to predict star rating from review text.
+    * Potential to use minimum review length as a parameter.
+  * Linear regression to predict star rating from review sentiment.
+* Classification models
+
+## SessionInfo
+
+```{r sesionInfo}
+sessionInfo()
+```
+
