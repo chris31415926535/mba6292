@@ -51,6 +51,7 @@
 
 
 <script src="libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
+<script src="libs/kePrint-0.0.1/kePrint.js"></script>
 
 
 <style type="text/css">
@@ -185,6 +186,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="5.4" data-path="a-first-lasso-attempt.html"><a href="a-first-lasso-attempt.html#removing-stop-words"><i class="fa fa-check"></i><b>5.4</b> Removing stop words</a></li>
 <li class="chapter" data-level="5.5" data-path="a-first-lasso-attempt.html"><a href="a-first-lasso-attempt.html#adjusting-n-grams"><i class="fa fa-check"></i><b>5.5</b> Adjusting n-grams</a></li>
 <li class="chapter" data-level="5.6" data-path="a-first-lasso-attempt.html"><a href="a-first-lasso-attempt.html#full-final-regression"><i class="fa fa-check"></i><b>5.6</b> Full final regression</a></li>
+<li class="chapter" data-level="5.7" data-path="a-first-lasso-attempt.html"><a href="a-first-lasso-attempt.html#conclusion"><i class="fa fa-check"></i><b>5.7</b> Conclusion</a></li>
 </ul></li>
 <li class="chapter" data-level="6" data-path="yelp-classification-and-sentiment-test.html"><a href="yelp-classification-and-sentiment-test.html"><i class="fa fa-check"></i><b>6</b> Yelp Classification and Sentiment Test</a><ul>
 <li class="chapter" data-level="6.1" data-path="yelp-classification-and-sentiment-test.html"><a href="yelp-classification-and-sentiment-test.html#yelp-dataset"><i class="fa fa-check"></i><b>6.1</b> Yelp Dataset</a><ul>
@@ -345,50 +347,92 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb10-9"><a href="data-summary-eda-initial-model-attempts.html#cb10-9"></a>        <span class="dt">col.names =</span> <span class="kw">c</span>(<span class="st">&quot;Book Title&quot;</span>, <span class="st">&quot;Book Author&quot;</span>, <span class="st">&quot;Stars&quot;</span>, <span class="st">&quot;Review&quot;</span>),</span>
 <span id="cb10-10"><a href="data-summary-eda-initial-model-attempts.html#cb10-10"></a>        <span class="dt">align =</span> <span class="kw">c</span>(<span class="st">&quot;l&quot;</span>,<span class="st">&quot;l&quot;</span>,<span class="st">&quot;c&quot;</span>,<span class="st">&quot;l&quot;</span>)) </span></code></pre></div>
 <table>
-<colgroup>
-<col width="31%" />
-<col width="22%" />
-<col width="6%" />
-<col width="39%" />
-</colgroup>
 <thead>
-<tr class="header">
-<th align="left">Book Title</th>
-<th align="left">Book Author</th>
-<th align="center">Stars</th>
-<th align="left">Review</th>
+<tr>
+<th style="text-align:left;">
+Book Title
+</th>
+<th style="text-align:left;">
+Book Author
+</th>
+<th style="text-align:center;">
+Stars
+</th>
+<th style="text-align:left;">
+Review
+</th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td align="left">The Alchemist</td>
-<td align="left">Paulo Coelho</td>
-<td align="center">1</td>
-<td align="left">SUCKS.</td>
+<tr>
+<td style="text-align:left;">
+The Alchemist
+</td>
+<td style="text-align:left;">
+Paulo Coelho
+</td>
+<td style="text-align:center;">
+1
+</td>
+<td style="text-align:left;">
+SUCKS.
+</td>
 </tr>
-<tr class="even">
-<td align="left">The Mysterious Affair at Styles</td>
-<td align="left">Agatha Christie</td>
-<td align="center">5</td>
-<td align="left">Classic</td>
+<tr>
+<td style="text-align:left;">
+The Mysterious Affair at Styles
+</td>
+<td style="text-align:left;">
+Agatha Christie
+</td>
+<td style="text-align:center;">
+5
+</td>
+<td style="text-align:left;">
+Classic
+</td>
 </tr>
-<tr class="odd">
-<td align="left">Siddhartha</td>
-<td align="left">Hermann Hesse</td>
-<td align="center">2</td>
-<td align="left">Eh.</td>
+<tr>
+<td style="text-align:left;">
+Siddhartha
+</td>
+<td style="text-align:left;">
+Hermann Hesse
+</td>
+<td style="text-align:center;">
+2
+</td>
+<td style="text-align:left;">
+Eh.
+</td>
 </tr>
-<tr class="even">
-<td align="left">Treasure Island</td>
-<td align="left">Robert Louis Stevenson</td>
-<td align="center">5</td>
-<td align="left">ARRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR…</td>
+<tr>
+<td style="text-align:left;">
+Treasure Island
+</td>
+<td style="text-align:left;">
+Robert Louis Stevenson
+</td>
+<td style="text-align:center;">
+5
+</td>
+<td style="text-align:left;">
+ARRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR…
+</td>
 </tr>
-<tr class="odd">
-<td align="left">Logan Likes Mary Anne!</td>
-<td align="left">Gale Galligan</td>
-<td align="center">4</td>
-<td align="left">cool</td>
+<tr>
+<td style="text-align:left;">
+Logan Likes Mary Anne!
+</td>
+<td style="text-align:left;">
+Gale Galligan
+</td>
+<td style="text-align:center;">
+4
+</td>
+<td style="text-align:left;">
+cool
+</td>
 </tr>
 </tbody>
 </table>
@@ -442,83 +486,171 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb18-7"><a href="data-summary-eda-initial-model-attempts.html#cb18-7"></a><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(<span class="dt">col.names =</span> <span class="kw">c</span>(<span class="st">&quot;Book Title&quot;</span>, <span class="st">&quot;Book Author&quot;</span>, <span class="st">&quot;Stars&quot;</span>, <span class="st">&quot;Review&quot;</span>),</span>
 <span id="cb18-8"><a href="data-summary-eda-initial-model-attempts.html#cb18-8"></a>               <span class="dt">align =</span> <span class="kw">c</span>(<span class="st">&quot;l&quot;</span>,<span class="st">&quot;l&quot;</span>,<span class="st">&quot;c&quot;</span>,<span class="st">&quot;l&quot;</span>))</span></code></pre></div>
 <table>
-<colgroup>
-<col width="15%" />
-<col width="15%" />
-<col width="5%" />
-<col width="63%" />
-</colgroup>
 <thead>
-<tr class="header">
-<th align="left">Book Title</th>
-<th align="left">Book Author</th>
-<th align="center">Stars</th>
-<th align="left">Review</th>
+<tr>
+<th style="text-align:left;">
+Book Title
+</th>
+<th style="text-align:left;">
+Book Author
+</th>
+<th style="text-align:center;">
+Stars
+</th>
+<th style="text-align:left;">
+Review
+</th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td align="left">Romeo and Juliet</td>
-<td align="left">William Shakespeare</td>
-<td align="center">5</td>
-<td align="left">Romeo and Juliet = The Tragedy of Romeo and Juliet, William ShakespeareRomeo …</td>
+<tr>
+<td style="text-align:left;">
+Romeo and Juliet
+</td>
+<td style="text-align:left;">
+William Shakespeare
+</td>
+<td style="text-align:center;">
+5
+</td>
+<td style="text-align:left;">
+Romeo and Juliet = The Tragedy of Romeo and Juliet, William ShakespeareRomeo …
+</td>
 </tr>
-<tr class="even">
-<td align="left">Othello</td>
-<td align="left">William Shakespeare</td>
-<td align="center">4</td>
-<td align="left">Othello = The Tragedy of Othello, William ShakespeareOthello (The Tragedy of …</td>
+<tr>
+<td style="text-align:left;">
+Othello
+</td>
+<td style="text-align:left;">
+William Shakespeare
+</td>
+<td style="text-align:center;">
+4
+</td>
+<td style="text-align:left;">
+Othello = The Tragedy of Othello, William ShakespeareOthello (The Tragedy of …
+</td>
 </tr>
-<tr class="odd">
-<td align="left">Othello</td>
-<td align="left">William Shakespeare</td>
-<td align="center">5</td>
-<td align="left">The Tragedy of Othello, The Moor of Venice, William ShakespeareOthello is a t…</td>
+<tr>
+<td style="text-align:left;">
+Othello
+</td>
+<td style="text-align:left;">
+William Shakespeare
+</td>
+<td style="text-align:center;">
+5
+</td>
+<td style="text-align:left;">
+The Tragedy of Othello, The Moor of Venice, William ShakespeareOthello is a t…
+</td>
 </tr>
-<tr class="even">
-<td align="left">Lord of the Flies</td>
-<td align="left">William Golding</td>
-<td align="center">4</td>
-<td align="left">508. Lord of the flies, William GoldingLord of the Flies is a 1954 novel by N…</td>
+<tr>
+<td style="text-align:left;">
+Lord of the Flies
+</td>
+<td style="text-align:left;">
+William Golding
+</td>
+<td style="text-align:center;">
+4
+</td>
+<td style="text-align:left;">
+<ol start="508" style="list-style-type: decimal">
+<li>Lord of the flies, William GoldingLord of the Flies is a 1954 novel by N…
+</td>
 </tr>
-<tr class="odd">
-<td align="left">A Room of One’s Own</td>
-<td align="left">Virginia Woolf</td>
-<td align="center">4</td>
-<td align="left">A Room of One’s Own, Virginia WoolfA Room of One’s Own is an extended essay b…</td>
+<tr>
+<td style="text-align:left;">
+A Room of One’s Own
+</td>
+<td style="text-align:left;">
+Virginia Woolf
+</td>
+<td style="text-align:center;">
+4
+</td>
+<td style="text-align:left;">
+A Room of One’s Own, Virginia WoolfA Room of One’s Own is an extended essay b…
+</td>
 </tr>
-<tr class="even">
-<td align="left">Beowulf</td>
-<td align="left">Unknown</td>
-<td align="center">5</td>
-<td align="left">Beowulf, Anonymous Anglo-Saxon poetBeowulf is an Old English epic poem consis…</td>
+<tr>
+<td style="text-align:left;">
+Beowulf
+</td>
+<td style="text-align:left;">
+Unknown
+</td>
+<td style="text-align:center;">
+5
+</td>
+<td style="text-align:left;">
+Beowulf, Anonymous Anglo-Saxon poetBeowulf is an Old English epic poem consis…
+</td>
 </tr>
-<tr class="odd">
-<td align="left">In Cold Blood</td>
-<td align="left">Truman Capote</td>
-<td align="center">4</td>
-<td align="left">In Cold Blood, Truman CapoteThis article is about the book by Truman Capote. …</td>
+<tr>
+<td style="text-align:left;">
+In Cold Blood
+</td>
+<td style="text-align:left;">
+Truman Capote
+</td>
+<td style="text-align:center;">
+4
+</td>
+<td style="text-align:left;">
+In Cold Blood, Truman CapoteThis article is about the book by Truman Capote. …
+</td>
 </tr>
-<tr class="even">
-<td align="left">The Bluest Eye</td>
-<td align="left">Toni Morrison</td>
-<td align="center">4</td>
-<td align="left">365. The Bluest Eye, Toni MorrisonThe Bluest Eye is a novel written by Toni M…</td>
+<tr>
+<td style="text-align:left;">
+The Bluest Eye
+</td>
+<td style="text-align:left;">
+Toni Morrison
+</td>
+<td style="text-align:center;">
+4
+</td>
+<td style="text-align:left;">
+<ol start="365" style="list-style-type: decimal">
+<li>The Bluest Eye, Toni MorrisonThe Bluest Eye is a novel written by Toni M…
+</td>
 </tr>
-<tr class="odd">
-<td align="left">The Bell Jar</td>
-<td align="left">Sylvia Plath</td>
-<td align="center">4</td>
-<td align="left">433. Victoria Lucas = The Bell Jar, Sylvia PlathThe Bell Jar is the only nove…</td>
+<tr>
+<td style="text-align:left;">
+The Bell Jar
+</td>
+<td style="text-align:left;">
+Sylvia Plath
+</td>
+<td style="text-align:center;">
+4
+</td>
+<td style="text-align:left;">
+<ol start="433" style="list-style-type: decimal">
+<li>Victoria Lucas = The Bell Jar, Sylvia PlathThe Bell Jar is the only nove…
+</td>
 </tr>
-<tr class="even">
-<td align="left">The Shining</td>
-<td align="left">Stephen King</td>
-<td align="center">4</td>
-<td align="left">The Shining (The Shining #1), Stephen KingThe Shining is a horror novel by Am…</td>
+<tr>
+<td style="text-align:left;">
+The Shining
+</td>
+<td style="text-align:left;">
+Stephen King
+</td>
+<td style="text-align:center;">
+4
+</td>
+<td style="text-align:left;">
+The Shining (The Shining #1), Stephen KingThe Shining is a horror novel by Am…
+</td>
 </tr>
 </tbody>
-</table>
+</table></li>
+</ol></li>
+</ol></li>
+</ol>
 <div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="data-summary-eda-initial-model-attempts.html#cb19-1"></a><span class="co"># </span></span>
 <span id="cb19-2"><a href="data-summary-eda-initial-model-attempts.html#cb19-2"></a><span class="co"># %&gt;%</span></span>
 <span id="cb19-3"><a href="data-summary-eda-initial-model-attempts.html#cb19-3"></a><span class="co">#   kableExtra::kable_styling(bootstrap_options = &quot;striped&quot;)</span></span></code></pre></div>
@@ -604,37 +736,73 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb27-10"><a href="data-summary-eda-initial-model-attempts.html#cb27-10"></a>        <span class="dt">align =</span> <span class="kw">c</span>(<span class="st">&quot;l&quot;</span>,<span class="st">&quot;c&quot;</span>,<span class="st">&quot;l&quot;</span>)) </span></code></pre></div>
 <table>
 <thead>
-<tr class="header">
-<th align="left">Business</th>
-<th align="center">Stars</th>
-<th align="left">Review</th>
+<tr>
+<th style="text-align:left;">
+Business
+</th>
+<th style="text-align:center;">
+Stars
+</th>
+<th style="text-align:left;">
+Review
+</th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td align="left">Kallisto Greek Restaurant</td>
-<td align="center">4</td>
-<td align="left">Great takeout, service, ambiance and …</td>
+<tr>
+<td style="text-align:left;">
+Kallisto Greek Restaurant
+</td>
+<td style="text-align:center;">
+4
+</td>
+<td style="text-align:left;">
+Great takeout, service, ambiance and …
+</td>
 </tr>
-<tr class="even">
-<td align="left">Bite Burger House</td>
-<td align="center">4</td>
-<td align="left">Delicious, juicy, interesting burgers…</td>
+<tr>
+<td style="text-align:left;">
+Bite Burger House
+</td>
+<td style="text-align:center;">
+4
+</td>
+<td style="text-align:left;">
+Delicious, juicy, interesting burgers…
+</td>
 </tr>
-<tr class="odd">
-<td align="left">BeaverTails</td>
-<td align="center">4</td>
-<td align="left">BeaverTails pastry..no words needed…..</td>
+<tr>
+<td style="text-align:left;">
+BeaverTails
+</td>
+<td style="text-align:center;">
+4
+</td>
+<td style="text-align:left;">
+BeaverTails pastry..no words needed…..
+</td>
 </tr>
-<tr class="even">
-<td align="left">Saigon Boy Noodle House</td>
-<td align="center">3</td>
-<td align="left">Very decent pho shop, well priced.</td>
+<tr>
+<td style="text-align:left;">
+Saigon Boy Noodle House
+</td>
+<td style="text-align:center;">
+3
+</td>
+<td style="text-align:left;">
+Very decent pho shop, well priced.
+</td>
 </tr>
-<tr class="odd">
-<td align="left">Supreme Kabob House</td>
-<td align="center">5</td>
-<td align="left">Excellent Afghani Food and Good Space</td>
+<tr>
+<td style="text-align:left;">
+Supreme Kabob House
+</td>
+<td style="text-align:center;">
+5
+</td>
+<td style="text-align:left;">
+Excellent Afghani Food and Good Space
+</td>
 </tr>
 </tbody>
 </table>
@@ -668,51 +836,95 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb33-4"><a href="data-summary-eda-initial-model-attempts.html#cb33-4"></a>               <span class="dt">align =</span> <span class="kw">c</span>(<span class="st">&quot;l&quot;</span>,<span class="st">&quot;c&quot;</span>))</span></code></pre></div>
 <table>
 <thead>
-<tr class="header">
-<th align="left">Name</th>
-<th align="center"># Reviews</th>
+<tr>
+<th style="text-align:left;">
+Name
+</th>
+<th style="text-align:center;">
+# Reviews
+</th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td align="left">Jennifer P.</td>
-<td align="center">78</td>
+<tr>
+<td style="text-align:left;">
+Jennifer P.
+</td>
+<td style="text-align:center;">
+78
+</td>
 </tr>
-<tr class="even">
-<td align="left">Amelia J.</td>
-<td align="center">77</td>
+<tr>
+<td style="text-align:left;">
+Amelia J.
+</td>
+<td style="text-align:center;">
+77
+</td>
 </tr>
-<tr class="odd">
-<td align="left">Dawn M.</td>
-<td align="center">51</td>
+<tr>
+<td style="text-align:left;">
+Dawn M.
+</td>
+<td style="text-align:center;">
+51
+</td>
 </tr>
-<tr class="even">
-<td align="left">Samantha M.</td>
-<td align="center">44</td>
+<tr>
+<td style="text-align:left;">
+Samantha M.
+</td>
+<td style="text-align:center;">
+44
+</td>
 </tr>
-<tr class="odd">
-<td align="left">Eric B.</td>
-<td align="center">41</td>
+<tr>
+<td style="text-align:left;">
+Eric B.
+</td>
+<td style="text-align:center;">
+41
+</td>
 </tr>
-<tr class="even">
-<td align="left">Amanda B.</td>
-<td align="center">35</td>
+<tr>
+<td style="text-align:left;">
+Amanda B.
+</td>
+<td style="text-align:center;">
+35
+</td>
 </tr>
-<tr class="odd">
-<td align="left">Coy W.</td>
-<td align="center">34</td>
+<tr>
+<td style="text-align:left;">
+Coy W.
+</td>
+<td style="text-align:center;">
+34
+</td>
 </tr>
-<tr class="even">
-<td align="left">Drew K.</td>
-<td align="center">27</td>
+<tr>
+<td style="text-align:left;">
+Drew K.
+</td>
+<td style="text-align:center;">
+27
+</td>
 </tr>
-<tr class="odd">
-<td align="left">Spike D.</td>
-<td align="center">25</td>
+<tr>
+<td style="text-align:left;">
+Spike D.
+</td>
+<td style="text-align:center;">
+25
+</td>
 </tr>
-<tr class="even">
-<td align="left">Amy B.</td>
-<td align="center">23</td>
+<tr>
+<td style="text-align:left;">
+Amy B.
+</td>
+<td style="text-align:center;">
+23
+</td>
 </tr>
 </tbody>
 </table>
@@ -731,80 +943,162 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb35-9"><a href="data-summary-eda-initial-model-attempts.html#cb35-9"></a>               <span class="dt">col.names =</span> <span class="kw">c</span>(<span class="st">&quot;Date&quot;</span>, <span class="st">&quot;Business&quot;</span>, <span class="st">&quot;Stars&quot;</span>, <span class="st">&quot;Review&quot;</span>),</span>
 <span id="cb35-10"><a href="data-summary-eda-initial-model-attempts.html#cb35-10"></a>               <span class="dt">align =</span> <span class="kw">c</span>(<span class="st">&quot;l&quot;</span>,<span class="st">&quot;l&quot;</span>,<span class="st">&quot;c&quot;</span>,<span class="st">&quot;l&quot;</span>))</span></code></pre></div>
 <table>
-<colgroup>
-<col width="9%" />
-<col width="25%" />
-<col width="5%" />
-<col width="59%" />
-</colgroup>
 <thead>
-<tr class="header">
-<th align="left">Date</th>
-<th align="left">Business</th>
-<th align="center">Stars</th>
-<th align="left">Review</th>
+<tr>
+<th style="text-align:left;">
+Date
+</th>
+<th style="text-align:left;">
+Business
+</th>
+<th style="text-align:center;">
+Stars
+</th>
+<th style="text-align:left;">
+Review
+</th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td align="left">2012-06-22</td>
-<td align="left">Mr B’s-March House Restaurant</td>
-<td align="center">4</td>
-<td align="left">I never would have tried this restaurant had it not been recommende…</td>
+<tr>
+<td style="text-align:left;">
+2012-06-22
+</td>
+<td style="text-align:left;">
+Mr B’s-March House Restaurant
+</td>
+<td style="text-align:center;">
+4
+</td>
+<td style="text-align:left;">
+I never would have tried this restaurant had it not been recommende…
+</td>
 </tr>
-<tr class="even">
-<td align="left">2012-07-04</td>
-<td align="left">Alirang Restaurant</td>
-<td align="center">3</td>
-<td align="left">I was here last week with my husband, my brother and his girlfriend…</td>
+<tr>
+<td style="text-align:left;">
+2012-07-04
+</td>
+<td style="text-align:left;">
+Alirang Restaurant
+</td>
+<td style="text-align:center;">
+3
+</td>
+<td style="text-align:left;">
+I was here last week with my husband, my brother and his girlfriend…
+</td>
 </tr>
-<tr class="odd">
-<td align="left">2013-01-24</td>
-<td align="left">Corazón De Maíz</td>
-<td align="center">4</td>
-<td align="left">I can&amp;#39;t believe that I walk by this place all the time, but…</td>
+<tr>
+<td style="text-align:left;">
+2013-01-24
+</td>
+<td style="text-align:left;">
+Corazón De Maíz
+</td>
+<td style="text-align:center;">
+4
+</td>
+<td style="text-align:left;">
+I can&amp;amp;#39;t believe that I walk by this place all the time, but…
+</td>
 </tr>
-<tr class="even">
-<td align="left">2013-06-24</td>
-<td align="left">222 Lyon Tapas Bar</td>
-<td align="center">5</td>
-<td align="left">This place is absolutely delicious, but man is it ever expensive!  …</td>
+<tr>
+<td style="text-align:left;">
+2013-06-24
+</td>
+<td style="text-align:left;">
+222 Lyon Tapas Bar
+</td>
+<td style="text-align:center;">
+5
+</td>
+<td style="text-align:left;">
+This place is absolutely delicious, but man is it ever expensive!  …
+</td>
 </tr>
-<tr class="odd">
-<td align="left">2013-09-02</td>
-<td align="left">Benny’s Bistro</td>
-<td align="center">5</td>
-<td align="left">I was visiting from out of town for my best friend&amp;#39;s weddin…</td>
+<tr>
+<td style="text-align:left;">
+2013-09-02
+</td>
+<td style="text-align:left;">
+Benny’s Bistro
+</td>
+<td style="text-align:center;">
+5
+</td>
+<td style="text-align:left;">
+I was visiting from out of town for my best friend&amp;amp;#39;s weddin…
+</td>
 </tr>
-<tr class="even">
-<td align="left">2013-09-20</td>
-<td align="left">Art Is In Bakery</td>
-<td align="center">4</td>
-<td align="left">My husband and I were here for their Sunday Brunch recently with an…</td>
+<tr>
+<td style="text-align:left;">
+2013-09-20
+</td>
+<td style="text-align:left;">
+Art Is In Bakery
+</td>
+<td style="text-align:center;">
+4
+</td>
+<td style="text-align:left;">
+My husband and I were here for their Sunday Brunch recently with an…
+</td>
 </tr>
-<tr class="odd">
-<td align="left">2013-11-22</td>
-<td align="left">Gezellig</td>
-<td align="center">3</td>
-<td align="left">Sorry, I&amp;#39;m going to have to downgrade this place to 3 stars…</td>
+<tr>
+<td style="text-align:left;">
+2013-11-22
+</td>
+<td style="text-align:left;">
+Gezellig
+</td>
+<td style="text-align:center;">
+3
+</td>
+<td style="text-align:left;">
+Sorry, I&amp;amp;#39;m going to have to downgrade this place to 3 stars…
+</td>
 </tr>
-<tr class="even">
-<td align="left">2013-12-30</td>
-<td align="left">Thai Coconut</td>
-<td align="center">4</td>
-<td align="left">I went here with my husband today for the lunch buffet.  It was gre…</td>
+<tr>
+<td style="text-align:left;">
+2013-12-30
+</td>
+<td style="text-align:left;">
+Thai Coconut
+</td>
+<td style="text-align:center;">
+4
+</td>
+<td style="text-align:left;">
+I went here with my husband today for the lunch buffet.  It was gre…
+</td>
 </tr>
-<tr class="odd">
-<td align="left">2014-05-07</td>
-<td align="left">Bite Burger House</td>
-<td align="center">4</td>
-<td align="left">I had an early dinner here with my husband recently.  Bite Burger H…</td>
+<tr>
+<td style="text-align:left;">
+2014-05-07
+</td>
+<td style="text-align:left;">
+Bite Burger House
+</td>
+<td style="text-align:center;">
+4
+</td>
+<td style="text-align:left;">
+I had an early dinner here with my husband recently.  Bite Burger H…
+</td>
 </tr>
-<tr class="even">
-<td align="left">2014-07-07</td>
-<td align="left">Pookies Thai</td>
-<td align="center">4</td>
-<td align="left">I went here for dinner recently with my husband on a whim.  We&amp;…</td>
+<tr>
+<td style="text-align:left;">
+2014-07-07
+</td>
+<td style="text-align:left;">
+Pookies Thai
+</td>
+<td style="text-align:center;">
+4
+</td>
+<td style="text-align:left;">
+I went here for dinner recently with my husband on a whim.  We&amp;amp;…
+</td>
 </tr>
 </tbody>
 </table>
@@ -885,43 +1179,74 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb41-9"><a href="data-summary-eda-initial-model-attempts.html#cb41-9"></a>        <span class="dt">col.names =</span> <span class="kw">c</span>(<span class="st">&quot;Business&quot;</span>, <span class="st">&quot;Stars&quot;</span>, <span class="st">&quot;Review&quot;</span>),</span>
 <span id="cb41-10"><a href="data-summary-eda-initial-model-attempts.html#cb41-10"></a>        <span class="dt">align =</span> <span class="kw">c</span>(<span class="st">&quot;l&quot;</span>,<span class="st">&quot;c&quot;</span>,<span class="st">&quot;l&quot;</span>))</span></code></pre></div>
 <table>
-<colgroup>
-<col width="46%" />
-<col width="7%" />
-<col width="46%" />
-</colgroup>
 <thead>
-<tr class="header">
-<th align="left">Business</th>
-<th align="center">Stars</th>
-<th align="left">Review</th>
+<tr>
+<th style="text-align:left;">
+Business
+</th>
+<th style="text-align:center;">
+Stars
+</th>
+<th style="text-align:left;">
+Review
+</th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td align="left">MEC 700 x 23-25C Tube (48mm Presta Va…</td>
-<td align="center">2</td>
-<td align="left">Lasted 1 season basically disposable</td>
+<tr>
+<td style="text-align:left;">
+MEC 700 x 23-25C Tube (48mm Presta Va…
+</td>
+<td style="text-align:center;">
+2
+</td>
+<td style="text-align:left;">
+Lasted 1 season basically disposable
+</td>
 </tr>
-<tr class="even">
-<td align="left">Smartwool Liner Gloves - Unisex</td>
-<td align="center">5</td>
-<td align="left">Love smartwool products, the gloves a…</td>
+<tr>
+<td style="text-align:left;">
+Smartwool Liner Gloves - Unisex
+</td>
+<td style="text-align:center;">
+5
+</td>
+<td style="text-align:left;">
+Love smartwool products, the gloves a…
+</td>
 </tr>
-<tr class="odd">
-<td align="left">Scarpa Moraine Mid Gore-Tex Light Tra…</td>
-<td align="center">5</td>
-<td align="left">light, comfortable and good looking! …</td>
+<tr>
+<td style="text-align:left;">
+Scarpa Moraine Mid Gore-Tex Light Tra…
+</td>
+<td style="text-align:center;">
+5
+</td>
+<td style="text-align:left;">
+light, comfortable and good looking! …
+</td>
 </tr>
-<tr class="even">
-<td align="left">Scarpa Moraine Mid Gore-Tex Light Tra…</td>
-<td align="center">4</td>
-<td align="left">good pair of shoes. lightweight but …</td>
+<tr>
+<td style="text-align:left;">
+Scarpa Moraine Mid Gore-Tex Light Tra…
+</td>
+<td style="text-align:center;">
+4
+</td>
+<td style="text-align:left;">
+good pair of shoes. lightweight but …
+</td>
 </tr>
-<tr class="odd">
-<td align="left">La Sportiva TC Pro Rock Shoes - Unisex</td>
-<td align="center">5</td>
-<td align="left">Flat stiff shoe. Perfect for vertical…</td>
+<tr>
+<td style="text-align:left;">
+La Sportiva TC Pro Rock Shoes - Unisex
+</td>
+<td style="text-align:center;">
+5
+</td>
+<td style="text-align:left;">
+Flat stiff shoe. Perfect for vertical…
+</td>
 </tr>
 </tbody>
 </table>
@@ -954,71 +1279,117 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb47-3"><a href="data-summary-eda-initial-model-attempts.html#cb47-3"></a><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(<span class="dt">col.names =</span> <span class="kw">c</span>(<span class="st">&quot;Name&quot;</span>, <span class="st">&quot;# Reviews&quot;</span>),</span>
 <span id="cb47-4"><a href="data-summary-eda-initial-model-attempts.html#cb47-4"></a>               <span class="dt">align =</span> <span class="kw">c</span>(<span class="st">&quot;l&quot;</span>,<span class="st">&quot;c&quot;</span>))<span class="op">%&gt;%</span></span>
 <span id="cb47-5"><a href="data-summary-eda-initial-model-attempts.html#cb47-5"></a><span class="st">  </span>kableExtra<span class="op">::</span><span class="kw">kable_styling</span>(<span class="dt">bootstrap_options =</span> <span class="st">&quot;striped&quot;</span>)</span></code></pre></div>
-<pre><code>## Warning in kableExtra::kable_styling(., bootstrap_options = &quot;striped&quot;): Please specify format in kable. kableExtra can customize either HTML or LaTeX outputs. See https://
-## haozhu233.github.io/kableExtra/ for details.</code></pre>
-<table>
+<table class="table table-striped" style="margin-left: auto; margin-right: auto;">
 <thead>
-<tr class="header">
-<th align="left">Name</th>
-<th align="center"># Reviews</th>
+<tr>
+<th style="text-align:left;">
+Name
+</th>
+<th style="text-align:center;">
+# Reviews
+</th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td align="left">NA</td>
-<td align="center">76</td>
+<tr>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:center;">
+76
+</td>
 </tr>
-<tr class="even">
-<td align="left">Matt</td>
-<td align="center">9</td>
+<tr>
+<td style="text-align:left;">
+Matt
+</td>
+<td style="text-align:center;">
+9
+</td>
 </tr>
-<tr class="odd">
-<td align="left">Chris</td>
-<td align="center">8</td>
+<tr>
+<td style="text-align:left;">
+Chris
+</td>
+<td style="text-align:center;">
+8
+</td>
 </tr>
-<tr class="even">
-<td align="left">Mike</td>
-<td align="center">8</td>
+<tr>
+<td style="text-align:left;">
+Mike
+</td>
+<td style="text-align:center;">
+8
+</td>
 </tr>
-<tr class="odd">
-<td align="left">Ryan</td>
-<td align="center">7</td>
+<tr>
+<td style="text-align:left;">
+Ryan
+</td>
+<td style="text-align:center;">
+7
+</td>
 </tr>
-<tr class="even">
-<td align="left">John</td>
-<td align="center">6</td>
+<tr>
+<td style="text-align:left;">
+John
+</td>
+<td style="text-align:center;">
+6
+</td>
 </tr>
-<tr class="odd">
-<td align="left">Mark</td>
-<td align="center">6</td>
+<tr>
+<td style="text-align:left;">
+Mark
+</td>
+<td style="text-align:center;">
+6
+</td>
 </tr>
-<tr class="even">
-<td align="left">VicCyclist40</td>
-<td align="center">6</td>
+<tr>
+<td style="text-align:left;">
+VicCyclist40
+</td>
+<td style="text-align:center;">
+6
+</td>
 </tr>
-<tr class="odd">
-<td align="left">Dave</td>
-<td align="center">5</td>
+<tr>
+<td style="text-align:left;">
+Dave
+</td>
+<td style="text-align:center;">
+5
+</td>
 </tr>
-<tr class="even">
-<td align="left">Paul</td>
-<td align="center">5</td>
+<tr>
+<td style="text-align:left;">
+Paul
+</td>
+<td style="text-align:center;">
+5
+</td>
 </tr>
-<tr class="odd">
-<td align="left">Steph</td>
-<td align="center">5</td>
+<tr>
+<td style="text-align:left;">
+Steph
+</td>
+<td style="text-align:center;">
+5
+</td>
 </tr>
 </tbody>
 </table>
 <p>The following table shows all 9 reviews by our top reviewer, Matt, in chronological order.</p>
-<div class="sourceCode" id="cb49"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb49-1"><a href="data-summary-eda-initial-model-attempts.html#cb49-1"></a>reviews_mec <span class="op">%&gt;%</span></span>
-<span id="cb49-2"><a href="data-summary-eda-initial-model-attempts.html#cb49-2"></a><span class="st">  </span><span class="kw">filter</span>(user_name <span class="op">==</span><span class="st"> &quot;Matt&quot;</span>) <span class="op">%&gt;%</span></span>
-<span id="cb49-3"><a href="data-summary-eda-initial-model-attempts.html#cb49-3"></a><span class="st">  </span><span class="kw">select</span>(date, product_name, rating_num, comment) <span class="op">%&gt;%</span></span>
-<span id="cb49-4"><a href="data-summary-eda-initial-model-attempts.html#cb49-4"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">comment =</span> <span class="kw">str_trunc</span>(comment, <span class="dv">70</span>)) <span class="op">%&gt;%</span></span>
-<span id="cb49-5"><a href="data-summary-eda-initial-model-attempts.html#cb49-5"></a><span class="st">  </span><span class="kw">arrange</span>(date) <span class="op">%&gt;%</span></span>
-<span id="cb49-6"><a href="data-summary-eda-initial-model-attempts.html#cb49-6"></a><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(<span class="dt">booktabs =</span> <span class="ot">TRUE</span>,</span>
-<span id="cb49-7"><a href="data-summary-eda-initial-model-attempts.html#cb49-7"></a>               <span class="dt">col.names =</span> <span class="kw">c</span>(<span class="st">&quot;Date&quot;</span>, <span class="st">&quot;Product&quot;</span>, <span class="st">&quot;Stars&quot;</span>, <span class="st">&quot;Review&quot;</span>),</span>
-<span id="cb49-8"><a href="data-summary-eda-initial-model-attempts.html#cb49-8"></a>               <span class="dt">align =</span> <span class="kw">c</span>(<span class="st">&quot;l&quot;</span>,<span class="st">&quot;l&quot;</span>,<span class="st">&quot;c&quot;</span>,<span class="st">&quot;l&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb48"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb48-1"><a href="data-summary-eda-initial-model-attempts.html#cb48-1"></a>reviews_mec <span class="op">%&gt;%</span></span>
+<span id="cb48-2"><a href="data-summary-eda-initial-model-attempts.html#cb48-2"></a><span class="st">  </span><span class="kw">filter</span>(user_name <span class="op">==</span><span class="st"> &quot;Matt&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb48-3"><a href="data-summary-eda-initial-model-attempts.html#cb48-3"></a><span class="st">  </span><span class="kw">select</span>(date, product_name, rating_num, comment) <span class="op">%&gt;%</span></span>
+<span id="cb48-4"><a href="data-summary-eda-initial-model-attempts.html#cb48-4"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">comment =</span> <span class="kw">str_trunc</span>(comment, <span class="dv">70</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb48-5"><a href="data-summary-eda-initial-model-attempts.html#cb48-5"></a><span class="st">  </span><span class="kw">arrange</span>(date) <span class="op">%&gt;%</span></span>
+<span id="cb48-6"><a href="data-summary-eda-initial-model-attempts.html#cb48-6"></a><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(<span class="dt">booktabs =</span> <span class="ot">TRUE</span>,</span>
+<span id="cb48-7"><a href="data-summary-eda-initial-model-attempts.html#cb48-7"></a>               <span class="dt">col.names =</span> <span class="kw">c</span>(<span class="st">&quot;Date&quot;</span>, <span class="st">&quot;Product&quot;</span>, <span class="st">&quot;Stars&quot;</span>, <span class="st">&quot;Review&quot;</span>),</span>
+<span id="cb48-8"><a href="data-summary-eda-initial-model-attempts.html#cb48-8"></a>               <span class="dt">align =</span> <span class="kw">c</span>(<span class="st">&quot;l&quot;</span>,<span class="st">&quot;l&quot;</span>,<span class="st">&quot;c&quot;</span>,<span class="st">&quot;l&quot;</span>))</span></code></pre></div>
 <table>
 <thead>
 <tr>
@@ -1165,18 +1536,18 @@ I recently bought this mattress for car camping and it is incredibl…
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb50"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb50-1"><a href="data-summary-eda-initial-model-attempts.html#cb50-1"></a><span class="co"># %&gt;%</span></span>
-<span id="cb50-2"><a href="data-summary-eda-initial-model-attempts.html#cb50-2"></a><span class="co">#   kableExtra::kable_styling(bootstrap_options = &quot;striped&quot;)</span></span></code></pre></div>
+<div class="sourceCode" id="cb49"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb49-1"><a href="data-summary-eda-initial-model-attempts.html#cb49-1"></a><span class="co"># %&gt;%</span></span>
+<span id="cb49-2"><a href="data-summary-eda-initial-model-attempts.html#cb49-2"></a><span class="co">#   kableExtra::kable_styling(bootstrap_options = &quot;striped&quot;)</span></span></code></pre></div>
 <p>This looks like a legit usage pattern with real reviews. However, we should also spot-check some reviews assigned to <em>NA</em>:</p>
-<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb51-1"><a href="data-summary-eda-initial-model-attempts.html#cb51-1"></a>reviews_mec <span class="op">%&gt;%</span></span>
-<span id="cb51-2"><a href="data-summary-eda-initial-model-attempts.html#cb51-2"></a><span class="st">  </span><span class="kw">filter</span>(<span class="kw">is.na</span>(user_name)) <span class="op">%&gt;%</span></span>
-<span id="cb51-3"><a href="data-summary-eda-initial-model-attempts.html#cb51-3"></a><span class="st">  </span><span class="kw">select</span>(date, product_name, rating_num, comment) <span class="op">%&gt;%</span></span>
-<span id="cb51-4"><a href="data-summary-eda-initial-model-attempts.html#cb51-4"></a><span class="st">  </span><span class="kw">slice_head</span>(<span class="dt">n=</span><span class="dv">10</span>) <span class="op">%&gt;%</span></span>
-<span id="cb51-5"><a href="data-summary-eda-initial-model-attempts.html#cb51-5"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">comment =</span> <span class="kw">str_trunc</span>(comment, <span class="dv">70</span>)) <span class="op">%&gt;%</span></span>
-<span id="cb51-6"><a href="data-summary-eda-initial-model-attempts.html#cb51-6"></a><span class="st">  </span><span class="kw">arrange</span>(date) <span class="op">%&gt;%</span></span>
-<span id="cb51-7"><a href="data-summary-eda-initial-model-attempts.html#cb51-7"></a><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(<span class="dt">booktabs =</span> <span class="ot">TRUE</span>,</span>
-<span id="cb51-8"><a href="data-summary-eda-initial-model-attempts.html#cb51-8"></a>               <span class="dt">col.names =</span> <span class="kw">c</span>(<span class="st">&quot;Date&quot;</span>, <span class="st">&quot;Business&quot;</span>, <span class="st">&quot;Stars&quot;</span>, <span class="st">&quot;Review&quot;</span>),</span>
-<span id="cb51-9"><a href="data-summary-eda-initial-model-attempts.html#cb51-9"></a>               <span class="dt">align =</span> <span class="kw">c</span>(<span class="st">&quot;l&quot;</span>,<span class="st">&quot;l&quot;</span>,<span class="st">&quot;c&quot;</span>,<span class="st">&quot;l&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb50"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb50-1"><a href="data-summary-eda-initial-model-attempts.html#cb50-1"></a>reviews_mec <span class="op">%&gt;%</span></span>
+<span id="cb50-2"><a href="data-summary-eda-initial-model-attempts.html#cb50-2"></a><span class="st">  </span><span class="kw">filter</span>(<span class="kw">is.na</span>(user_name)) <span class="op">%&gt;%</span></span>
+<span id="cb50-3"><a href="data-summary-eda-initial-model-attempts.html#cb50-3"></a><span class="st">  </span><span class="kw">select</span>(date, product_name, rating_num, comment) <span class="op">%&gt;%</span></span>
+<span id="cb50-4"><a href="data-summary-eda-initial-model-attempts.html#cb50-4"></a><span class="st">  </span><span class="kw">slice_head</span>(<span class="dt">n=</span><span class="dv">10</span>) <span class="op">%&gt;%</span></span>
+<span id="cb50-5"><a href="data-summary-eda-initial-model-attempts.html#cb50-5"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">comment =</span> <span class="kw">str_trunc</span>(comment, <span class="dv">70</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb50-6"><a href="data-summary-eda-initial-model-attempts.html#cb50-6"></a><span class="st">  </span><span class="kw">arrange</span>(date) <span class="op">%&gt;%</span></span>
+<span id="cb50-7"><a href="data-summary-eda-initial-model-attempts.html#cb50-7"></a><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(<span class="dt">booktabs =</span> <span class="ot">TRUE</span>,</span>
+<span id="cb50-8"><a href="data-summary-eda-initial-model-attempts.html#cb50-8"></a>               <span class="dt">col.names =</span> <span class="kw">c</span>(<span class="st">&quot;Date&quot;</span>, <span class="st">&quot;Business&quot;</span>, <span class="st">&quot;Stars&quot;</span>, <span class="st">&quot;Review&quot;</span>),</span>
+<span id="cb50-9"><a href="data-summary-eda-initial-model-attempts.html#cb50-9"></a>               <span class="dt">align =</span> <span class="kw">c</span>(<span class="st">&quot;l&quot;</span>,<span class="st">&quot;l&quot;</span>,<span class="st">&quot;c&quot;</span>,<span class="st">&quot;l&quot;</span>))</span></code></pre></div>
 <table>
 <thead>
 <tr>
@@ -1338,8 +1709,8 @@ The chain that I have purchased from MEC is really a good chain. I …
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb52"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb52-1"><a href="data-summary-eda-initial-model-attempts.html#cb52-1"></a><span class="co"># # %&gt;%</span></span>
-<span id="cb52-2"><a href="data-summary-eda-initial-model-attempts.html#cb52-2"></a><span class="co">#   kableExtra::kable_styling(bootstrap_options = &quot;striped&quot;)</span></span></code></pre></div>
+<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb51-1"><a href="data-summary-eda-initial-model-attempts.html#cb51-1"></a><span class="co"># # %&gt;%</span></span>
+<span id="cb51-2"><a href="data-summary-eda-initial-model-attempts.html#cb51-2"></a><span class="co">#   kableExtra::kable_styling(bootstrap_options = &quot;striped&quot;)</span></span></code></pre></div>
 <p>These also look like legitimate reviews, so it’s possible that these were legitimately left anonymously or that there was a data-parsing issue with the API.</p>
 </div>
 </div>
@@ -1348,53 +1719,53 @@ The chain that I have purchased from MEC is really a good chain. I …
 <div id="star-ratings-3" class="section level3">
 <h3><span class="header-section-number">4.5.1</span> Star Ratings</h3>
 <p>When we compare Yelp and Goodreads reviews by the number of star ratings, the distributions look very similar. There are fewer Yelp reviews, but the shape of the distribution looks like a scaled-down version of the Goodreads distribution. There are far fewer MEC reviews, and it looks like the distribution has a slight second peak at 1 star.</p>
-<div class="sourceCode" id="cb53"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb53-1"><a href="data-summary-eda-initial-model-attempts.html#cb53-1"></a>gr &lt;-<span class="st"> </span>reviews_gr <span class="op">%&gt;%</span></span>
-<span id="cb53-2"><a href="data-summary-eda-initial-model-attempts.html#cb53-2"></a><span class="st">  </span><span class="kw">group_by</span>(rating_num) <span class="op">%&gt;%</span></span>
-<span id="cb53-3"><a href="data-summary-eda-initial-model-attempts.html#cb53-3"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">gr =</span> <span class="kw">n</span>())</span></code></pre></div>
+<div class="sourceCode" id="cb52"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb52-1"><a href="data-summary-eda-initial-model-attempts.html#cb52-1"></a>gr &lt;-<span class="st"> </span>reviews_gr <span class="op">%&gt;%</span></span>
+<span id="cb52-2"><a href="data-summary-eda-initial-model-attempts.html#cb52-2"></a><span class="st">  </span><span class="kw">group_by</span>(rating_num) <span class="op">%&gt;%</span></span>
+<span id="cb52-3"><a href="data-summary-eda-initial-model-attempts.html#cb52-3"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">gr =</span> <span class="kw">n</span>())</span></code></pre></div>
 <pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
-<div class="sourceCode" id="cb55"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb55-1"><a href="data-summary-eda-initial-model-attempts.html#cb55-1"></a>yp &lt;-<span class="st"> </span>reviews_yelp <span class="op">%&gt;%</span></span>
-<span id="cb55-2"><a href="data-summary-eda-initial-model-attempts.html#cb55-2"></a><span class="st">  </span><span class="kw">group_by</span>(rating_num) <span class="op">%&gt;%</span></span>
-<span id="cb55-3"><a href="data-summary-eda-initial-model-attempts.html#cb55-3"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">yp =</span> <span class="kw">n</span>())</span></code></pre></div>
+<div class="sourceCode" id="cb54"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb54-1"><a href="data-summary-eda-initial-model-attempts.html#cb54-1"></a>yp &lt;-<span class="st"> </span>reviews_yelp <span class="op">%&gt;%</span></span>
+<span id="cb54-2"><a href="data-summary-eda-initial-model-attempts.html#cb54-2"></a><span class="st">  </span><span class="kw">group_by</span>(rating_num) <span class="op">%&gt;%</span></span>
+<span id="cb54-3"><a href="data-summary-eda-initial-model-attempts.html#cb54-3"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">yp =</span> <span class="kw">n</span>())</span></code></pre></div>
 <pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
-<div class="sourceCode" id="cb57"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb57-1"><a href="data-summary-eda-initial-model-attempts.html#cb57-1"></a>mc &lt;-<span class="st"> </span>reviews_mec <span class="op">%&gt;%</span></span>
-<span id="cb57-2"><a href="data-summary-eda-initial-model-attempts.html#cb57-2"></a><span class="st">  </span><span class="kw">group_by</span>(rating_num) <span class="op">%&gt;%</span></span>
-<span id="cb57-3"><a href="data-summary-eda-initial-model-attempts.html#cb57-3"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">mc =</span> <span class="kw">n</span>())</span></code></pre></div>
+<div class="sourceCode" id="cb56"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb56-1"><a href="data-summary-eda-initial-model-attempts.html#cb56-1"></a>mc &lt;-<span class="st"> </span>reviews_mec <span class="op">%&gt;%</span></span>
+<span id="cb56-2"><a href="data-summary-eda-initial-model-attempts.html#cb56-2"></a><span class="st">  </span><span class="kw">group_by</span>(rating_num) <span class="op">%&gt;%</span></span>
+<span id="cb56-3"><a href="data-summary-eda-initial-model-attempts.html#cb56-3"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">mc =</span> <span class="kw">n</span>())</span></code></pre></div>
 <pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
-<div class="sourceCode" id="cb59"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb59-1"><a href="data-summary-eda-initial-model-attempts.html#cb59-1"></a>compare &lt;-<span class="st"> </span><span class="kw">left_join</span>(gr, yp) <span class="op">%&gt;%</span></span>
-<span id="cb59-2"><a href="data-summary-eda-initial-model-attempts.html#cb59-2"></a><span class="st">  </span><span class="kw">left_join</span>(mc)</span></code></pre></div>
+<div class="sourceCode" id="cb58"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb58-1"><a href="data-summary-eda-initial-model-attempts.html#cb58-1"></a>compare &lt;-<span class="st"> </span><span class="kw">left_join</span>(gr, yp) <span class="op">%&gt;%</span></span>
+<span id="cb58-2"><a href="data-summary-eda-initial-model-attempts.html#cb58-2"></a><span class="st">  </span><span class="kw">left_join</span>(mc)</span></code></pre></div>
 <pre><code>## Joining, by = &quot;rating_num&quot;</code></pre>
 <pre><code>## Joining, by = &quot;rating_num&quot;</code></pre>
-<div class="sourceCode" id="cb62"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb62-1"><a href="data-summary-eda-initial-model-attempts.html#cb62-1"></a>compare_long &lt;-<span class="st"> </span>compare <span class="op">%&gt;%</span></span>
-<span id="cb62-2"><a href="data-summary-eda-initial-model-attempts.html#cb62-2"></a><span class="st">  </span><span class="kw">pivot_longer</span>(<span class="dt">cols =</span> <span class="kw">c</span>(<span class="st">&quot;gr&quot;</span>, <span class="st">&quot;yp&quot;</span>,<span class="st">&quot;mc&quot;</span>), <span class="dt">names_to =</span> <span class="st">&quot;source&quot;</span>, <span class="dt">values_to =</span> <span class="st">&quot;num&quot;</span>)</span>
-<span id="cb62-3"><a href="data-summary-eda-initial-model-attempts.html#cb62-3"></a></span>
-<span id="cb62-4"><a href="data-summary-eda-initial-model-attempts.html#cb62-4"></a>compare_long <span class="op">%&gt;%</span></span>
-<span id="cb62-5"><a href="data-summary-eda-initial-model-attempts.html#cb62-5"></a><span class="st">  </span><span class="kw">ggplot</span>() <span class="op">+</span></span>
-<span id="cb62-6"><a href="data-summary-eda-initial-model-attempts.html#cb62-6"></a><span class="st">  </span><span class="kw">geom_col</span>(<span class="kw">aes</span>(<span class="dt">x=</span>rating_num, <span class="dt">y=</span>num, <span class="dt">group=</span>source, <span class="dt">fill=</span>source), <span class="dt">position =</span> <span class="st">&quot;dodge&quot;</span>) <span class="op">+</span></span>
-<span id="cb62-7"><a href="data-summary-eda-initial-model-attempts.html#cb62-7"></a><span class="st">  </span><span class="kw">theme_minimal</span>() <span class="op">+</span></span>
-<span id="cb62-8"><a href="data-summary-eda-initial-model-attempts.html#cb62-8"></a><span class="st">  </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;Goodreads, MEC, and Yelp Reviews: Total Counts by Rating&quot;</span>,</span>
-<span id="cb62-9"><a href="data-summary-eda-initial-model-attempts.html#cb62-9"></a>       <span class="dt">x =</span> <span class="st">&quot;Star Rating&quot;</span>,</span>
-<span id="cb62-10"><a href="data-summary-eda-initial-model-attempts.html#cb62-10"></a>       <span class="dt">y =</span> <span class="st">&quot;n&quot;</span>,</span>
-<span id="cb62-11"><a href="data-summary-eda-initial-model-attempts.html#cb62-11"></a>       <span class="dt">fill =</span> <span class="st">&quot;Source&quot;</span>) <span class="op">+</span></span>
-<span id="cb62-12"><a href="data-summary-eda-initial-model-attempts.html#cb62-12"></a><span class="st">    </span><span class="kw">scale_fill_viridis_d</span>(<span class="dt">labels =</span> <span class="kw">c</span>(<span class="st">&quot;Goodreads&quot;</span>, <span class="st">&quot;MEC&quot;</span>, <span class="st">&quot;Yelp&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb61"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb61-1"><a href="data-summary-eda-initial-model-attempts.html#cb61-1"></a>compare_long &lt;-<span class="st"> </span>compare <span class="op">%&gt;%</span></span>
+<span id="cb61-2"><a href="data-summary-eda-initial-model-attempts.html#cb61-2"></a><span class="st">  </span><span class="kw">pivot_longer</span>(<span class="dt">cols =</span> <span class="kw">c</span>(<span class="st">&quot;gr&quot;</span>, <span class="st">&quot;yp&quot;</span>,<span class="st">&quot;mc&quot;</span>), <span class="dt">names_to =</span> <span class="st">&quot;source&quot;</span>, <span class="dt">values_to =</span> <span class="st">&quot;num&quot;</span>)</span>
+<span id="cb61-3"><a href="data-summary-eda-initial-model-attempts.html#cb61-3"></a></span>
+<span id="cb61-4"><a href="data-summary-eda-initial-model-attempts.html#cb61-4"></a>compare_long <span class="op">%&gt;%</span></span>
+<span id="cb61-5"><a href="data-summary-eda-initial-model-attempts.html#cb61-5"></a><span class="st">  </span><span class="kw">ggplot</span>() <span class="op">+</span></span>
+<span id="cb61-6"><a href="data-summary-eda-initial-model-attempts.html#cb61-6"></a><span class="st">  </span><span class="kw">geom_col</span>(<span class="kw">aes</span>(<span class="dt">x=</span>rating_num, <span class="dt">y=</span>num, <span class="dt">group=</span>source, <span class="dt">fill=</span>source), <span class="dt">position =</span> <span class="st">&quot;dodge&quot;</span>) <span class="op">+</span></span>
+<span id="cb61-7"><a href="data-summary-eda-initial-model-attempts.html#cb61-7"></a><span class="st">  </span><span class="kw">theme_minimal</span>() <span class="op">+</span></span>
+<span id="cb61-8"><a href="data-summary-eda-initial-model-attempts.html#cb61-8"></a><span class="st">  </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;Goodreads, MEC, and Yelp Reviews: Total Counts by Rating&quot;</span>,</span>
+<span id="cb61-9"><a href="data-summary-eda-initial-model-attempts.html#cb61-9"></a>       <span class="dt">x =</span> <span class="st">&quot;Star Rating&quot;</span>,</span>
+<span id="cb61-10"><a href="data-summary-eda-initial-model-attempts.html#cb61-10"></a>       <span class="dt">y =</span> <span class="st">&quot;n&quot;</span>,</span>
+<span id="cb61-11"><a href="data-summary-eda-initial-model-attempts.html#cb61-11"></a>       <span class="dt">fill =</span> <span class="st">&quot;Source&quot;</span>) <span class="op">+</span></span>
+<span id="cb61-12"><a href="data-summary-eda-initial-model-attempts.html#cb61-12"></a><span class="st">    </span><span class="kw">scale_fill_viridis_d</span>(<span class="dt">labels =</span> <span class="kw">c</span>(<span class="st">&quot;Goodreads&quot;</span>, <span class="st">&quot;MEC&quot;</span>, <span class="st">&quot;Yelp&quot;</span>))</span></code></pre></div>
 <p><img src="telfer-mba-nlp_files/figure-html/gr_yp_hist-1.png" width="672" /></p>
 <p>To get a better feel for how the distributions vary, we can plot the proportional breakdown of star reviews for each source. The following plot shows that the Goodreads and Yelp distributions track each other somewhat closely but the MEC reviews are quite different.</p>
-<div class="sourceCode" id="cb63"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb63-1"><a href="data-summary-eda-initial-model-attempts.html#cb63-1"></a>compare_long <span class="op">%&gt;%</span></span>
-<span id="cb63-2"><a href="data-summary-eda-initial-model-attempts.html#cb63-2"></a><span class="st">  </span><span class="kw">group_by</span>(source) <span class="op">%&gt;%</span></span>
-<span id="cb63-3"><a href="data-summary-eda-initial-model-attempts.html#cb63-3"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">prop =</span> num <span class="op">/</span><span class="st"> </span><span class="kw">sum</span>(num)) <span class="op">%&gt;%</span></span>
-<span id="cb63-4"><a href="data-summary-eda-initial-model-attempts.html#cb63-4"></a><span class="st">  </span><span class="kw">ggplot</span>() <span class="op">+</span></span>
-<span id="cb63-5"><a href="data-summary-eda-initial-model-attempts.html#cb63-5"></a><span class="st">  </span><span class="kw">geom_col</span>(<span class="kw">aes</span>(<span class="dt">x=</span>rating_num, <span class="dt">y=</span>prop, <span class="dt">group=</span>source, <span class="dt">fill=</span>source), <span class="dt">position =</span> <span class="st">&quot;dodge&quot;</span>) <span class="op">+</span></span>
-<span id="cb63-6"><a href="data-summary-eda-initial-model-attempts.html#cb63-6"></a><span class="st">  </span><span class="kw">theme_minimal</span>() <span class="op">+</span></span>
-<span id="cb63-7"><a href="data-summary-eda-initial-model-attempts.html#cb63-7"></a><span class="st">  </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;Goodreads, MEC, and Yelp Reviews: Proportion of Counts by Rating&quot;</span>,</span>
-<span id="cb63-8"><a href="data-summary-eda-initial-model-attempts.html#cb63-8"></a>       <span class="dt">x =</span> <span class="st">&quot;Star Rating&quot;</span>,</span>
-<span id="cb63-9"><a href="data-summary-eda-initial-model-attempts.html#cb63-9"></a>       <span class="dt">y =</span> <span class="st">&quot;Proportion&quot;</span>,</span>
-<span id="cb63-10"><a href="data-summary-eda-initial-model-attempts.html#cb63-10"></a>       <span class="dt">fill =</span> <span class="st">&quot;Source&quot;</span>) <span class="op">+</span></span>
-<span id="cb63-11"><a href="data-summary-eda-initial-model-attempts.html#cb63-11"></a><span class="st">    </span><span class="kw">scale_fill_viridis_d</span>(<span class="dt">labels =</span> <span class="kw">c</span>(<span class="st">&quot;Goodreads&quot;</span>, <span class="st">&quot;MEC&quot;</span>, <span class="st">&quot;Yelp&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb62"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb62-1"><a href="data-summary-eda-initial-model-attempts.html#cb62-1"></a>compare_long <span class="op">%&gt;%</span></span>
+<span id="cb62-2"><a href="data-summary-eda-initial-model-attempts.html#cb62-2"></a><span class="st">  </span><span class="kw">group_by</span>(source) <span class="op">%&gt;%</span></span>
+<span id="cb62-3"><a href="data-summary-eda-initial-model-attempts.html#cb62-3"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">prop =</span> num <span class="op">/</span><span class="st"> </span><span class="kw">sum</span>(num)) <span class="op">%&gt;%</span></span>
+<span id="cb62-4"><a href="data-summary-eda-initial-model-attempts.html#cb62-4"></a><span class="st">  </span><span class="kw">ggplot</span>() <span class="op">+</span></span>
+<span id="cb62-5"><a href="data-summary-eda-initial-model-attempts.html#cb62-5"></a><span class="st">  </span><span class="kw">geom_col</span>(<span class="kw">aes</span>(<span class="dt">x=</span>rating_num, <span class="dt">y=</span>prop, <span class="dt">group=</span>source, <span class="dt">fill=</span>source), <span class="dt">position =</span> <span class="st">&quot;dodge&quot;</span>) <span class="op">+</span></span>
+<span id="cb62-6"><a href="data-summary-eda-initial-model-attempts.html#cb62-6"></a><span class="st">  </span><span class="kw">theme_minimal</span>() <span class="op">+</span></span>
+<span id="cb62-7"><a href="data-summary-eda-initial-model-attempts.html#cb62-7"></a><span class="st">  </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;Goodreads, MEC, and Yelp Reviews: Proportion of Counts by Rating&quot;</span>,</span>
+<span id="cb62-8"><a href="data-summary-eda-initial-model-attempts.html#cb62-8"></a>       <span class="dt">x =</span> <span class="st">&quot;Star Rating&quot;</span>,</span>
+<span id="cb62-9"><a href="data-summary-eda-initial-model-attempts.html#cb62-9"></a>       <span class="dt">y =</span> <span class="st">&quot;Proportion&quot;</span>,</span>
+<span id="cb62-10"><a href="data-summary-eda-initial-model-attempts.html#cb62-10"></a>       <span class="dt">fill =</span> <span class="st">&quot;Source&quot;</span>) <span class="op">+</span></span>
+<span id="cb62-11"><a href="data-summary-eda-initial-model-attempts.html#cb62-11"></a><span class="st">    </span><span class="kw">scale_fill_viridis_d</span>(<span class="dt">labels =</span> <span class="kw">c</span>(<span class="st">&quot;Goodreads&quot;</span>, <span class="st">&quot;MEC&quot;</span>, <span class="st">&quot;Yelp&quot;</span>))</span></code></pre></div>
 <p><img src="telfer-mba-nlp_files/figure-html/plot_prop-1.png" width="672" /></p>
 <p>We can use a standard Pearson’s Chi-squared test to see if the Goodreads and Yelp distributions differ meaningfully.</p>
-<div class="sourceCode" id="cb64"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb64-1"><a href="data-summary-eda-initial-model-attempts.html#cb64-1"></a>t &lt;-<span class="st"> </span><span class="kw">chisq.test</span>(compare<span class="op">$</span>gr, compare<span class="op">$</span>yp)</span></code></pre></div>
+<div class="sourceCode" id="cb63"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb63-1"><a href="data-summary-eda-initial-model-attempts.html#cb63-1"></a>t &lt;-<span class="st"> </span><span class="kw">chisq.test</span>(compare<span class="op">$</span>gr, compare<span class="op">$</span>yp)</span></code></pre></div>
 <pre><code>## Warning in chisq.test(compare$gr, compare$yp): Chi-squared approximation may be incorrect</code></pre>
-<div class="sourceCode" id="cb66"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb66-1"><a href="data-summary-eda-initial-model-attempts.html#cb66-1"></a>tt &lt;-<span class="st"> </span><span class="kw">chisq.test</span>(<span class="kw">matrix</span>(<span class="kw">c</span>(compare<span class="op">$</span>gr, compare<span class="op">$</span>yp), <span class="dt">ncol=</span><span class="dv">5</span>))</span>
-<span id="cb66-2"><a href="data-summary-eda-initial-model-attempts.html#cb66-2"></a>tt</span></code></pre></div>
+<div class="sourceCode" id="cb65"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb65-1"><a href="data-summary-eda-initial-model-attempts.html#cb65-1"></a>tt &lt;-<span class="st"> </span><span class="kw">chisq.test</span>(<span class="kw">matrix</span>(<span class="kw">c</span>(compare<span class="op">$</span>gr, compare<span class="op">$</span>yp), <span class="dt">ncol=</span><span class="dv">5</span>))</span>
+<span id="cb65-2"><a href="data-summary-eda-initial-model-attempts.html#cb65-2"></a>tt</span></code></pre></div>
 <pre><code>## 
 ## 	Pearson&#39;s Chi-squared test
 ## 
@@ -1405,42 +1776,42 @@ The chain that I have purchased from MEC is really a good chain. I …
 <div id="word-counts-1" class="section level3">
 <h3><span class="header-section-number">4.5.2</span> Word Counts</h3>
 <p>Out of interest, let’s also check the differences in word-count distributions between the three datasets. From the figure below, we can see that Yelp reviews tend to be much shorter than Goodreads reviews. Just by visual inspection, we can estimate that the 80th percentile Goodreads review is about 500 words, whereas the 80th percentile Yelp review is only about half of that. The MEC reviews are shortest of all.</p>
-<div class="sourceCode" id="cb68"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb68-1"><a href="data-summary-eda-initial-model-attempts.html#cb68-1"></a>wordcounts_all &lt;-<span class="st"> </span>wordcounts_gr <span class="op">%&gt;%</span></span>
-<span id="cb68-2"><a href="data-summary-eda-initial-model-attempts.html#cb68-2"></a><span class="st">  </span><span class="kw">select</span>(n, cumdist) <span class="op">%&gt;%</span></span>
-<span id="cb68-3"><a href="data-summary-eda-initial-model-attempts.html#cb68-3"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">source =</span> <span class="st">&quot;goodreads&quot;</span>) <span class="op">%&gt;%</span></span>
-<span id="cb68-4"><a href="data-summary-eda-initial-model-attempts.html#cb68-4"></a><span class="st">  </span><span class="kw">bind_rows</span>( wordcounts_yelp <span class="op">%&gt;%</span></span>
-<span id="cb68-5"><a href="data-summary-eda-initial-model-attempts.html#cb68-5"></a><span class="st">               </span><span class="kw">select</span>(n, cumdist) <span class="op">%&gt;%</span></span>
-<span id="cb68-6"><a href="data-summary-eda-initial-model-attempts.html#cb68-6"></a><span class="st">               </span><span class="kw">mutate</span>(<span class="dt">source =</span> <span class="st">&quot;yelp&quot;</span>)) <span class="op">%&gt;%</span></span>
-<span id="cb68-7"><a href="data-summary-eda-initial-model-attempts.html#cb68-7"></a><span class="st">  </span><span class="kw">bind_rows</span>( wordcounts_mec <span class="op">%&gt;%</span></span>
-<span id="cb68-8"><a href="data-summary-eda-initial-model-attempts.html#cb68-8"></a><span class="st">               </span><span class="kw">select</span>(n, cumdist) <span class="op">%&gt;%</span></span>
-<span id="cb68-9"><a href="data-summary-eda-initial-model-attempts.html#cb68-9"></a><span class="st">               </span><span class="kw">mutate</span>(<span class="dt">source =</span> <span class="st">&quot;mec&quot;</span>))</span>
-<span id="cb68-10"><a href="data-summary-eda-initial-model-attempts.html#cb68-10"></a></span>
-<span id="cb68-11"><a href="data-summary-eda-initial-model-attempts.html#cb68-11"></a>wordcounts_all <span class="op">%&gt;%</span></span>
-<span id="cb68-12"><a href="data-summary-eda-initial-model-attempts.html#cb68-12"></a><span class="st">  </span><span class="kw">group_by</span>(source) <span class="op">%&gt;%</span></span>
-<span id="cb68-13"><a href="data-summary-eda-initial-model-attempts.html#cb68-13"></a><span class="st">  </span><span class="kw">mutate</span> (<span class="dt">prop =</span> cumdist <span class="op">/</span><span class="st"> </span><span class="kw">max</span>(cumdist)) <span class="op">%&gt;%</span></span>
-<span id="cb68-14"><a href="data-summary-eda-initial-model-attempts.html#cb68-14"></a><span class="st">  </span><span class="kw">ggplot</span>() <span class="op">+</span></span>
-<span id="cb68-15"><a href="data-summary-eda-initial-model-attempts.html#cb68-15"></a><span class="st">  </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">y=</span>prop, <span class="dt">x=</span>n, <span class="dt">colour =</span> source)) <span class="op">+</span></span>
-<span id="cb68-16"><a href="data-summary-eda-initial-model-attempts.html#cb68-16"></a><span class="st">  </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;Cumulative Distribution of Word Lengths&quot;</span>,</span>
-<span id="cb68-17"><a href="data-summary-eda-initial-model-attempts.html#cb68-17"></a>         <span class="dt">subtitle =</span> <span class="st">&quot;Comparing Goodreads, MEC, and Yelp&quot;</span>,</span>
-<span id="cb68-18"><a href="data-summary-eda-initial-model-attempts.html#cb68-18"></a>         <span class="dt">x =</span> <span class="st">&quot;Word Length&quot;</span>,</span>
-<span id="cb68-19"><a href="data-summary-eda-initial-model-attempts.html#cb68-19"></a>         <span class="dt">y =</span> <span class="st">&quot;Cumulative Probability&quot;</span>,</span>
-<span id="cb68-20"><a href="data-summary-eda-initial-model-attempts.html#cb68-20"></a>       <span class="dt">colour =</span> <span class="st">&quot;Source&quot;</span>) <span class="op">+</span></span>
-<span id="cb68-21"><a href="data-summary-eda-initial-model-attempts.html#cb68-21"></a><span class="st">  </span><span class="kw">scale_color_viridis_d</span>(<span class="dt">labels =</span> <span class="kw">c</span>(<span class="st">&quot;Goodreads&quot;</span>, <span class="st">&quot;MEC&quot;</span>, <span class="st">&quot;Yelp&quot;</span>)) <span class="op">+</span></span>
-<span id="cb68-22"><a href="data-summary-eda-initial-model-attempts.html#cb68-22"></a><span class="st">  </span><span class="kw">theme_minimal</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb67"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb67-1"><a href="data-summary-eda-initial-model-attempts.html#cb67-1"></a>wordcounts_all &lt;-<span class="st"> </span>wordcounts_gr <span class="op">%&gt;%</span></span>
+<span id="cb67-2"><a href="data-summary-eda-initial-model-attempts.html#cb67-2"></a><span class="st">  </span><span class="kw">select</span>(n, cumdist) <span class="op">%&gt;%</span></span>
+<span id="cb67-3"><a href="data-summary-eda-initial-model-attempts.html#cb67-3"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">source =</span> <span class="st">&quot;goodreads&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb67-4"><a href="data-summary-eda-initial-model-attempts.html#cb67-4"></a><span class="st">  </span><span class="kw">bind_rows</span>( wordcounts_yelp <span class="op">%&gt;%</span></span>
+<span id="cb67-5"><a href="data-summary-eda-initial-model-attempts.html#cb67-5"></a><span class="st">               </span><span class="kw">select</span>(n, cumdist) <span class="op">%&gt;%</span></span>
+<span id="cb67-6"><a href="data-summary-eda-initial-model-attempts.html#cb67-6"></a><span class="st">               </span><span class="kw">mutate</span>(<span class="dt">source =</span> <span class="st">&quot;yelp&quot;</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb67-7"><a href="data-summary-eda-initial-model-attempts.html#cb67-7"></a><span class="st">  </span><span class="kw">bind_rows</span>( wordcounts_mec <span class="op">%&gt;%</span></span>
+<span id="cb67-8"><a href="data-summary-eda-initial-model-attempts.html#cb67-8"></a><span class="st">               </span><span class="kw">select</span>(n, cumdist) <span class="op">%&gt;%</span></span>
+<span id="cb67-9"><a href="data-summary-eda-initial-model-attempts.html#cb67-9"></a><span class="st">               </span><span class="kw">mutate</span>(<span class="dt">source =</span> <span class="st">&quot;mec&quot;</span>))</span>
+<span id="cb67-10"><a href="data-summary-eda-initial-model-attempts.html#cb67-10"></a></span>
+<span id="cb67-11"><a href="data-summary-eda-initial-model-attempts.html#cb67-11"></a>wordcounts_all <span class="op">%&gt;%</span></span>
+<span id="cb67-12"><a href="data-summary-eda-initial-model-attempts.html#cb67-12"></a><span class="st">  </span><span class="kw">group_by</span>(source) <span class="op">%&gt;%</span></span>
+<span id="cb67-13"><a href="data-summary-eda-initial-model-attempts.html#cb67-13"></a><span class="st">  </span><span class="kw">mutate</span> (<span class="dt">prop =</span> cumdist <span class="op">/</span><span class="st"> </span><span class="kw">max</span>(cumdist)) <span class="op">%&gt;%</span></span>
+<span id="cb67-14"><a href="data-summary-eda-initial-model-attempts.html#cb67-14"></a><span class="st">  </span><span class="kw">ggplot</span>() <span class="op">+</span></span>
+<span id="cb67-15"><a href="data-summary-eda-initial-model-attempts.html#cb67-15"></a><span class="st">  </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">y=</span>prop, <span class="dt">x=</span>n, <span class="dt">colour =</span> source)) <span class="op">+</span></span>
+<span id="cb67-16"><a href="data-summary-eda-initial-model-attempts.html#cb67-16"></a><span class="st">  </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;Cumulative Distribution of Word Lengths&quot;</span>,</span>
+<span id="cb67-17"><a href="data-summary-eda-initial-model-attempts.html#cb67-17"></a>         <span class="dt">subtitle =</span> <span class="st">&quot;Comparing Goodreads, MEC, and Yelp&quot;</span>,</span>
+<span id="cb67-18"><a href="data-summary-eda-initial-model-attempts.html#cb67-18"></a>         <span class="dt">x =</span> <span class="st">&quot;Word Length&quot;</span>,</span>
+<span id="cb67-19"><a href="data-summary-eda-initial-model-attempts.html#cb67-19"></a>         <span class="dt">y =</span> <span class="st">&quot;Cumulative Probability&quot;</span>,</span>
+<span id="cb67-20"><a href="data-summary-eda-initial-model-attempts.html#cb67-20"></a>       <span class="dt">colour =</span> <span class="st">&quot;Source&quot;</span>) <span class="op">+</span></span>
+<span id="cb67-21"><a href="data-summary-eda-initial-model-attempts.html#cb67-21"></a><span class="st">  </span><span class="kw">scale_color_viridis_d</span>(<span class="dt">labels =</span> <span class="kw">c</span>(<span class="st">&quot;Goodreads&quot;</span>, <span class="st">&quot;MEC&quot;</span>, <span class="st">&quot;Yelp&quot;</span>)) <span class="op">+</span></span>
+<span id="cb67-22"><a href="data-summary-eda-initial-model-attempts.html#cb67-22"></a><span class="st">  </span><span class="kw">theme_minimal</span>()</span></code></pre></div>
 <p><img src="telfer-mba-nlp_files/figure-html/wordcount_diffs-1.png" width="672" /></p>
 <p>To test for difference, we can confirm do a non-parametric Kolmogorov-Smirnov test to see if the Goodreads and Yelp distributions differ.</p>
-<div class="sourceCode" id="cb69"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb69-1"><a href="data-summary-eda-initial-model-attempts.html#cb69-1"></a><span class="co"># pull the word lengths for goodreads into a vector</span></span>
-<span id="cb69-2"><a href="data-summary-eda-initial-model-attempts.html#cb69-2"></a>grd &lt;-<span class="st"> </span>wordcounts_all <span class="op">%&gt;%</span></span>
-<span id="cb69-3"><a href="data-summary-eda-initial-model-attempts.html#cb69-3"></a><span class="st">  </span><span class="kw">filter</span>(source <span class="op">==</span><span class="st"> &quot;goodreads&quot;</span>) <span class="op">%&gt;%</span></span>
-<span id="cb69-4"><a href="data-summary-eda-initial-model-attempts.html#cb69-4"></a><span class="st">  </span><span class="kw">pull</span>(n)</span>
-<span id="cb69-5"><a href="data-summary-eda-initial-model-attempts.html#cb69-5"></a></span>
-<span id="cb69-6"><a href="data-summary-eda-initial-model-attempts.html#cb69-6"></a><span class="co"># pull the word lengths for yelp into a vector</span></span>
-<span id="cb69-7"><a href="data-summary-eda-initial-model-attempts.html#cb69-7"></a>ypd &lt;-<span class="st"> </span>wordcounts_all <span class="op">%&gt;%</span></span>
-<span id="cb69-8"><a href="data-summary-eda-initial-model-attempts.html#cb69-8"></a><span class="st">  </span><span class="kw">filter</span>(source <span class="op">==</span><span class="st"> &quot;yelp&quot;</span>) <span class="op">%&gt;%</span></span>
-<span id="cb69-9"><a href="data-summary-eda-initial-model-attempts.html#cb69-9"></a><span class="st">  </span><span class="kw">pull</span>(n)</span>
-<span id="cb69-10"><a href="data-summary-eda-initial-model-attempts.html#cb69-10"></a></span>
-<span id="cb69-11"><a href="data-summary-eda-initial-model-attempts.html#cb69-11"></a><span class="co"># run KS test comparing the two vectors</span></span>
-<span id="cb69-12"><a href="data-summary-eda-initial-model-attempts.html#cb69-12"></a><span class="kw">ks.test</span>(grd, ypd)</span></code></pre></div>
+<div class="sourceCode" id="cb68"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb68-1"><a href="data-summary-eda-initial-model-attempts.html#cb68-1"></a><span class="co"># pull the word lengths for goodreads into a vector</span></span>
+<span id="cb68-2"><a href="data-summary-eda-initial-model-attempts.html#cb68-2"></a>grd &lt;-<span class="st"> </span>wordcounts_all <span class="op">%&gt;%</span></span>
+<span id="cb68-3"><a href="data-summary-eda-initial-model-attempts.html#cb68-3"></a><span class="st">  </span><span class="kw">filter</span>(source <span class="op">==</span><span class="st"> &quot;goodreads&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb68-4"><a href="data-summary-eda-initial-model-attempts.html#cb68-4"></a><span class="st">  </span><span class="kw">pull</span>(n)</span>
+<span id="cb68-5"><a href="data-summary-eda-initial-model-attempts.html#cb68-5"></a></span>
+<span id="cb68-6"><a href="data-summary-eda-initial-model-attempts.html#cb68-6"></a><span class="co"># pull the word lengths for yelp into a vector</span></span>
+<span id="cb68-7"><a href="data-summary-eda-initial-model-attempts.html#cb68-7"></a>ypd &lt;-<span class="st"> </span>wordcounts_all <span class="op">%&gt;%</span></span>
+<span id="cb68-8"><a href="data-summary-eda-initial-model-attempts.html#cb68-8"></a><span class="st">  </span><span class="kw">filter</span>(source <span class="op">==</span><span class="st"> &quot;yelp&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb68-9"><a href="data-summary-eda-initial-model-attempts.html#cb68-9"></a><span class="st">  </span><span class="kw">pull</span>(n)</span>
+<span id="cb68-10"><a href="data-summary-eda-initial-model-attempts.html#cb68-10"></a></span>
+<span id="cb68-11"><a href="data-summary-eda-initial-model-attempts.html#cb68-11"></a><span class="co"># run KS test comparing the two vectors</span></span>
+<span id="cb68-12"><a href="data-summary-eda-initial-model-attempts.html#cb68-12"></a><span class="kw">ks.test</span>(grd, ypd)</span></code></pre></div>
 <pre><code>## Warning in ks.test(grd, ypd): p-value will be approximate in the presence of ties</code></pre>
 <pre><code>## 
 ## 	Two-sample Kolmogorov-Smirnov test
@@ -1448,8 +1819,8 @@ The chain that I have purchased from MEC is really a good chain. I …
 ## data:  grd and ypd
 ## D = 0.24968, p-value &lt; 2.2e-16
 ## alternative hypothesis: two-sided</code></pre>
-<div class="sourceCode" id="cb72"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb72-1"><a href="data-summary-eda-initial-model-attempts.html#cb72-1"></a><span class="co"># remove the vectors to keep environment clean</span></span>
-<span id="cb72-2"><a href="data-summary-eda-initial-model-attempts.html#cb72-2"></a><span class="kw">rm</span>(grd, ypd)</span></code></pre></div>
+<div class="sourceCode" id="cb71"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb71-1"><a href="data-summary-eda-initial-model-attempts.html#cb71-1"></a><span class="co"># remove the vectors to keep environment clean</span></span>
+<span id="cb71-2"><a href="data-summary-eda-initial-model-attempts.html#cb71-2"></a><span class="kw">rm</span>(grd, ypd)</span></code></pre></div>
 <p>We can again reject the null hypothesis that there is no difference between the two distributions. We can hypothesize about why there might be a difference: Goodreads reviewers are writing about books, and so might be expected to be interested in expressing themselves through writing. Yelp reviewers, by and large, are interested in restaurants, and so may not put as much effort into writing full reports.</p>
 <p>We might expect the difference in distributions to have an effect on our future modeling, since shorter reviews may contain less information.</p>
 </div>
@@ -1460,16 +1831,16 @@ The chain that I have purchased from MEC is really a good chain. I …
 <div id="goodreads-1" class="section level3">
 <h3><span class="header-section-number">4.6.1</span> Goodreads</h3>
 <p>The following chart shows the monthly volume of reviews in the Goodreads dataset.</p>
-<div class="sourceCode" id="cb73"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb73-1"><a href="data-summary-eda-initial-model-attempts.html#cb73-1"></a>reviews_gr <span class="op">%&gt;%</span></span>
-<span id="cb73-2"><a href="data-summary-eda-initial-model-attempts.html#cb73-2"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">dates =</span> lubridate<span class="op">::</span><span class="kw">ymd</span>(dates) <span class="op">%&gt;%</span><span class="st"> </span>lubridate<span class="op">::</span><span class="kw">floor_date</span>(<span class="st">&quot;months&quot;</span>)) <span class="op">%&gt;%</span></span>
-<span id="cb73-3"><a href="data-summary-eda-initial-model-attempts.html#cb73-3"></a><span class="st">  </span><span class="kw">group_by</span>(dates) <span class="op">%&gt;%</span></span>
-<span id="cb73-4"><a href="data-summary-eda-initial-model-attempts.html#cb73-4"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">n =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span></span>
-<span id="cb73-5"><a href="data-summary-eda-initial-model-attempts.html#cb73-5"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x=</span>dates,<span class="dt">y=</span>n)) <span class="op">+</span></span>
-<span id="cb73-6"><a href="data-summary-eda-initial-model-attempts.html#cb73-6"></a><span class="st">  </span><span class="kw">geom_line</span>() <span class="op">+</span></span>
-<span id="cb73-7"><a href="data-summary-eda-initial-model-attempts.html#cb73-7"></a><span class="st">  </span><span class="kw">theme_minimal</span>() <span class="op">+</span></span>
-<span id="cb73-8"><a href="data-summary-eda-initial-model-attempts.html#cb73-8"></a><span class="st">  </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;Goodreads Reviews: Monthly Volume of New Reviews&quot;</span>,</span>
-<span id="cb73-9"><a href="data-summary-eda-initial-model-attempts.html#cb73-9"></a>       <span class="dt">x =</span> <span class="st">&quot;Date&quot;</span>,</span>
-<span id="cb73-10"><a href="data-summary-eda-initial-model-attempts.html#cb73-10"></a>       <span class="dt">y =</span> <span class="st">&quot;# of Reviews&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb72"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb72-1"><a href="data-summary-eda-initial-model-attempts.html#cb72-1"></a>reviews_gr <span class="op">%&gt;%</span></span>
+<span id="cb72-2"><a href="data-summary-eda-initial-model-attempts.html#cb72-2"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">dates =</span> lubridate<span class="op">::</span><span class="kw">ymd</span>(dates) <span class="op">%&gt;%</span><span class="st"> </span>lubridate<span class="op">::</span><span class="kw">floor_date</span>(<span class="st">&quot;months&quot;</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb72-3"><a href="data-summary-eda-initial-model-attempts.html#cb72-3"></a><span class="st">  </span><span class="kw">group_by</span>(dates) <span class="op">%&gt;%</span></span>
+<span id="cb72-4"><a href="data-summary-eda-initial-model-attempts.html#cb72-4"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">n =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span></span>
+<span id="cb72-5"><a href="data-summary-eda-initial-model-attempts.html#cb72-5"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x=</span>dates,<span class="dt">y=</span>n)) <span class="op">+</span></span>
+<span id="cb72-6"><a href="data-summary-eda-initial-model-attempts.html#cb72-6"></a><span class="st">  </span><span class="kw">geom_line</span>() <span class="op">+</span></span>
+<span id="cb72-7"><a href="data-summary-eda-initial-model-attempts.html#cb72-7"></a><span class="st">  </span><span class="kw">theme_minimal</span>() <span class="op">+</span></span>
+<span id="cb72-8"><a href="data-summary-eda-initial-model-attempts.html#cb72-8"></a><span class="st">  </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;Goodreads Reviews: Monthly Volume of New Reviews&quot;</span>,</span>
+<span id="cb72-9"><a href="data-summary-eda-initial-model-attempts.html#cb72-9"></a>       <span class="dt">x =</span> <span class="st">&quot;Date&quot;</span>,</span>
+<span id="cb72-10"><a href="data-summary-eda-initial-model-attempts.html#cb72-10"></a>       <span class="dt">y =</span> <span class="st">&quot;# of Reviews&quot;</span>)</span></code></pre></div>
 <pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
 <p><img src="telfer-mba-nlp_files/figure-html/gr_reviews_over_time-1.png" width="672" /></p>
 <p>While some reviews date from as far back as 2005, most reviews are from 2020 and the majority are from the past few months. However, it’s unlikely that this distribution represents an actual exponential growth in the number of reviews posted. Instead, recall that I collected reviews for the 100 most-read books in the past week across a few genres. In other words, I collected reviews from books that were being reviewed a lot at that moment in time, so my data collection is heavily biased towards more recent reviews. There may a trend in usage–for example, home-bound readers may be posting more reviews during COVID-19–but we can’t draw any conclusions from this distribution.</p>
@@ -1477,16 +1848,16 @@ The chain that I have purchased from MEC is really a good chain. I …
 <div id="yelp-1" class="section level3">
 <h3><span class="header-section-number">4.6.2</span> Yelp</h3>
 <p>The following chart shows the monthly volume of reviews in the Yelp dataset.</p>
-<div class="sourceCode" id="cb75"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb75-1"><a href="data-summary-eda-initial-model-attempts.html#cb75-1"></a>reviews_yelp <span class="op">%&gt;%</span></span>
-<span id="cb75-2"><a href="data-summary-eda-initial-model-attempts.html#cb75-2"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">date =</span> lubridate<span class="op">::</span><span class="kw">mdy</span>(date) <span class="op">%&gt;%</span><span class="st"> </span>lubridate<span class="op">::</span><span class="kw">floor_date</span>(<span class="st">&quot;months&quot;</span>)) <span class="op">%&gt;%</span></span>
-<span id="cb75-3"><a href="data-summary-eda-initial-model-attempts.html#cb75-3"></a><span class="st">  </span><span class="kw">group_by</span>(date) <span class="op">%&gt;%</span></span>
-<span id="cb75-4"><a href="data-summary-eda-initial-model-attempts.html#cb75-4"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">n =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span></span>
-<span id="cb75-5"><a href="data-summary-eda-initial-model-attempts.html#cb75-5"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x=</span>date,<span class="dt">y=</span>n)) <span class="op">+</span></span>
-<span id="cb75-6"><a href="data-summary-eda-initial-model-attempts.html#cb75-6"></a><span class="st">  </span><span class="kw">geom_line</span>() <span class="op">+</span></span>
-<span id="cb75-7"><a href="data-summary-eda-initial-model-attempts.html#cb75-7"></a><span class="st">  </span><span class="kw">theme_minimal</span>() <span class="op">+</span><span class="st"> </span></span>
-<span id="cb75-8"><a href="data-summary-eda-initial-model-attempts.html#cb75-8"></a><span class="st">  </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;Yelp Reviews: Monthly Volume of New Reviews&quot;</span>,</span>
-<span id="cb75-9"><a href="data-summary-eda-initial-model-attempts.html#cb75-9"></a>       <span class="dt">x =</span> <span class="st">&quot;Date&quot;</span>,</span>
-<span id="cb75-10"><a href="data-summary-eda-initial-model-attempts.html#cb75-10"></a>       <span class="dt">y =</span> <span class="st">&quot;# of Reviews&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb74"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb74-1"><a href="data-summary-eda-initial-model-attempts.html#cb74-1"></a>reviews_yelp <span class="op">%&gt;%</span></span>
+<span id="cb74-2"><a href="data-summary-eda-initial-model-attempts.html#cb74-2"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">date =</span> lubridate<span class="op">::</span><span class="kw">mdy</span>(date) <span class="op">%&gt;%</span><span class="st"> </span>lubridate<span class="op">::</span><span class="kw">floor_date</span>(<span class="st">&quot;months&quot;</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb74-3"><a href="data-summary-eda-initial-model-attempts.html#cb74-3"></a><span class="st">  </span><span class="kw">group_by</span>(date) <span class="op">%&gt;%</span></span>
+<span id="cb74-4"><a href="data-summary-eda-initial-model-attempts.html#cb74-4"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">n =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span></span>
+<span id="cb74-5"><a href="data-summary-eda-initial-model-attempts.html#cb74-5"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x=</span>date,<span class="dt">y=</span>n)) <span class="op">+</span></span>
+<span id="cb74-6"><a href="data-summary-eda-initial-model-attempts.html#cb74-6"></a><span class="st">  </span><span class="kw">geom_line</span>() <span class="op">+</span></span>
+<span id="cb74-7"><a href="data-summary-eda-initial-model-attempts.html#cb74-7"></a><span class="st">  </span><span class="kw">theme_minimal</span>() <span class="op">+</span><span class="st"> </span></span>
+<span id="cb74-8"><a href="data-summary-eda-initial-model-attempts.html#cb74-8"></a><span class="st">  </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;Yelp Reviews: Monthly Volume of New Reviews&quot;</span>,</span>
+<span id="cb74-9"><a href="data-summary-eda-initial-model-attempts.html#cb74-9"></a>       <span class="dt">x =</span> <span class="st">&quot;Date&quot;</span>,</span>
+<span id="cb74-10"><a href="data-summary-eda-initial-model-attempts.html#cb74-10"></a>       <span class="dt">y =</span> <span class="st">&quot;# of Reviews&quot;</span>)</span></code></pre></div>
 <pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
 <p><img src="telfer-mba-nlp_files/figure-html/yp_reviews_over_time-1.png" width="672" /></p>
 <p>Since I collected all Yelp reviews for restaurants in Ottawa, we can use this dataset to make statements about how review volumes have changed over time. We can see a steep decline in the early months of 2020, coinciding with the start of the COVID-19 pandemic and worldwide lockdowns. However, the volumes also tell an interesting story pre-COVID. From 2010 to 2015 we can see what looks like slow but steady growth, and then after 2015 usage increases dramatically. From 2015-2020 we can see what look like seasonal trends, but it looks like overall volumes stopped growing and may have started declining. In other words, Yelp may have been in trouble before the pandemic hit.</p>
@@ -1495,26 +1866,26 @@ The chain that I have purchased from MEC is really a good chain. I …
 <div id="mec" class="section level3">
 <h3><span class="header-section-number">4.6.3</span> MEC</h3>
 <p>The following chart shows the monthly volume of reviews in the MEC dataset for each complete month. The data was collected in the first few days of November, so I have left November out.</p>
-<div class="sourceCode" id="cb77"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb77-1"><a href="data-summary-eda-initial-model-attempts.html#cb77-1"></a>reviews_mec <span class="op">%&gt;%</span></span>
-<span id="cb77-2"><a href="data-summary-eda-initial-model-attempts.html#cb77-2"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">date =</span> lubridate<span class="op">::</span><span class="kw">floor_date</span>(date, <span class="st">&quot;months&quot;</span>)) <span class="op">%&gt;%</span></span>
-<span id="cb77-3"><a href="data-summary-eda-initial-model-attempts.html#cb77-3"></a><span class="st">  </span><span class="kw">group_by</span>(date) <span class="op">%&gt;%</span></span>
-<span id="cb77-4"><a href="data-summary-eda-initial-model-attempts.html#cb77-4"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">n =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span></span>
-<span id="cb77-5"><a href="data-summary-eda-initial-model-attempts.html#cb77-5"></a><span class="st">  </span><span class="kw">slice_head</span>(<span class="dt">n =</span> <span class="kw">nrow</span>(.)<span class="op">-</span><span class="dv">1</span>) <span class="op">%&gt;%</span></span>
-<span id="cb77-6"><a href="data-summary-eda-initial-model-attempts.html#cb77-6"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x=</span>date,<span class="dt">y=</span>n)) <span class="op">+</span></span>
-<span id="cb77-7"><a href="data-summary-eda-initial-model-attempts.html#cb77-7"></a><span class="st">  </span><span class="kw">geom_line</span>() <span class="op">+</span></span>
-<span id="cb77-8"><a href="data-summary-eda-initial-model-attempts.html#cb77-8"></a><span class="st">  </span><span class="kw">theme_minimal</span>() <span class="op">+</span><span class="st"> </span></span>
-<span id="cb77-9"><a href="data-summary-eda-initial-model-attempts.html#cb77-9"></a><span class="st">  </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;MEC Reviews: Monthly Volume of New Reviews&quot;</span>,</span>
-<span id="cb77-10"><a href="data-summary-eda-initial-model-attempts.html#cb77-10"></a>       <span class="dt">x =</span> <span class="st">&quot;Date&quot;</span>,</span>
-<span id="cb77-11"><a href="data-summary-eda-initial-model-attempts.html#cb77-11"></a>       <span class="dt">y =</span> <span class="st">&quot;# of Reviews&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb76"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb76-1"><a href="data-summary-eda-initial-model-attempts.html#cb76-1"></a>reviews_mec <span class="op">%&gt;%</span></span>
+<span id="cb76-2"><a href="data-summary-eda-initial-model-attempts.html#cb76-2"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">date =</span> lubridate<span class="op">::</span><span class="kw">floor_date</span>(date, <span class="st">&quot;months&quot;</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb76-3"><a href="data-summary-eda-initial-model-attempts.html#cb76-3"></a><span class="st">  </span><span class="kw">group_by</span>(date) <span class="op">%&gt;%</span></span>
+<span id="cb76-4"><a href="data-summary-eda-initial-model-attempts.html#cb76-4"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">n =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span></span>
+<span id="cb76-5"><a href="data-summary-eda-initial-model-attempts.html#cb76-5"></a><span class="st">  </span><span class="kw">slice_head</span>(<span class="dt">n =</span> <span class="kw">nrow</span>(.)<span class="op">-</span><span class="dv">1</span>) <span class="op">%&gt;%</span></span>
+<span id="cb76-6"><a href="data-summary-eda-initial-model-attempts.html#cb76-6"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x=</span>date,<span class="dt">y=</span>n)) <span class="op">+</span></span>
+<span id="cb76-7"><a href="data-summary-eda-initial-model-attempts.html#cb76-7"></a><span class="st">  </span><span class="kw">geom_line</span>() <span class="op">+</span></span>
+<span id="cb76-8"><a href="data-summary-eda-initial-model-attempts.html#cb76-8"></a><span class="st">  </span><span class="kw">theme_minimal</span>() <span class="op">+</span><span class="st"> </span></span>
+<span id="cb76-9"><a href="data-summary-eda-initial-model-attempts.html#cb76-9"></a><span class="st">  </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;MEC Reviews: Monthly Volume of New Reviews&quot;</span>,</span>
+<span id="cb76-10"><a href="data-summary-eda-initial-model-attempts.html#cb76-10"></a>       <span class="dt">x =</span> <span class="st">&quot;Date&quot;</span>,</span>
+<span id="cb76-11"><a href="data-summary-eda-initial-model-attempts.html#cb76-11"></a>       <span class="dt">y =</span> <span class="st">&quot;# of Reviews&quot;</span>)</span></code></pre></div>
 <pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
 <p><img src="telfer-mba-nlp_files/figure-html/mec_reviews_over_time-1.png" width="672" /></p>
 <p>We can expect several biases in the MEC data, so we will need to be cautious about making inferences from this time series. First, I collected MEC data from only a few product categories which may have seasonal trends (e.g. biking in the summer, snowshoeing in the winter). Second, MEC only lists products on its website if they’re currently for sale, so the maximum review age is limited by the longevity of MEC’s product lines. So we should expect to see a decay in review volume as we go further back in time caused by MEC naturally rotating its product line.</p>
 <p>That said, we can still see a big dip in early 2020 and then a big spike in summer 2020. This could correspond to a big drop in sales with the COVID lockdown and associated uncertainty, and then a bike spike in outdoor sporting goods as people tried to find socially distanced ways of entertaining themselves over the summer.</p>
 <p>Out of curiosity, here are the 10 oldest reviews in our dataset:</p>
-<div class="sourceCode" id="cb79"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb79-1"><a href="data-summary-eda-initial-model-attempts.html#cb79-1"></a>reviews_mec <span class="op">%&gt;%</span></span>
-<span id="cb79-2"><a href="data-summary-eda-initial-model-attempts.html#cb79-2"></a><span class="st">  </span><span class="kw">arrange</span>(date) <span class="op">%&gt;%</span></span>
-<span id="cb79-3"><a href="data-summary-eda-initial-model-attempts.html#cb79-3"></a><span class="st">  </span><span class="kw">slice_head</span>(<span class="dt">n=</span><span class="dv">10</span>) <span class="op">%&gt;%</span></span>
-<span id="cb79-4"><a href="data-summary-eda-initial-model-attempts.html#cb79-4"></a><span class="st">  </span><span class="kw">select</span>(date, product_name, review_title)</span></code></pre></div>
+<div class="sourceCode" id="cb78"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb78-1"><a href="data-summary-eda-initial-model-attempts.html#cb78-1"></a>reviews_mec <span class="op">%&gt;%</span></span>
+<span id="cb78-2"><a href="data-summary-eda-initial-model-attempts.html#cb78-2"></a><span class="st">  </span><span class="kw">arrange</span>(date) <span class="op">%&gt;%</span></span>
+<span id="cb78-3"><a href="data-summary-eda-initial-model-attempts.html#cb78-3"></a><span class="st">  </span><span class="kw">slice_head</span>(<span class="dt">n=</span><span class="dv">10</span>) <span class="op">%&gt;%</span></span>
+<span id="cb78-4"><a href="data-summary-eda-initial-model-attempts.html#cb78-4"></a><span class="st">  </span><span class="kw">select</span>(date, product_name, review_title)</span></code></pre></div>
 <pre><code>## # A tibble: 10 x 3
 ##    date                product_name                                           review_title                      
 ##    &lt;dttm&gt;              &lt;chr&gt;                                                  &lt;chr&gt;                             
@@ -1530,11 +1901,11 @@ The chain that I have purchased from MEC is really a good chain. I …
 ## 10 2009-08-17 19:44:51 SRAM PC-830 8 Speed Chain                              Not impressed!</code></pre>
 <p>Not surprisingly, 9 out of 10 are for standard bicycle components that are more about function than fashion: it seems that MEC and SRAM have been offering the same brake pads and chains for more than 10 years.</p>
 <p>And we can take a look at the first review for the Zamberlan boots:</p>
-<div class="sourceCode" id="cb81"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb81-1"><a href="data-summary-eda-initial-model-attempts.html#cb81-1"></a>reviews_mec <span class="op">%&gt;%</span></span>
-<span id="cb81-2"><a href="data-summary-eda-initial-model-attempts.html#cb81-2"></a><span class="st">  </span><span class="kw">filter</span>(product_name<span class="op">==</span><span class="st">&quot;Zamberlan Vioz GT Gore-Tex Backpacking Boots - Women&#39;s&quot;</span>) <span class="op">%&gt;%</span></span>
-<span id="cb81-3"><a href="data-summary-eda-initial-model-attempts.html#cb81-3"></a><span class="st">  </span><span class="kw">slice_head</span>(<span class="dt">n=</span><span class="dv">1</span>) <span class="op">%&gt;%</span></span>
-<span id="cb81-4"><a href="data-summary-eda-initial-model-attempts.html#cb81-4"></a><span class="st">  </span><span class="kw">transmute</span>(<span class="dt">date =</span> date,</span>
-<span id="cb81-5"><a href="data-summary-eda-initial-model-attempts.html#cb81-5"></a>            <span class="dt">comment =</span> <span class="kw">str_trunc</span>(comment, <span class="dv">150</span>)) </span></code></pre></div>
+<div class="sourceCode" id="cb80"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb80-1"><a href="data-summary-eda-initial-model-attempts.html#cb80-1"></a>reviews_mec <span class="op">%&gt;%</span></span>
+<span id="cb80-2"><a href="data-summary-eda-initial-model-attempts.html#cb80-2"></a><span class="st">  </span><span class="kw">filter</span>(product_name<span class="op">==</span><span class="st">&quot;Zamberlan Vioz GT Gore-Tex Backpacking Boots - Women&#39;s&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb80-3"><a href="data-summary-eda-initial-model-attempts.html#cb80-3"></a><span class="st">  </span><span class="kw">slice_head</span>(<span class="dt">n=</span><span class="dv">1</span>) <span class="op">%&gt;%</span></span>
+<span id="cb80-4"><a href="data-summary-eda-initial-model-attempts.html#cb80-4"></a><span class="st">  </span><span class="kw">transmute</span>(<span class="dt">date =</span> date,</span>
+<span id="cb80-5"><a href="data-summary-eda-initial-model-attempts.html#cb80-5"></a>            <span class="dt">comment =</span> <span class="kw">str_trunc</span>(comment, <span class="dv">150</span>)) </span></code></pre></div>
 <pre><code>## # A tibble: 1 x 2
 ##   date                comment                                                                                                                                               
 ##   &lt;dttm&gt;              &lt;chr&gt;                                                                                                                                                 
@@ -1559,7 +1930,7 @@ The chain that I have purchased from MEC is really a good chain. I …
 </div>
 <div id="sessioninfo" class="section level2">
 <h2><span class="header-section-number">4.8</span> SessionInfo</h2>
-<div class="sourceCode" id="cb83"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb83-1"><a href="data-summary-eda-initial-model-attempts.html#cb83-1"></a><span class="kw">sessionInfo</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb82"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb82-1"><a href="data-summary-eda-initial-model-attempts.html#cb82-1"></a><span class="kw">sessionInfo</span>()</span></code></pre></div>
 <pre><code>## R version 4.0.2 (2020-06-22)
 ## Platform: x86_64-w64-mingw32/x64 (64-bit)
 ## Running under: Windows 10 x64 (build 18363)
@@ -1573,16 +1944,22 @@ The chain that I have purchased from MEC is really a good chain. I …
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-##  [1] tidytext_0.2.5  forcats_0.5.0   stringr_1.4.0   dplyr_1.0.2     purrr_0.3.4     readr_1.3.1     tidyr_1.1.1     tibble_3.0.3    ggplot2_3.3.2   tidyverse_1.3.0
+##  [1] glmnet_4.0-2      Matrix_1.2-18     discrim_0.1.1     vip_0.2.2         tictoc_1.0        textrecipes_0.3.0 lubridate_1.7.9   yardstick_0.0.7   workflows_0.2.0   tune_0.1.1       
+## [11] rsample_0.0.8     recipes_0.1.13    parsnip_0.1.4     modeldata_0.0.2   infer_0.5.3       dials_0.0.9       scales_1.1.1      broom_0.7.0       tidymodels_0.1.1  tidytext_0.2.5   
+## [21] forcats_0.5.0     stringr_1.4.0     dplyr_1.0.2       purrr_0.3.4       readr_1.3.1       tidyr_1.1.1       tibble_3.0.3      ggplot2_3.3.2     tidyverse_1.3.0  
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] Rcpp_1.0.5        lubridate_1.7.9   lattice_0.20-41   assertthat_0.2.1  digest_0.6.25     packrat_0.5.0     utf8_1.1.4        R6_2.4.1          cellranger_1.1.0  backports_1.1.7  
-## [11] reprex_0.3.0      evaluate_0.14     httr_1.4.2        highr_0.8         pillar_1.4.6      rlang_0.4.7       readxl_1.3.1      rstudioapi_0.11   blob_1.2.1        Matrix_1.2-18    
-## [21] rmarkdown_2.3     labeling_0.3      webshot_0.5.2     munsell_0.5.0     broom_0.7.0       compiler_4.0.2    janeaustenr_0.1.5 modelr_0.1.8      xfun_0.16         pkgconfig_2.0.3  
-## [31] htmltools_0.5.0   tidyselect_1.1.0  bookdown_0.20     fansi_0.4.1       viridisLite_0.3.0 crayon_1.3.4      dbplyr_1.4.4      withr_2.2.0       SnowballC_0.7.0   grid_4.0.2       
-## [41] jsonlite_1.7.0    gtable_0.3.0      lifecycle_0.2.0   DBI_1.1.0         magrittr_1.5      scales_1.1.1      tokenizers_0.2.1  cli_2.0.2         stringi_1.4.6     farver_2.0.3     
-## [51] fs_1.5.0          xml2_1.3.2        ellipsis_0.3.1    generics_0.0.2    vctrs_0.3.2       kableExtra_1.1.0  tools_4.0.2       glue_1.4.1        hms_0.5.3         yaml_2.2.1       
-## [61] colorspace_1.4-1  rvest_0.3.6       knitr_1.29        haven_2.3.1</code></pre>
+##  [1] colorspace_1.4-1   ellipsis_0.3.1     class_7.3-17       fs_1.5.0           rstudioapi_0.11    listenv_0.8.0      furrr_0.1.0        farver_2.0.3       SnowballC_0.7.0   
+## [10] prodlim_2019.11.13 fansi_0.4.1        xml2_1.3.2         codetools_0.2-16   splines_4.0.2      knitr_1.29         jsonlite_1.7.0     pROC_1.16.2        packrat_0.5.0     
+## [19] servr_0.18         dbplyr_1.4.4       compiler_4.0.2     httr_1.4.2         backports_1.1.7    assertthat_0.2.1   cli_2.0.2          later_1.1.0.1      htmltools_0.5.0   
+## [28] tools_4.0.2        gtable_0.3.0       glue_1.4.1         naivebayes_0.9.7   rappdirs_0.3.1     Rcpp_1.0.5         cellranger_1.1.0   DiceDesign_1.8-1   vctrs_0.3.2       
+## [37] iterators_1.0.12   timeDate_3043.102  gower_0.2.2        xfun_0.16          stopwords_2.0      globals_0.13.0     rvest_0.3.6        mime_0.9           lifecycle_0.2.0   
+## [46] future_1.19.1      MASS_7.3-51.6      ipred_0.9-9        promises_1.1.1     hms_0.5.3          parallel_4.0.2     yaml_2.2.1         gridExtra_2.3      rpart_4.1-15      
+## [55] stringi_1.4.6      highr_0.8          tokenizers_0.2.1   foreach_1.5.0      textdata_0.4.1     lhs_1.0.2          hardhat_0.1.4      shape_1.4.5        lava_1.6.8        
+## [64] rlang_0.4.7        pkgconfig_2.0.3    evaluate_0.14      lattice_0.20-41    labeling_0.3       tidyselect_1.1.0   plyr_1.8.6         magrittr_1.5       bookdown_0.20     
+## [73] R6_2.4.1           generics_0.0.2     DBI_1.1.0          pillar_1.4.6       haven_2.3.1        withr_2.2.0        survival_3.1-12    nnet_7.3-14        janeaustenr_0.1.5 
+## [82] modelr_0.1.8       crayon_1.3.4       utf8_1.1.4         rmarkdown_2.3      usethis_1.6.1      grid_4.0.2         readxl_1.3.1       blob_1.2.1         reprex_0.3.0      
+## [91] digest_0.6.25      webshot_0.5.2      httpuv_1.5.4       munsell_0.5.0      GPfit_1.0-8        viridisLite_0.3.0  kableExtra_1.1.0</code></pre>
 
 </div>
 </div>

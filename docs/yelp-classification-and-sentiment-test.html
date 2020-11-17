@@ -51,6 +51,7 @@
 
 
 <script src="libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
+<script src="libs/kePrint-0.0.1/kePrint.js"></script>
 
 
 <style type="text/css">
@@ -185,6 +186,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="5.4" data-path="a-first-lasso-attempt.html"><a href="a-first-lasso-attempt.html#removing-stop-words"><i class="fa fa-check"></i><b>5.4</b> Removing stop words</a></li>
 <li class="chapter" data-level="5.5" data-path="a-first-lasso-attempt.html"><a href="a-first-lasso-attempt.html#adjusting-n-grams"><i class="fa fa-check"></i><b>5.5</b> Adjusting n-grams</a></li>
 <li class="chapter" data-level="5.6" data-path="a-first-lasso-attempt.html"><a href="a-first-lasso-attempt.html#full-final-regression"><i class="fa fa-check"></i><b>5.6</b> Full final regression</a></li>
+<li class="chapter" data-level="5.7" data-path="a-first-lasso-attempt.html"><a href="a-first-lasso-attempt.html#conclusion"><i class="fa fa-check"></i><b>5.7</b> Conclusion</a></li>
 </ul></li>
 <li class="chapter" data-level="6" data-path="yelp-classification-and-sentiment-test.html"><a href="yelp-classification-and-sentiment-test.html"><i class="fa fa-check"></i><b>6</b> Yelp Classification and Sentiment Test</a><ul>
 <li class="chapter" data-level="6.1" data-path="yelp-classification-and-sentiment-test.html"><a href="yelp-classification-and-sentiment-test.html#yelp-dataset"><i class="fa fa-check"></i><b>6.1</b> Yelp Dataset</a><ul>
@@ -228,24 +230,24 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div id="yelp-dataset" class="section level2">
 <h2><span class="header-section-number">6.1</span> Yelp Dataset</h2>
 <p>Let’s begin with the Yelp dataset I collected. As a reminder, this dataset was collected in October 2020 and has 9,402 reviews for restaurants in Ottawa. Reviews were overwhelmingly positive, as can be seen in the following histogram.</p>
-<div class="sourceCode" id="cb231"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb231-1"><a href="yelp-classification-and-sentiment-test.html#cb231-1"></a>reviews_gr &lt;-<span class="st"> </span><span class="kw">read_csv</span>(<span class="st">&quot;../tests/data/goodreads_all.csv&quot;</span>)</span>
-<span id="cb231-2"><a href="yelp-classification-and-sentiment-test.html#cb231-2"></a>reviews_mec &lt;-<span class="st"> </span><span class="kw">read_csv</span>(<span class="st">&quot;../tests/data/mec-reviews.csv&quot;</span>)</span>
-<span id="cb231-3"><a href="yelp-classification-and-sentiment-test.html#cb231-3"></a>reviews_yelp &lt;-<span class="st"> </span><span class="kw">read_csv</span>(<span class="st">&quot;../tests/data/ottawa_yelp_reviews.csv&quot;</span>) <span class="op">%&gt;%</span></span>
-<span id="cb231-4"><a href="yelp-classification-and-sentiment-test.html#cb231-4"></a><span class="st">  </span><span class="kw">rename</span>(<span class="dt">rating_num =</span> rating)</span>
-<span id="cb231-5"><a href="yelp-classification-and-sentiment-test.html#cb231-5"></a></span>
-<span id="cb231-6"><a href="yelp-classification-and-sentiment-test.html#cb231-6"></a></span>
-<span id="cb231-7"><a href="yelp-classification-and-sentiment-test.html#cb231-7"></a> reviews_yelp <span class="op">%&gt;%</span></span>
-<span id="cb231-8"><a href="yelp-classification-and-sentiment-test.html#cb231-8"></a><span class="st"> </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x=</span>rating_num)) <span class="op">+</span></span>
-<span id="cb231-9"><a href="yelp-classification-and-sentiment-test.html#cb231-9"></a><span class="st">  </span><span class="kw">geom_histogram</span>(<span class="dt">bins=</span><span class="dv">5</span>) <span class="op">+</span></span>
-<span id="cb231-10"><a href="yelp-classification-and-sentiment-test.html#cb231-10"></a><span class="st">  </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;Small Yelp Dataset: Histogram of Star Ratings (n=9,402)&quot;</span>,</span>
-<span id="cb231-11"><a href="yelp-classification-and-sentiment-test.html#cb231-11"></a>       <span class="dt">x =</span> <span class="st">&quot;Star Rating&quot;</span>,</span>
-<span id="cb231-12"><a href="yelp-classification-and-sentiment-test.html#cb231-12"></a>       <span class="dt">y =</span> <span class="st">&quot;Count&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb224"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb224-1"><a href="yelp-classification-and-sentiment-test.html#cb224-1"></a>reviews_gr &lt;-<span class="st"> </span><span class="kw">read_csv</span>(<span class="st">&quot;../tests/data/goodreads_all.csv&quot;</span>)</span>
+<span id="cb224-2"><a href="yelp-classification-and-sentiment-test.html#cb224-2"></a>reviews_mec &lt;-<span class="st"> </span><span class="kw">read_csv</span>(<span class="st">&quot;../tests/data/mec-reviews.csv&quot;</span>)</span>
+<span id="cb224-3"><a href="yelp-classification-and-sentiment-test.html#cb224-3"></a>reviews_yelp &lt;-<span class="st"> </span><span class="kw">read_csv</span>(<span class="st">&quot;../tests/data/ottawa_yelp_reviews.csv&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb224-4"><a href="yelp-classification-and-sentiment-test.html#cb224-4"></a><span class="st">  </span><span class="kw">rename</span>(<span class="dt">rating_num =</span> rating)</span>
+<span id="cb224-5"><a href="yelp-classification-and-sentiment-test.html#cb224-5"></a></span>
+<span id="cb224-6"><a href="yelp-classification-and-sentiment-test.html#cb224-6"></a></span>
+<span id="cb224-7"><a href="yelp-classification-and-sentiment-test.html#cb224-7"></a> reviews_yelp <span class="op">%&gt;%</span></span>
+<span id="cb224-8"><a href="yelp-classification-and-sentiment-test.html#cb224-8"></a><span class="st"> </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x=</span>rating_num)) <span class="op">+</span></span>
+<span id="cb224-9"><a href="yelp-classification-and-sentiment-test.html#cb224-9"></a><span class="st">  </span><span class="kw">geom_histogram</span>(<span class="dt">bins=</span><span class="dv">5</span>) <span class="op">+</span></span>
+<span id="cb224-10"><a href="yelp-classification-and-sentiment-test.html#cb224-10"></a><span class="st">  </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;Small Yelp Dataset: Histogram of Star Ratings (n=9,402)&quot;</span>,</span>
+<span id="cb224-11"><a href="yelp-classification-and-sentiment-test.html#cb224-11"></a>       <span class="dt">x =</span> <span class="st">&quot;Star Rating&quot;</span>,</span>
+<span id="cb224-12"><a href="yelp-classification-and-sentiment-test.html#cb224-12"></a>       <span class="dt">y =</span> <span class="st">&quot;Count&quot;</span>)</span></code></pre></div>
 <p><img src="telfer-mba-nlp_files/figure-html/load_data-1.png" width="672" /></p>
 <p>The dataset is quite imbalanced: nearly 79% of reviews give 4 or 5 stars, our only about 9% give 1 or 2 stars. As we will see, this will create problems for our modeling.</p>
-<div class="sourceCode" id="cb232"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb232-1"><a href="yelp-classification-and-sentiment-test.html#cb232-1"></a>reviews_yelp <span class="op">%&gt;%</span></span>
-<span id="cb232-2"><a href="yelp-classification-and-sentiment-test.html#cb232-2"></a><span class="st">  </span><span class="kw">group_by</span>(rating_num) <span class="op">%&gt;%</span></span>
-<span id="cb232-3"><a href="yelp-classification-and-sentiment-test.html#cb232-3"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">n =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span></span>
-<span id="cb232-4"><a href="yelp-classification-and-sentiment-test.html#cb232-4"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">pct =</span> n<span class="op">/</span><span class="kw">sum</span>(n))</span></code></pre></div>
+<div class="sourceCode" id="cb225"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb225-1"><a href="yelp-classification-and-sentiment-test.html#cb225-1"></a>reviews_yelp <span class="op">%&gt;%</span></span>
+<span id="cb225-2"><a href="yelp-classification-and-sentiment-test.html#cb225-2"></a><span class="st">  </span><span class="kw">group_by</span>(rating_num) <span class="op">%&gt;%</span></span>
+<span id="cb225-3"><a href="yelp-classification-and-sentiment-test.html#cb225-3"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">n =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span></span>
+<span id="cb225-4"><a href="yelp-classification-and-sentiment-test.html#cb225-4"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">pct =</span> n<span class="op">/</span><span class="kw">sum</span>(n))</span></code></pre></div>
 <pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
 <pre><code>## # A tibble: 5 x 3
 ##   rating_num     n    pct
@@ -259,9 +261,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h3><span class="header-section-number">6.1.1</span> AFINN</h3>
 <p>AFINN is a dictionary-based one-dimensional sentiment model that gives texts an integer score for how positive or negative they are. It treats texts as a “bag of words,” which means it does not consider any syntax or semantics beyond the values given in its dictionary. Each word in a text is given a pre-determined positive or negative score, and those scores are summed to give an overall rating for a text.</p>
 <p>For example, here are the AFINN scores for the top 5 positive words. Strongly negative words are generally NSFW and so I won’t print them here.</p>
-<div class="sourceCode" id="cb235"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb235-1"><a href="yelp-classification-and-sentiment-test.html#cb235-1"></a>afinn <span class="op">%&gt;%</span></span>
-<span id="cb235-2"><a href="yelp-classification-and-sentiment-test.html#cb235-2"></a><span class="st">  </span><span class="kw">arrange</span>(<span class="kw">desc</span>(value)) <span class="op">%&gt;%</span></span>
-<span id="cb235-3"><a href="yelp-classification-and-sentiment-test.html#cb235-3"></a><span class="st">  </span><span class="kw">head</span>(<span class="dv">5</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb228"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb228-1"><a href="yelp-classification-and-sentiment-test.html#cb228-1"></a>afinn <span class="op">%&gt;%</span></span>
+<span id="cb228-2"><a href="yelp-classification-and-sentiment-test.html#cb228-2"></a><span class="st">  </span><span class="kw">arrange</span>(<span class="kw">desc</span>(value)) <span class="op">%&gt;%</span></span>
+<span id="cb228-3"><a href="yelp-classification-and-sentiment-test.html#cb228-3"></a><span class="st">  </span><span class="kw">head</span>(<span class="dv">5</span>)</span></code></pre></div>
 <pre><code>## # A tibble: 5 x 2
 ##   word         value
 ##   &lt;chr&gt;        &lt;dbl&gt;
@@ -271,65 +273,65 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 ## 4 superb           5
 ## 5 thrilled         5</code></pre>
 <p>Following the <a href="https://www.tidytextmining.com/tidytext.html">Tidytext</a> method from Silge &amp; Robinson, we get an AFINN score for each Yelp review:</p>
-<div class="sourceCode" id="cb237"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb237-1"><a href="yelp-classification-and-sentiment-test.html#cb237-1"></a>afinn_yelp &lt;-<span class="st"> </span>reviews_yelp <span class="op">%&gt;%</span></span>
-<span id="cb237-2"><a href="yelp-classification-and-sentiment-test.html#cb237-2"></a><span class="st">  </span><span class="kw">select</span>(comment, rating_num) <span class="op">%&gt;%</span></span>
-<span id="cb237-3"><a href="yelp-classification-and-sentiment-test.html#cb237-3"></a><span class="st">  </span><span class="kw">rowid_to_column</span>() <span class="op">%&gt;%</span></span>
-<span id="cb237-4"><a href="yelp-classification-and-sentiment-test.html#cb237-4"></a><span class="st">  </span>tidytext<span class="op">::</span><span class="kw">unnest_tokens</span>(word, comment) <span class="op">%&gt;%</span></span>
-<span id="cb237-5"><a href="yelp-classification-and-sentiment-test.html#cb237-5"></a><span class="st">  </span><span class="kw">left_join</span>(afinn) <span class="op">%&gt;%</span></span>
-<span id="cb237-6"><a href="yelp-classification-and-sentiment-test.html#cb237-6"></a><span class="st">  </span><span class="kw">group_by</span>(rowid) <span class="op">%&gt;%</span></span>
-<span id="cb237-7"><a href="yelp-classification-and-sentiment-test.html#cb237-7"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">afinn_sent =</span> <span class="kw">sum</span>(value, <span class="dt">na.rm =</span> T),</span>
-<span id="cb237-8"><a href="yelp-classification-and-sentiment-test.html#cb237-8"></a>            <span class="dt">rating_num =</span> <span class="kw">mean</span>(rating_num))</span></code></pre></div>
+<div class="sourceCode" id="cb230"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb230-1"><a href="yelp-classification-and-sentiment-test.html#cb230-1"></a>afinn_yelp &lt;-<span class="st"> </span>reviews_yelp <span class="op">%&gt;%</span></span>
+<span id="cb230-2"><a href="yelp-classification-and-sentiment-test.html#cb230-2"></a><span class="st">  </span><span class="kw">select</span>(comment, rating_num) <span class="op">%&gt;%</span></span>
+<span id="cb230-3"><a href="yelp-classification-and-sentiment-test.html#cb230-3"></a><span class="st">  </span><span class="kw">rowid_to_column</span>() <span class="op">%&gt;%</span></span>
+<span id="cb230-4"><a href="yelp-classification-and-sentiment-test.html#cb230-4"></a><span class="st">  </span>tidytext<span class="op">::</span><span class="kw">unnest_tokens</span>(word, comment) <span class="op">%&gt;%</span></span>
+<span id="cb230-5"><a href="yelp-classification-and-sentiment-test.html#cb230-5"></a><span class="st">  </span><span class="kw">left_join</span>(afinn) <span class="op">%&gt;%</span></span>
+<span id="cb230-6"><a href="yelp-classification-and-sentiment-test.html#cb230-6"></a><span class="st">  </span><span class="kw">group_by</span>(rowid) <span class="op">%&gt;%</span></span>
+<span id="cb230-7"><a href="yelp-classification-and-sentiment-test.html#cb230-7"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">afinn_sent =</span> <span class="kw">sum</span>(value, <span class="dt">na.rm =</span> T),</span>
+<span id="cb230-8"><a href="yelp-classification-and-sentiment-test.html#cb230-8"></a>            <span class="dt">rating_num =</span> <span class="kw">mean</span>(rating_num))</span></code></pre></div>
 <p>We can make a boxplot to show the distribution of AFINN scores for reviews grouped by star rating. This actually looks moderately promising, since we can see that higher star ratings seem to be associated with somewhat higher AFINN scores.</p>
-<div class="sourceCode" id="cb238"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb238-1"><a href="yelp-classification-and-sentiment-test.html#cb238-1"></a>afinn_yelp <span class="op">%&gt;%</span></span>
-<span id="cb238-2"><a href="yelp-classification-and-sentiment-test.html#cb238-2"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">rating_num =</span> <span class="kw">as.factor</span>(rating_num)) <span class="op">%&gt;%</span></span>
-<span id="cb238-3"><a href="yelp-classification-and-sentiment-test.html#cb238-3"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> rating_num, <span class="dt">y=</span>afinn_sent)) <span class="op">+</span></span>
-<span id="cb238-4"><a href="yelp-classification-and-sentiment-test.html#cb238-4"></a><span class="st">  </span><span class="kw">geom_boxplot</span>() <span class="op">+</span></span>
-<span id="cb238-5"><a href="yelp-classification-and-sentiment-test.html#cb238-5"></a><span class="st">  </span><span class="kw">geom_smooth</span>(<span class="dt">method=</span><span class="st">&quot;lm&quot;</span>) <span class="op">+</span></span>
-<span id="cb238-6"><a href="yelp-classification-and-sentiment-test.html#cb238-6"></a><span class="st">  </span><span class="kw">labs</span>(</span>
-<span id="cb238-7"><a href="yelp-classification-and-sentiment-test.html#cb238-7"></a>    <span class="dt">title =</span> <span class="st">&quot;AFINN Scores by Star Rating&quot;</span>,</span>
-<span id="cb238-8"><a href="yelp-classification-and-sentiment-test.html#cb238-8"></a>    <span class="dt">subtitle =</span> <span class="st">&quot;Small Yelp dataset (n=9402)&quot;</span>,</span>
-<span id="cb238-9"><a href="yelp-classification-and-sentiment-test.html#cb238-9"></a>    <span class="dt">x =</span> <span class="st">&quot;Star Rating&quot;</span>,</span>
-<span id="cb238-10"><a href="yelp-classification-and-sentiment-test.html#cb238-10"></a>    <span class="dt">y =</span> <span class="st">&quot;AFINN Sentiment Score&quot;</span></span>
-<span id="cb238-11"><a href="yelp-classification-and-sentiment-test.html#cb238-11"></a>  )</span></code></pre></div>
+<div class="sourceCode" id="cb231"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb231-1"><a href="yelp-classification-and-sentiment-test.html#cb231-1"></a>afinn_yelp <span class="op">%&gt;%</span></span>
+<span id="cb231-2"><a href="yelp-classification-and-sentiment-test.html#cb231-2"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">rating_num =</span> <span class="kw">as.factor</span>(rating_num)) <span class="op">%&gt;%</span></span>
+<span id="cb231-3"><a href="yelp-classification-and-sentiment-test.html#cb231-3"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> rating_num, <span class="dt">y=</span>afinn_sent)) <span class="op">+</span></span>
+<span id="cb231-4"><a href="yelp-classification-and-sentiment-test.html#cb231-4"></a><span class="st">  </span><span class="kw">geom_boxplot</span>() <span class="op">+</span></span>
+<span id="cb231-5"><a href="yelp-classification-and-sentiment-test.html#cb231-5"></a><span class="st">  </span><span class="kw">geom_smooth</span>(<span class="dt">method=</span><span class="st">&quot;lm&quot;</span>) <span class="op">+</span></span>
+<span id="cb231-6"><a href="yelp-classification-and-sentiment-test.html#cb231-6"></a><span class="st">  </span><span class="kw">labs</span>(</span>
+<span id="cb231-7"><a href="yelp-classification-and-sentiment-test.html#cb231-7"></a>    <span class="dt">title =</span> <span class="st">&quot;AFINN Scores by Star Rating&quot;</span>,</span>
+<span id="cb231-8"><a href="yelp-classification-and-sentiment-test.html#cb231-8"></a>    <span class="dt">subtitle =</span> <span class="st">&quot;Small Yelp dataset (n=9402)&quot;</span>,</span>
+<span id="cb231-9"><a href="yelp-classification-and-sentiment-test.html#cb231-9"></a>    <span class="dt">x =</span> <span class="st">&quot;Star Rating&quot;</span>,</span>
+<span id="cb231-10"><a href="yelp-classification-and-sentiment-test.html#cb231-10"></a>    <span class="dt">y =</span> <span class="st">&quot;AFINN Sentiment Score&quot;</span></span>
+<span id="cb231-11"><a href="yelp-classification-and-sentiment-test.html#cb231-11"></a>  )</span></code></pre></div>
 <p><img src="telfer-mba-nlp_files/figure-html/yelp_boxplot-1.png" width="672" /></p>
 </div>
 <div id="classification-naive-bayes-classifier" class="section level3">
 <h3><span class="header-section-number">6.1.2</span> Classification: Naive Bayes Classifier</h3>
 <p>To approach this as classification problem, we will divide reviews into two groups: positive (&gt;3 stars) and negative (&lt;3 stars).</p>
-<div class="sourceCode" id="cb239"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb239-1"><a href="yelp-classification-and-sentiment-test.html#cb239-1"></a>factor_yelp &lt;-<span class="st"> </span>reviews_yelp <span class="op">%&gt;%</span></span>
-<span id="cb239-2"><a href="yelp-classification-and-sentiment-test.html#cb239-2"></a><span class="st">  </span><span class="kw">bind_cols</span>(afinn_yelp <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(afinn_sent)) <span class="op">%&gt;%</span></span>
-<span id="cb239-3"><a href="yelp-classification-and-sentiment-test.html#cb239-3"></a><span class="st">  </span><span class="kw">filter</span>(rating_num <span class="op">!=</span><span class="st"> </span><span class="dv">3</span>) <span class="op">%&gt;%</span></span>
-<span id="cb239-4"><a href="yelp-classification-and-sentiment-test.html#cb239-4"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">rating_factor =</span> <span class="kw">case_when</span>(</span>
-<span id="cb239-5"><a href="yelp-classification-and-sentiment-test.html#cb239-5"></a>    rating_num <span class="op">&lt;</span><span class="dv">3</span> <span class="op">~</span><span class="st"> &quot;NEG&quot;</span>,</span>
-<span id="cb239-6"><a href="yelp-classification-and-sentiment-test.html#cb239-6"></a>    rating_num <span class="op">&gt;</span><span class="dv">3</span> <span class="op">~</span><span class="st"> &quot;POS&quot;</span>),</span>
-<span id="cb239-7"><a href="yelp-classification-and-sentiment-test.html#cb239-7"></a>    <span class="dt">rating_factor =</span> <span class="kw">as.factor</span>(rating_factor))</span>
-<span id="cb239-8"><a href="yelp-classification-and-sentiment-test.html#cb239-8"></a></span>
-<span id="cb239-9"><a href="yelp-classification-and-sentiment-test.html#cb239-9"></a><span class="co">#factor_yelp</span></span></code></pre></div>
+<div class="sourceCode" id="cb232"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb232-1"><a href="yelp-classification-and-sentiment-test.html#cb232-1"></a>factor_yelp &lt;-<span class="st"> </span>reviews_yelp <span class="op">%&gt;%</span></span>
+<span id="cb232-2"><a href="yelp-classification-and-sentiment-test.html#cb232-2"></a><span class="st">  </span><span class="kw">bind_cols</span>(afinn_yelp <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(afinn_sent)) <span class="op">%&gt;%</span></span>
+<span id="cb232-3"><a href="yelp-classification-and-sentiment-test.html#cb232-3"></a><span class="st">  </span><span class="kw">filter</span>(rating_num <span class="op">!=</span><span class="st"> </span><span class="dv">3</span>) <span class="op">%&gt;%</span></span>
+<span id="cb232-4"><a href="yelp-classification-and-sentiment-test.html#cb232-4"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">rating_factor =</span> <span class="kw">case_when</span>(</span>
+<span id="cb232-5"><a href="yelp-classification-and-sentiment-test.html#cb232-5"></a>    rating_num <span class="op">&lt;</span><span class="dv">3</span> <span class="op">~</span><span class="st"> &quot;NEG&quot;</span>,</span>
+<span id="cb232-6"><a href="yelp-classification-and-sentiment-test.html#cb232-6"></a>    rating_num <span class="op">&gt;</span><span class="dv">3</span> <span class="op">~</span><span class="st"> &quot;POS&quot;</span>),</span>
+<span id="cb232-7"><a href="yelp-classification-and-sentiment-test.html#cb232-7"></a>    <span class="dt">rating_factor =</span> <span class="kw">as.factor</span>(rating_factor))</span>
+<span id="cb232-8"><a href="yelp-classification-and-sentiment-test.html#cb232-8"></a></span>
+<span id="cb232-9"><a href="yelp-classification-and-sentiment-test.html#cb232-9"></a><span class="co">#factor_yelp</span></span></code></pre></div>
 <p>Here we’ll follow <a href="https://smltar.com/mlclassification.html">SMLTAR Ch 7</a> very closely and set up a naive Bayes classifier that takes AFINN sentiment as its only input and predicts positive or negative sentiment as its only output. The code here follows SMLTAR very closely except where otherwise specified. <em>Note</em> that SMLTAR actually uses the text itself, and not a real-valued variable like AFINN sentiment; we can try this next.</p>
 <p>First we set up testing and training split:</p>
-<div class="sourceCode" id="cb240"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb240-1"><a href="yelp-classification-and-sentiment-test.html#cb240-1"></a><span class="kw">set.seed</span>(<span class="dv">1234</span>)</span>
-<span id="cb240-2"><a href="yelp-classification-and-sentiment-test.html#cb240-2"></a></span>
-<span id="cb240-3"><a href="yelp-classification-and-sentiment-test.html#cb240-3"></a>yelp_split &lt;-<span class="st"> </span><span class="kw">initial_split</span>(factor_yelp, <span class="dt">strata =</span> rating_factor)</span>
-<span id="cb240-4"><a href="yelp-classification-and-sentiment-test.html#cb240-4"></a></span>
-<span id="cb240-5"><a href="yelp-classification-and-sentiment-test.html#cb240-5"></a>yelp_test &lt;-<span class="st"> </span><span class="kw">testing</span>(yelp_split)</span>
-<span id="cb240-6"><a href="yelp-classification-and-sentiment-test.html#cb240-6"></a></span>
-<span id="cb240-7"><a href="yelp-classification-and-sentiment-test.html#cb240-7"></a>yelp_train &lt;-<span class="st"> </span><span class="kw">training</span>(yelp_split)</span></code></pre></div>
+<div class="sourceCode" id="cb233"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb233-1"><a href="yelp-classification-and-sentiment-test.html#cb233-1"></a><span class="kw">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb233-2"><a href="yelp-classification-and-sentiment-test.html#cb233-2"></a></span>
+<span id="cb233-3"><a href="yelp-classification-and-sentiment-test.html#cb233-3"></a>yelp_split &lt;-<span class="st"> </span><span class="kw">initial_split</span>(factor_yelp, <span class="dt">strata =</span> rating_factor)</span>
+<span id="cb233-4"><a href="yelp-classification-and-sentiment-test.html#cb233-4"></a></span>
+<span id="cb233-5"><a href="yelp-classification-and-sentiment-test.html#cb233-5"></a>yelp_test &lt;-<span class="st"> </span><span class="kw">testing</span>(yelp_split)</span>
+<span id="cb233-6"><a href="yelp-classification-and-sentiment-test.html#cb233-6"></a></span>
+<span id="cb233-7"><a href="yelp-classification-and-sentiment-test.html#cb233-7"></a>yelp_train &lt;-<span class="st"> </span><span class="kw">training</span>(yelp_split)</span></code></pre></div>
 <p>Then we set up a recipe, set up a workflow, specify a naive Bayes model, and fit this model to our training data:</p>
-<div class="sourceCode" id="cb241"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb241-1"><a href="yelp-classification-and-sentiment-test.html#cb241-1"></a>yelp_rec &lt;-<span class="st"> </span><span class="kw">recipe</span>(rating_factor <span class="op">~</span><span class="st"> </span>afinn_sent,</span>
-<span id="cb241-2"><a href="yelp-classification-and-sentiment-test.html#cb241-2"></a>                   <span class="dt">data =</span> yelp_train)</span>
-<span id="cb241-3"><a href="yelp-classification-and-sentiment-test.html#cb241-3"></a></span>
-<span id="cb241-4"><a href="yelp-classification-and-sentiment-test.html#cb241-4"></a>yelp_wf &lt;-<span class="st"> </span><span class="kw">workflow</span>() <span class="op">%&gt;%</span></span>
-<span id="cb241-5"><a href="yelp-classification-and-sentiment-test.html#cb241-5"></a><span class="st">  </span><span class="kw">add_recipe</span>(yelp_rec)</span>
-<span id="cb241-6"><a href="yelp-classification-and-sentiment-test.html#cb241-6"></a></span>
-<span id="cb241-7"><a href="yelp-classification-and-sentiment-test.html#cb241-7"></a>nb_spec &lt;-<span class="st"> </span><span class="kw">naive_Bayes</span>() <span class="op">%&gt;%</span></span>
-<span id="cb241-8"><a href="yelp-classification-and-sentiment-test.html#cb241-8"></a><span class="st">  </span><span class="kw">set_mode</span>(<span class="st">&quot;classification&quot;</span>) <span class="op">%&gt;%</span></span>
-<span id="cb241-9"><a href="yelp-classification-and-sentiment-test.html#cb241-9"></a><span class="st">  </span><span class="kw">set_engine</span>(<span class="st">&quot;naivebayes&quot;</span>)</span>
-<span id="cb241-10"><a href="yelp-classification-and-sentiment-test.html#cb241-10"></a></span>
-<span id="cb241-11"><a href="yelp-classification-and-sentiment-test.html#cb241-11"></a>nb_fit &lt;-<span class="st"> </span>yelp_wf <span class="op">%&gt;%</span></span>
-<span id="cb241-12"><a href="yelp-classification-and-sentiment-test.html#cb241-12"></a><span class="st">  </span><span class="kw">add_model</span>(nb_spec) <span class="op">%&gt;%</span></span>
-<span id="cb241-13"><a href="yelp-classification-and-sentiment-test.html#cb241-13"></a><span class="st">  </span><span class="kw">fit</span>(<span class="dt">data =</span> yelp_train)</span>
-<span id="cb241-14"><a href="yelp-classification-and-sentiment-test.html#cb241-14"></a></span>
-<span id="cb241-15"><a href="yelp-classification-and-sentiment-test.html#cb241-15"></a>nb_fit</span></code></pre></div>
+<div class="sourceCode" id="cb234"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb234-1"><a href="yelp-classification-and-sentiment-test.html#cb234-1"></a>yelp_rec &lt;-<span class="st"> </span><span class="kw">recipe</span>(rating_factor <span class="op">~</span><span class="st"> </span>afinn_sent,</span>
+<span id="cb234-2"><a href="yelp-classification-and-sentiment-test.html#cb234-2"></a>                   <span class="dt">data =</span> yelp_train)</span>
+<span id="cb234-3"><a href="yelp-classification-and-sentiment-test.html#cb234-3"></a></span>
+<span id="cb234-4"><a href="yelp-classification-and-sentiment-test.html#cb234-4"></a>yelp_wf &lt;-<span class="st"> </span><span class="kw">workflow</span>() <span class="op">%&gt;%</span></span>
+<span id="cb234-5"><a href="yelp-classification-and-sentiment-test.html#cb234-5"></a><span class="st">  </span><span class="kw">add_recipe</span>(yelp_rec)</span>
+<span id="cb234-6"><a href="yelp-classification-and-sentiment-test.html#cb234-6"></a></span>
+<span id="cb234-7"><a href="yelp-classification-and-sentiment-test.html#cb234-7"></a>nb_spec &lt;-<span class="st"> </span><span class="kw">naive_Bayes</span>() <span class="op">%&gt;%</span></span>
+<span id="cb234-8"><a href="yelp-classification-and-sentiment-test.html#cb234-8"></a><span class="st">  </span><span class="kw">set_mode</span>(<span class="st">&quot;classification&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb234-9"><a href="yelp-classification-and-sentiment-test.html#cb234-9"></a><span class="st">  </span><span class="kw">set_engine</span>(<span class="st">&quot;naivebayes&quot;</span>)</span>
+<span id="cb234-10"><a href="yelp-classification-and-sentiment-test.html#cb234-10"></a></span>
+<span id="cb234-11"><a href="yelp-classification-and-sentiment-test.html#cb234-11"></a>nb_fit &lt;-<span class="st"> </span>yelp_wf <span class="op">%&gt;%</span></span>
+<span id="cb234-12"><a href="yelp-classification-and-sentiment-test.html#cb234-12"></a><span class="st">  </span><span class="kw">add_model</span>(nb_spec) <span class="op">%&gt;%</span></span>
+<span id="cb234-13"><a href="yelp-classification-and-sentiment-test.html#cb234-13"></a><span class="st">  </span><span class="kw">fit</span>(<span class="dt">data =</span> yelp_train)</span>
+<span id="cb234-14"><a href="yelp-classification-and-sentiment-test.html#cb234-14"></a></span>
+<span id="cb234-15"><a href="yelp-classification-and-sentiment-test.html#cb234-15"></a>nb_fit</span></code></pre></div>
 <pre><code>## == Workflow [trained] ==========================================================
 ## Preprocessor: Recipe
 ## Model: naive_Bayes()
@@ -392,56 +394,56 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 ## ...
 ## and 7 more lines.</code></pre>
 <p>We will use resampling to evaluate the model, again with 10 cross-fold validation sets.</p>
-<div class="sourceCode" id="cb243"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb243-1"><a href="yelp-classification-and-sentiment-test.html#cb243-1"></a>yelp_folds &lt;-<span class="st"> </span><span class="kw">vfold_cv</span>(yelp_train)</span>
-<span id="cb243-2"><a href="yelp-classification-and-sentiment-test.html#cb243-2"></a></span>
-<span id="cb243-3"><a href="yelp-classification-and-sentiment-test.html#cb243-3"></a>nb_wf &lt;-<span class="st"> </span><span class="kw">workflow</span>() <span class="op">%&gt;%</span></span>
-<span id="cb243-4"><a href="yelp-classification-and-sentiment-test.html#cb243-4"></a><span class="st">  </span><span class="kw">add_recipe</span>(yelp_rec) <span class="op">%&gt;%</span></span>
-<span id="cb243-5"><a href="yelp-classification-and-sentiment-test.html#cb243-5"></a><span class="st">  </span><span class="kw">add_model</span>(nb_spec)</span>
-<span id="cb243-6"><a href="yelp-classification-and-sentiment-test.html#cb243-6"></a></span>
-<span id="cb243-7"><a href="yelp-classification-and-sentiment-test.html#cb243-7"></a>nb_rs &lt;-<span class="st"> </span><span class="kw">fit_resamples</span>(</span>
-<span id="cb243-8"><a href="yelp-classification-and-sentiment-test.html#cb243-8"></a>  nb_wf,</span>
-<span id="cb243-9"><a href="yelp-classification-and-sentiment-test.html#cb243-9"></a>  yelp_folds,</span>
-<span id="cb243-10"><a href="yelp-classification-and-sentiment-test.html#cb243-10"></a>  <span class="dt">control =</span> <span class="kw">control_resamples</span>(<span class="dt">save_pred =</span> <span class="ot">TRUE</span>)</span>
-<span id="cb243-11"><a href="yelp-classification-and-sentiment-test.html#cb243-11"></a>)</span>
-<span id="cb243-12"><a href="yelp-classification-and-sentiment-test.html#cb243-12"></a></span>
-<span id="cb243-13"><a href="yelp-classification-and-sentiment-test.html#cb243-13"></a>nb_rs_metrics &lt;-<span class="st"> </span><span class="kw">collect_metrics</span>(nb_rs)</span>
-<span id="cb243-14"><a href="yelp-classification-and-sentiment-test.html#cb243-14"></a>nb_rs_predictions &lt;-<span class="st"> </span><span class="kw">collect_predictions</span>(nb_rs)</span></code></pre></div>
+<div class="sourceCode" id="cb236"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb236-1"><a href="yelp-classification-and-sentiment-test.html#cb236-1"></a>yelp_folds &lt;-<span class="st"> </span><span class="kw">vfold_cv</span>(yelp_train)</span>
+<span id="cb236-2"><a href="yelp-classification-and-sentiment-test.html#cb236-2"></a></span>
+<span id="cb236-3"><a href="yelp-classification-and-sentiment-test.html#cb236-3"></a>nb_wf &lt;-<span class="st"> </span><span class="kw">workflow</span>() <span class="op">%&gt;%</span></span>
+<span id="cb236-4"><a href="yelp-classification-and-sentiment-test.html#cb236-4"></a><span class="st">  </span><span class="kw">add_recipe</span>(yelp_rec) <span class="op">%&gt;%</span></span>
+<span id="cb236-5"><a href="yelp-classification-and-sentiment-test.html#cb236-5"></a><span class="st">  </span><span class="kw">add_model</span>(nb_spec)</span>
+<span id="cb236-6"><a href="yelp-classification-and-sentiment-test.html#cb236-6"></a></span>
+<span id="cb236-7"><a href="yelp-classification-and-sentiment-test.html#cb236-7"></a>nb_rs &lt;-<span class="st"> </span><span class="kw">fit_resamples</span>(</span>
+<span id="cb236-8"><a href="yelp-classification-and-sentiment-test.html#cb236-8"></a>  nb_wf,</span>
+<span id="cb236-9"><a href="yelp-classification-and-sentiment-test.html#cb236-9"></a>  yelp_folds,</span>
+<span id="cb236-10"><a href="yelp-classification-and-sentiment-test.html#cb236-10"></a>  <span class="dt">control =</span> <span class="kw">control_resamples</span>(<span class="dt">save_pred =</span> <span class="ot">TRUE</span>)</span>
+<span id="cb236-11"><a href="yelp-classification-and-sentiment-test.html#cb236-11"></a>)</span>
+<span id="cb236-12"><a href="yelp-classification-and-sentiment-test.html#cb236-12"></a></span>
+<span id="cb236-13"><a href="yelp-classification-and-sentiment-test.html#cb236-13"></a>nb_rs_metrics &lt;-<span class="st"> </span><span class="kw">collect_metrics</span>(nb_rs)</span>
+<span id="cb236-14"><a href="yelp-classification-and-sentiment-test.html#cb236-14"></a>nb_rs_predictions &lt;-<span class="st"> </span><span class="kw">collect_predictions</span>(nb_rs)</span></code></pre></div>
 <p>Let’s see the fit metrics:</p>
-<div class="sourceCode" id="cb244"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb244-1"><a href="yelp-classification-and-sentiment-test.html#cb244-1"></a>nb_rs_metrics</span></code></pre></div>
+<div class="sourceCode" id="cb237"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb237-1"><a href="yelp-classification-and-sentiment-test.html#cb237-1"></a>nb_rs_metrics</span></code></pre></div>
 <pre><code>## # A tibble: 2 x 5
 ##   .metric  .estimator  mean     n std_err
 ##   &lt;chr&gt;    &lt;chr&gt;      &lt;dbl&gt; &lt;int&gt;   &lt;dbl&gt;
 ## 1 accuracy binary     0.914    10 0.00283
 ## 2 roc_auc  binary     0.784    10 0.0121</code></pre>
 <p>We can also plot an ROC curve, which is supposed to show a model’s accuracy and how well a model trades off false positives and false negatives. Better models are associated with curves that bend farther away from the line y=x (<em>citation needed</em>). According to the standard story about ROC curves, this looks okay.</p>
-<div class="sourceCode" id="cb246"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb246-1"><a href="yelp-classification-and-sentiment-test.html#cb246-1"></a>nb_rs_predictions <span class="op">%&gt;%</span></span>
-<span id="cb246-2"><a href="yelp-classification-and-sentiment-test.html#cb246-2"></a><span class="st">  </span><span class="kw">group_by</span>(id) <span class="op">%&gt;%</span></span>
-<span id="cb246-3"><a href="yelp-classification-and-sentiment-test.html#cb246-3"></a><span class="st">  </span><span class="kw">roc_curve</span>(<span class="dt">truth =</span> rating_factor, .pred_NEG) <span class="op">%&gt;%</span></span>
-<span id="cb246-4"><a href="yelp-classification-and-sentiment-test.html#cb246-4"></a><span class="st">  </span><span class="kw">autoplot</span>() <span class="op">+</span></span>
-<span id="cb246-5"><a href="yelp-classification-and-sentiment-test.html#cb246-5"></a><span class="st">  </span><span class="kw">labs</span>(</span>
-<span id="cb246-6"><a href="yelp-classification-and-sentiment-test.html#cb246-6"></a>    <span class="dt">color =</span> <span class="ot">NULL</span>,</span>
-<span id="cb246-7"><a href="yelp-classification-and-sentiment-test.html#cb246-7"></a>    <span class="dt">title =</span> <span class="st">&quot;Receiver operator curve for small Yelp dataset&quot;</span>,</span>
-<span id="cb246-8"><a href="yelp-classification-and-sentiment-test.html#cb246-8"></a>    <span class="dt">subtitle =</span> <span class="st">&quot;Each resample fold is shown in a different color&quot;</span></span>
-<span id="cb246-9"><a href="yelp-classification-and-sentiment-test.html#cb246-9"></a>  )</span></code></pre></div>
+<div class="sourceCode" id="cb239"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb239-1"><a href="yelp-classification-and-sentiment-test.html#cb239-1"></a>nb_rs_predictions <span class="op">%&gt;%</span></span>
+<span id="cb239-2"><a href="yelp-classification-and-sentiment-test.html#cb239-2"></a><span class="st">  </span><span class="kw">group_by</span>(id) <span class="op">%&gt;%</span></span>
+<span id="cb239-3"><a href="yelp-classification-and-sentiment-test.html#cb239-3"></a><span class="st">  </span><span class="kw">roc_curve</span>(<span class="dt">truth =</span> rating_factor, .pred_NEG) <span class="op">%&gt;%</span></span>
+<span id="cb239-4"><a href="yelp-classification-and-sentiment-test.html#cb239-4"></a><span class="st">  </span><span class="kw">autoplot</span>() <span class="op">+</span></span>
+<span id="cb239-5"><a href="yelp-classification-and-sentiment-test.html#cb239-5"></a><span class="st">  </span><span class="kw">labs</span>(</span>
+<span id="cb239-6"><a href="yelp-classification-and-sentiment-test.html#cb239-6"></a>    <span class="dt">color =</span> <span class="ot">NULL</span>,</span>
+<span id="cb239-7"><a href="yelp-classification-and-sentiment-test.html#cb239-7"></a>    <span class="dt">title =</span> <span class="st">&quot;Receiver operator curve for small Yelp dataset&quot;</span>,</span>
+<span id="cb239-8"><a href="yelp-classification-and-sentiment-test.html#cb239-8"></a>    <span class="dt">subtitle =</span> <span class="st">&quot;Each resample fold is shown in a different color&quot;</span></span>
+<span id="cb239-9"><a href="yelp-classification-and-sentiment-test.html#cb239-9"></a>  )</span></code></pre></div>
 <p><img src="telfer-mba-nlp_files/figure-html/yelp_roc-1.png" width="672" /></p>
 <p>We can also look at a heat map and a confusion matrix to see how often the model was correct and incorrect.</p>
-<div class="sourceCode" id="cb247"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb247-1"><a href="yelp-classification-and-sentiment-test.html#cb247-1"></a>nb_rs_predictions <span class="op">%&gt;%</span></span>
-<span id="cb247-2"><a href="yelp-classification-and-sentiment-test.html#cb247-2"></a><span class="st">  </span><span class="kw">filter</span>(id <span class="op">==</span><span class="st"> &quot;Fold01&quot;</span>) <span class="op">%&gt;%</span></span>
-<span id="cb247-3"><a href="yelp-classification-and-sentiment-test.html#cb247-3"></a><span class="st">  </span><span class="kw">conf_mat</span>(rating_factor, .pred_class) <span class="op">%&gt;%</span></span>
-<span id="cb247-4"><a href="yelp-classification-and-sentiment-test.html#cb247-4"></a><span class="st">  </span><span class="kw">autoplot</span>(<span class="dt">type =</span> <span class="st">&quot;heatmap&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb240"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb240-1"><a href="yelp-classification-and-sentiment-test.html#cb240-1"></a>nb_rs_predictions <span class="op">%&gt;%</span></span>
+<span id="cb240-2"><a href="yelp-classification-and-sentiment-test.html#cb240-2"></a><span class="st">  </span><span class="kw">filter</span>(id <span class="op">==</span><span class="st"> &quot;Fold01&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb240-3"><a href="yelp-classification-and-sentiment-test.html#cb240-3"></a><span class="st">  </span><span class="kw">conf_mat</span>(rating_factor, .pred_class) <span class="op">%&gt;%</span></span>
+<span id="cb240-4"><a href="yelp-classification-and-sentiment-test.html#cb240-4"></a><span class="st">  </span><span class="kw">autoplot</span>(<span class="dt">type =</span> <span class="st">&quot;heatmap&quot;</span>)</span></code></pre></div>
 <p><img src="telfer-mba-nlp_files/figure-html/yelp_confusionmatrix-1.png" width="672" /></p>
-<div class="sourceCode" id="cb248"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb248-1"><a href="yelp-classification-and-sentiment-test.html#cb248-1"></a>nb_rs_predictions <span class="op">%&gt;%</span></span>
-<span id="cb248-2"><a href="yelp-classification-and-sentiment-test.html#cb248-2"></a><span class="st">  </span><span class="kw">filter</span>(id <span class="op">==</span><span class="st"> &quot;Fold01&quot;</span>) <span class="op">%&gt;%</span></span>
-<span id="cb248-3"><a href="yelp-classification-and-sentiment-test.html#cb248-3"></a><span class="st">  </span><span class="kw">conf_mat</span>(rating_factor, .pred_class)</span></code></pre></div>
+<div class="sourceCode" id="cb241"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb241-1"><a href="yelp-classification-and-sentiment-test.html#cb241-1"></a>nb_rs_predictions <span class="op">%&gt;%</span></span>
+<span id="cb241-2"><a href="yelp-classification-and-sentiment-test.html#cb241-2"></a><span class="st">  </span><span class="kw">filter</span>(id <span class="op">==</span><span class="st"> &quot;Fold01&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb241-3"><a href="yelp-classification-and-sentiment-test.html#cb241-3"></a><span class="st">  </span><span class="kw">conf_mat</span>(rating_factor, .pred_class)</span></code></pre></div>
 <pre><code>##           Truth
 ## Prediction NEG POS
 ##        NEG  18   2
 ##        POS  42 563</code></pre>
 <p>But looking at the confusion matrix shows a problem: there are so many fewer true NEG cases that our model’s performance doesn’t mean much. The Bayes classifier achieved ~91.4% accuracy, but since ~89.7% of the data is classified as POS we could get nearly as much accuracy by just guessing “POS” in each case. The data is heavily <em>unbalanced</em>.</p>
-<div class="sourceCode" id="cb250"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb250-1"><a href="yelp-classification-and-sentiment-test.html#cb250-1"></a>factor_yelp <span class="op">%&gt;%</span></span>
-<span id="cb250-2"><a href="yelp-classification-and-sentiment-test.html#cb250-2"></a><span class="st">  </span><span class="kw">group_by</span>(rating_factor) <span class="op">%&gt;%</span></span>
-<span id="cb250-3"><a href="yelp-classification-and-sentiment-test.html#cb250-3"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">n =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span></span>
-<span id="cb250-4"><a href="yelp-classification-and-sentiment-test.html#cb250-4"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">pct =</span> n<span class="op">/</span><span class="kw">sum</span>(n))</span></code></pre></div>
+<div class="sourceCode" id="cb243"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb243-1"><a href="yelp-classification-and-sentiment-test.html#cb243-1"></a>factor_yelp <span class="op">%&gt;%</span></span>
+<span id="cb243-2"><a href="yelp-classification-and-sentiment-test.html#cb243-2"></a><span class="st">  </span><span class="kw">group_by</span>(rating_factor) <span class="op">%&gt;%</span></span>
+<span id="cb243-3"><a href="yelp-classification-and-sentiment-test.html#cb243-3"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">n =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span></span>
+<span id="cb243-4"><a href="yelp-classification-and-sentiment-test.html#cb243-4"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">pct =</span> n<span class="op">/</span><span class="kw">sum</span>(n))</span></code></pre></div>
 <pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
 <pre><code>## # A tibble: 2 x 3
 ##   rating_factor     n   pct
@@ -456,108 +458,108 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h2><span class="header-section-number">6.2</span> Kaggle Yelp dataset</h2>
 <p>Yelp makes a huge dataset available for teaching and research <a href="https://www.kaggle.com/yelp-dataset/yelp-dataset">at this link</a> through Kaggle. A larger dataset will probably help us build a better model, especially if we need to balance our datasets to have roughly equal numbers of positive and negative reviews. The dataset is enormous: it has around 6 gigabytes of review text and around 5 million reviews. This is too big to load using conventional methods on my machine. After a few failures, I found <a href="https://stackoverflow.com/questions/53277351/read-first-1000-lines-from-very-big-json-lines-file-r">a discussion on StackOverflow</a> that helped me read just the first n lines from the jsonLine file and parse them.</p>
 <p>For the present, we’ll read the first 100k reviews:</p>
-<div class="sourceCode" id="cb253"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb253-1"><a href="yelp-classification-and-sentiment-test.html#cb253-1"></a><span class="co"># figure out how to do it reading between the lines of this stackoverflow:</span></span>
-<span id="cb253-2"><a href="yelp-classification-and-sentiment-test.html#cb253-2"></a><span class="co"># https://stackoverflow.com/questions/53277351/read-first-1000-lines-from-very-big-json-lines-file-r</span></span>
-<span id="cb253-3"><a href="yelp-classification-and-sentiment-test.html#cb253-3"></a></span>
-<span id="cb253-4"><a href="yelp-classification-and-sentiment-test.html#cb253-4"></a>yelp_big &lt;-<span class="st"> </span><span class="kw">readLines</span>(<span class="st">&quot;../tests/data/yelp_academic_dataset_review.json&quot;</span>, <span class="dt">n =</span> <span class="dv">100000</span>) <span class="op">%&gt;%</span></span>
-<span id="cb253-5"><a href="yelp-classification-and-sentiment-test.html#cb253-5"></a><span class="st">  </span><span class="kw">textConnection</span>() <span class="op">%&gt;%</span></span>
-<span id="cb253-6"><a href="yelp-classification-and-sentiment-test.html#cb253-6"></a><span class="st">  </span>jsonlite<span class="op">::</span><span class="kw">stream_in</span>(<span class="dt">verbose=</span><span class="ot">FALSE</span>)</span>
-<span id="cb253-7"><a href="yelp-classification-and-sentiment-test.html#cb253-7"></a></span>
-<span id="cb253-8"><a href="yelp-classification-and-sentiment-test.html#cb253-8"></a>yelp_big &lt;-<span class="st"> </span>yelp_big <span class="op">%&gt;%</span></span>
-<span id="cb253-9"><a href="yelp-classification-and-sentiment-test.html#cb253-9"></a><span class="st">  </span><span class="kw">select</span>(stars, text)</span></code></pre></div>
+<div class="sourceCode" id="cb246"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb246-1"><a href="yelp-classification-and-sentiment-test.html#cb246-1"></a><span class="co"># figure out how to do it reading between the lines of this stackoverflow:</span></span>
+<span id="cb246-2"><a href="yelp-classification-and-sentiment-test.html#cb246-2"></a><span class="co"># https://stackoverflow.com/questions/53277351/read-first-1000-lines-from-very-big-json-lines-file-r</span></span>
+<span id="cb246-3"><a href="yelp-classification-and-sentiment-test.html#cb246-3"></a></span>
+<span id="cb246-4"><a href="yelp-classification-and-sentiment-test.html#cb246-4"></a>yelp_big &lt;-<span class="st"> </span><span class="kw">readLines</span>(<span class="st">&quot;../tests/data/yelp_academic_dataset_review.json&quot;</span>, <span class="dt">n =</span> <span class="dv">100000</span>) <span class="op">%&gt;%</span></span>
+<span id="cb246-5"><a href="yelp-classification-and-sentiment-test.html#cb246-5"></a><span class="st">  </span><span class="kw">textConnection</span>() <span class="op">%&gt;%</span></span>
+<span id="cb246-6"><a href="yelp-classification-and-sentiment-test.html#cb246-6"></a><span class="st">  </span>jsonlite<span class="op">::</span><span class="kw">stream_in</span>(<span class="dt">verbose=</span><span class="ot">FALSE</span>)</span>
+<span id="cb246-7"><a href="yelp-classification-and-sentiment-test.html#cb246-7"></a></span>
+<span id="cb246-8"><a href="yelp-classification-and-sentiment-test.html#cb246-8"></a>yelp_big &lt;-<span class="st"> </span>yelp_big <span class="op">%&gt;%</span></span>
+<span id="cb246-9"><a href="yelp-classification-and-sentiment-test.html#cb246-9"></a><span class="st">  </span><span class="kw">select</span>(stars, text)</span></code></pre></div>
 <p>And plot a histogram of the star distributions. The star distributions look very similar to the data I collected manually, but with a slight spike at 1 that we didn’t find in my Yelp data. We did find this 1-spike in the MEC data, so there may be a common review phenomenon here.</p>
-<div class="sourceCode" id="cb254"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb254-1"><a href="yelp-classification-and-sentiment-test.html#cb254-1"></a>yelp_big <span class="op">%&gt;%</span></span>
-<span id="cb254-2"><a href="yelp-classification-and-sentiment-test.html#cb254-2"></a><span class="st"> </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x=</span>stars)) <span class="op">+</span></span>
-<span id="cb254-3"><a href="yelp-classification-and-sentiment-test.html#cb254-3"></a><span class="st">  </span><span class="kw">geom_histogram</span>(<span class="dt">bins=</span><span class="dv">5</span>) <span class="op">+</span></span>
-<span id="cb254-4"><a href="yelp-classification-and-sentiment-test.html#cb254-4"></a><span class="st">  </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;Large Yelp Dataset: Histogram of Star Ratings (n=100,000)&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb247"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb247-1"><a href="yelp-classification-and-sentiment-test.html#cb247-1"></a>yelp_big <span class="op">%&gt;%</span></span>
+<span id="cb247-2"><a href="yelp-classification-and-sentiment-test.html#cb247-2"></a><span class="st"> </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x=</span>stars)) <span class="op">+</span></span>
+<span id="cb247-3"><a href="yelp-classification-and-sentiment-test.html#cb247-3"></a><span class="st">  </span><span class="kw">geom_histogram</span>(<span class="dt">bins=</span><span class="dv">5</span>) <span class="op">+</span></span>
+<span id="cb247-4"><a href="yelp-classification-and-sentiment-test.html#cb247-4"></a><span class="st">  </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;Large Yelp Dataset: Histogram of Star Ratings (n=100,000)&quot;</span>)</span></code></pre></div>
 <p><img src="telfer-mba-nlp_files/figure-html/yelp_big_hist-1.png" width="672" /></p>
 <p>Let’s classify the reviews into NEG and POS again, once more classifying reviews with fewer than 3 stars as negative, more than 3 stars as positive, and discarding reviews with 3 stars.</p>
-<div class="sourceCode" id="cb255"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb255-1"><a href="yelp-classification-and-sentiment-test.html#cb255-1"></a>yelp_big_factor &lt;-<span class="st"> </span>yelp_big <span class="op">%&gt;%</span></span>
-<span id="cb255-2"><a href="yelp-classification-and-sentiment-test.html#cb255-2"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">rating_factor =</span> <span class="kw">case_when</span>(</span>
-<span id="cb255-3"><a href="yelp-classification-and-sentiment-test.html#cb255-3"></a>    stars <span class="op">&lt;</span><span class="st"> </span><span class="dv">3</span> <span class="op">~</span><span class="st"> &quot;NEG&quot;</span>,</span>
-<span id="cb255-4"><a href="yelp-classification-and-sentiment-test.html#cb255-4"></a>    stars <span class="op">&gt;</span><span class="st"> </span><span class="dv">3</span> <span class="op">~</span><span class="st"> &quot;POS&quot;</span>) <span class="op">%&gt;%</span></span>
-<span id="cb255-5"><a href="yelp-classification-and-sentiment-test.html#cb255-5"></a><span class="st">      </span><span class="kw">as.factor</span>()</span>
-<span id="cb255-6"><a href="yelp-classification-and-sentiment-test.html#cb255-6"></a>  ) <span class="op">%&gt;%</span></span>
-<span id="cb255-7"><a href="yelp-classification-and-sentiment-test.html#cb255-7"></a><span class="st">  </span><span class="kw">select</span>(<span class="op">-</span>stars) <span class="op">%&gt;%</span></span>
-<span id="cb255-8"><a href="yelp-classification-and-sentiment-test.html#cb255-8"></a><span class="st">  </span><span class="kw">drop_na</span>()</span>
-<span id="cb255-9"><a href="yelp-classification-and-sentiment-test.html#cb255-9"></a></span>
-<span id="cb255-10"><a href="yelp-classification-and-sentiment-test.html#cb255-10"></a>yelp_big_factor <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">summary</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb248"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb248-1"><a href="yelp-classification-and-sentiment-test.html#cb248-1"></a>yelp_big_factor &lt;-<span class="st"> </span>yelp_big <span class="op">%&gt;%</span></span>
+<span id="cb248-2"><a href="yelp-classification-and-sentiment-test.html#cb248-2"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">rating_factor =</span> <span class="kw">case_when</span>(</span>
+<span id="cb248-3"><a href="yelp-classification-and-sentiment-test.html#cb248-3"></a>    stars <span class="op">&lt;</span><span class="st"> </span><span class="dv">3</span> <span class="op">~</span><span class="st"> &quot;NEG&quot;</span>,</span>
+<span id="cb248-4"><a href="yelp-classification-and-sentiment-test.html#cb248-4"></a>    stars <span class="op">&gt;</span><span class="st"> </span><span class="dv">3</span> <span class="op">~</span><span class="st"> &quot;POS&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb248-5"><a href="yelp-classification-and-sentiment-test.html#cb248-5"></a><span class="st">      </span><span class="kw">as.factor</span>()</span>
+<span id="cb248-6"><a href="yelp-classification-and-sentiment-test.html#cb248-6"></a>  ) <span class="op">%&gt;%</span></span>
+<span id="cb248-7"><a href="yelp-classification-and-sentiment-test.html#cb248-7"></a><span class="st">  </span><span class="kw">select</span>(<span class="op">-</span>stars) <span class="op">%&gt;%</span></span>
+<span id="cb248-8"><a href="yelp-classification-and-sentiment-test.html#cb248-8"></a><span class="st">  </span><span class="kw">drop_na</span>()</span>
+<span id="cb248-9"><a href="yelp-classification-and-sentiment-test.html#cb248-9"></a></span>
+<span id="cb248-10"><a href="yelp-classification-and-sentiment-test.html#cb248-10"></a>yelp_big_factor <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">summary</span>()</span></code></pre></div>
 <pre><code>##      text           rating_factor
 ##  Length:88821       NEG:21928    
 ##  Class :character   POS:66893    
 ##  Mode  :character</code></pre>
 <p>This dataset is quite imbalanced: there are ~67k positive reviews and ~22 negative reviews. Since classification engines can have trouble with unbalanced sets, we will <em>downsample</em> our dataset by randomly removing some positive reviews so that we have around the same number of negatvie and positive reviews. This new balanced dataset will have ~22k positive and negative reviews, still far more than we had in the dataset I collected myself.</p>
-<div class="sourceCode" id="cb257"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb257-1"><a href="yelp-classification-and-sentiment-test.html#cb257-1"></a><span class="kw">set.seed</span>(<span class="dv">1234</span>)</span>
-<span id="cb257-2"><a href="yelp-classification-and-sentiment-test.html#cb257-2"></a>yelp_balanced &lt;-<span class="st"> </span>yelp_big_factor <span class="op">%&gt;%</span></span>
-<span id="cb257-3"><a href="yelp-classification-and-sentiment-test.html#cb257-3"></a><span class="st">  </span><span class="kw">filter</span>(rating_factor <span class="op">==</span><span class="st"> &quot;NEG&quot;</span>) <span class="op">%&gt;%</span></span>
-<span id="cb257-4"><a href="yelp-classification-and-sentiment-test.html#cb257-4"></a><span class="st">  </span><span class="kw">bind_rows</span>(yelp_big_factor<span class="op">%&gt;%</span></span>
-<span id="cb257-5"><a href="yelp-classification-and-sentiment-test.html#cb257-5"></a><span class="st">              </span><span class="kw">filter</span>(rating_factor <span class="op">==</span><span class="st"> &quot;POS&quot;</span>) <span class="op">%&gt;%</span></span>
-<span id="cb257-6"><a href="yelp-classification-and-sentiment-test.html#cb257-6"></a><span class="st">              </span><span class="kw">slice_sample</span>(<span class="dt">n=</span>yelp_big_factor <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(rating_factor <span class="op">==</span><span class="st"> &quot;NEG&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">nrow</span>() ))</span>
-<span id="cb257-7"><a href="yelp-classification-and-sentiment-test.html#cb257-7"></a></span>
-<span id="cb257-8"><a href="yelp-classification-and-sentiment-test.html#cb257-8"></a>yelp_balanced <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">summary</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb250"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb250-1"><a href="yelp-classification-and-sentiment-test.html#cb250-1"></a><span class="kw">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb250-2"><a href="yelp-classification-and-sentiment-test.html#cb250-2"></a>yelp_balanced &lt;-<span class="st"> </span>yelp_big_factor <span class="op">%&gt;%</span></span>
+<span id="cb250-3"><a href="yelp-classification-and-sentiment-test.html#cb250-3"></a><span class="st">  </span><span class="kw">filter</span>(rating_factor <span class="op">==</span><span class="st"> &quot;NEG&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb250-4"><a href="yelp-classification-and-sentiment-test.html#cb250-4"></a><span class="st">  </span><span class="kw">bind_rows</span>(yelp_big_factor<span class="op">%&gt;%</span></span>
+<span id="cb250-5"><a href="yelp-classification-and-sentiment-test.html#cb250-5"></a><span class="st">              </span><span class="kw">filter</span>(rating_factor <span class="op">==</span><span class="st"> &quot;POS&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb250-6"><a href="yelp-classification-and-sentiment-test.html#cb250-6"></a><span class="st">              </span><span class="kw">slice_sample</span>(<span class="dt">n=</span>yelp_big_factor <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(rating_factor <span class="op">==</span><span class="st"> &quot;NEG&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">nrow</span>() ))</span>
+<span id="cb250-7"><a href="yelp-classification-and-sentiment-test.html#cb250-7"></a></span>
+<span id="cb250-8"><a href="yelp-classification-and-sentiment-test.html#cb250-8"></a>yelp_balanced <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">summary</span>()</span></code></pre></div>
 <pre><code>##      text           rating_factor
 ##  Length:43856       NEG:21928    
 ##  Class :character   POS:21928    
 ##  Mode  :character</code></pre>
 <p>Let’s try AFINN again on the balanced set. First we’ll get the AFINN sentiments for all our reviews.</p>
-<div class="sourceCode" id="cb259"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb259-1"><a href="yelp-classification-and-sentiment-test.html#cb259-1"></a><span class="kw">tic</span>()</span>
-<span id="cb259-2"><a href="yelp-classification-and-sentiment-test.html#cb259-2"></a>afinn_yelp_big &lt;-<span class="st"> </span>yelp_balanced <span class="op">%&gt;%</span></span>
-<span id="cb259-3"><a href="yelp-classification-and-sentiment-test.html#cb259-3"></a><span class="st">  </span><span class="kw">rowid_to_column</span>() <span class="op">%&gt;%</span></span>
-<span id="cb259-4"><a href="yelp-classification-and-sentiment-test.html#cb259-4"></a><span class="st">  </span>tidytext<span class="op">::</span><span class="kw">unnest_tokens</span>(word, text) <span class="op">%&gt;%</span></span>
-<span id="cb259-5"><a href="yelp-classification-and-sentiment-test.html#cb259-5"></a><span class="st">  </span><span class="kw">left_join</span>(afinn) <span class="op">%&gt;%</span></span>
-<span id="cb259-6"><a href="yelp-classification-and-sentiment-test.html#cb259-6"></a><span class="st">  </span><span class="kw">group_by</span>(rowid) <span class="op">%&gt;%</span></span>
-<span id="cb259-7"><a href="yelp-classification-and-sentiment-test.html#cb259-7"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">afinn_sent =</span> <span class="kw">sum</span>(value, <span class="dt">na.rm =</span> T))</span>
-<span id="cb259-8"><a href="yelp-classification-and-sentiment-test.html#cb259-8"></a><span class="kw">toc</span>()</span></code></pre></div>
-<pre><code>## 9.69 sec elapsed</code></pre>
-<div class="sourceCode" id="cb261"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb261-1"><a href="yelp-classification-and-sentiment-test.html#cb261-1"></a>yelp_big_bal_afinn &lt;-<span class="st"> </span>afinn_yelp_big <span class="op">%&gt;%</span></span>
-<span id="cb261-2"><a href="yelp-classification-and-sentiment-test.html#cb261-2"></a><span class="st">  </span><span class="kw">left_join</span>(yelp_balanced <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">rowid_to_column</span>()) <span class="op">%&gt;%</span></span>
-<span id="cb261-3"><a href="yelp-classification-and-sentiment-test.html#cb261-3"></a><span class="st">  </span><span class="kw">select</span>(<span class="op">-</span>rowid)</span></code></pre></div>
+<div class="sourceCode" id="cb252"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb252-1"><a href="yelp-classification-and-sentiment-test.html#cb252-1"></a><span class="kw">tic</span>()</span>
+<span id="cb252-2"><a href="yelp-classification-and-sentiment-test.html#cb252-2"></a>afinn_yelp_big &lt;-<span class="st"> </span>yelp_balanced <span class="op">%&gt;%</span></span>
+<span id="cb252-3"><a href="yelp-classification-and-sentiment-test.html#cb252-3"></a><span class="st">  </span><span class="kw">rowid_to_column</span>() <span class="op">%&gt;%</span></span>
+<span id="cb252-4"><a href="yelp-classification-and-sentiment-test.html#cb252-4"></a><span class="st">  </span>tidytext<span class="op">::</span><span class="kw">unnest_tokens</span>(word, text) <span class="op">%&gt;%</span></span>
+<span id="cb252-5"><a href="yelp-classification-and-sentiment-test.html#cb252-5"></a><span class="st">  </span><span class="kw">left_join</span>(afinn) <span class="op">%&gt;%</span></span>
+<span id="cb252-6"><a href="yelp-classification-and-sentiment-test.html#cb252-6"></a><span class="st">  </span><span class="kw">group_by</span>(rowid) <span class="op">%&gt;%</span></span>
+<span id="cb252-7"><a href="yelp-classification-and-sentiment-test.html#cb252-7"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">afinn_sent =</span> <span class="kw">sum</span>(value, <span class="dt">na.rm =</span> T))</span>
+<span id="cb252-8"><a href="yelp-classification-and-sentiment-test.html#cb252-8"></a><span class="kw">toc</span>()</span></code></pre></div>
+<pre><code>## 9.7 sec elapsed</code></pre>
+<div class="sourceCode" id="cb254"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb254-1"><a href="yelp-classification-and-sentiment-test.html#cb254-1"></a>yelp_big_bal_afinn &lt;-<span class="st"> </span>afinn_yelp_big <span class="op">%&gt;%</span></span>
+<span id="cb254-2"><a href="yelp-classification-and-sentiment-test.html#cb254-2"></a><span class="st">  </span><span class="kw">left_join</span>(yelp_balanced <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">rowid_to_column</span>()) <span class="op">%&gt;%</span></span>
+<span id="cb254-3"><a href="yelp-classification-and-sentiment-test.html#cb254-3"></a><span class="st">  </span><span class="kw">select</span>(<span class="op">-</span>rowid)</span></code></pre></div>
 <p>And we can make a boxplot of the AFINN distributions for POS and NEG reviews. There is enough difference between the POS and NEG reviews that this looks like it might plausibly work.</p>
-<div class="sourceCode" id="cb262"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb262-1"><a href="yelp-classification-and-sentiment-test.html#cb262-1"></a>yelp_big_bal_afinn <span class="op">%&gt;%</span></span>
-<span id="cb262-2"><a href="yelp-classification-and-sentiment-test.html#cb262-2"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x=</span>rating_factor,<span class="dt">y=</span>afinn_sent)) <span class="op">+</span></span>
-<span id="cb262-3"><a href="yelp-classification-and-sentiment-test.html#cb262-3"></a><span class="st">  </span><span class="kw">geom_boxplot</span>() <span class="op">+</span></span>
-<span id="cb262-4"><a href="yelp-classification-and-sentiment-test.html#cb262-4"></a><span class="st">  </span><span class="kw">labs</span>(</span>
-<span id="cb262-5"><a href="yelp-classification-and-sentiment-test.html#cb262-5"></a>    <span class="dt">title =</span> <span class="st">&quot;AFINN Scores by Star Rating&quot;</span>,</span>
-<span id="cb262-6"><a href="yelp-classification-and-sentiment-test.html#cb262-6"></a>    <span class="dt">subtitle =</span> <span class="kw">paste0</span>(<span class="st">&quot;Big Yelp dataset (n=&quot;</span>,<span class="kw">nrow</span>(yelp_big_bal_afinn),<span class="st">&quot;)&quot;</span>),</span>
-<span id="cb262-7"><a href="yelp-classification-and-sentiment-test.html#cb262-7"></a>    <span class="dt">x =</span> <span class="st">&quot;Star Rating&quot;</span>,</span>
-<span id="cb262-8"><a href="yelp-classification-and-sentiment-test.html#cb262-8"></a>    <span class="dt">y =</span> <span class="st">&quot;AFINN Sentiment Score&quot;</span></span>
-<span id="cb262-9"><a href="yelp-classification-and-sentiment-test.html#cb262-9"></a>  )</span></code></pre></div>
+<div class="sourceCode" id="cb255"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb255-1"><a href="yelp-classification-and-sentiment-test.html#cb255-1"></a>yelp_big_bal_afinn <span class="op">%&gt;%</span></span>
+<span id="cb255-2"><a href="yelp-classification-and-sentiment-test.html#cb255-2"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x=</span>rating_factor,<span class="dt">y=</span>afinn_sent)) <span class="op">+</span></span>
+<span id="cb255-3"><a href="yelp-classification-and-sentiment-test.html#cb255-3"></a><span class="st">  </span><span class="kw">geom_boxplot</span>() <span class="op">+</span></span>
+<span id="cb255-4"><a href="yelp-classification-and-sentiment-test.html#cb255-4"></a><span class="st">  </span><span class="kw">labs</span>(</span>
+<span id="cb255-5"><a href="yelp-classification-and-sentiment-test.html#cb255-5"></a>    <span class="dt">title =</span> <span class="st">&quot;AFINN Scores by Star Rating&quot;</span>,</span>
+<span id="cb255-6"><a href="yelp-classification-and-sentiment-test.html#cb255-6"></a>    <span class="dt">subtitle =</span> <span class="kw">paste0</span>(<span class="st">&quot;Big Yelp dataset (n=&quot;</span>,<span class="kw">nrow</span>(yelp_big_bal_afinn),<span class="st">&quot;)&quot;</span>),</span>
+<span id="cb255-7"><a href="yelp-classification-and-sentiment-test.html#cb255-7"></a>    <span class="dt">x =</span> <span class="st">&quot;Star Rating&quot;</span>,</span>
+<span id="cb255-8"><a href="yelp-classification-and-sentiment-test.html#cb255-8"></a>    <span class="dt">y =</span> <span class="st">&quot;AFINN Sentiment Score&quot;</span></span>
+<span id="cb255-9"><a href="yelp-classification-and-sentiment-test.html#cb255-9"></a>  )</span></code></pre></div>
 <p><img src="telfer-mba-nlp_files/figure-html/big_yelp_boxplot-1.png" width="672" /></p>
 <p>And for another view, here’s a density plot:</p>
-<div class="sourceCode" id="cb263"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb263-1"><a href="yelp-classification-and-sentiment-test.html#cb263-1"></a>yelp_big_bal_afinn <span class="op">%&gt;%</span></span>
-<span id="cb263-2"><a href="yelp-classification-and-sentiment-test.html#cb263-2"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x=</span>afinn_sent, <span class="dt">fill=</span>rating_factor)) <span class="op">+</span></span>
-<span id="cb263-3"><a href="yelp-classification-and-sentiment-test.html#cb263-3"></a><span class="st">  </span><span class="kw">geom_density</span>(<span class="dt">alpha=</span><span class="fl">0.5</span>) <span class="op">+</span></span>
-<span id="cb263-4"><a href="yelp-classification-and-sentiment-test.html#cb263-4"></a><span class="st">  </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;Density Distributions of AFINN Sentiment for POS and NEG Reviews&quot;</span>,</span>
-<span id="cb263-5"><a href="yelp-classification-and-sentiment-test.html#cb263-5"></a>       <span class="dt">subtitle =</span> <span class="st">&quot;Large Balanced Yelp Dataset, n=43,855&quot;</span>,</span>
-<span id="cb263-6"><a href="yelp-classification-and-sentiment-test.html#cb263-6"></a>       <span class="dt">x =</span> <span class="st">&quot;AFINN Sentiment&quot;</span>,</span>
-<span id="cb263-7"><a href="yelp-classification-and-sentiment-test.html#cb263-7"></a>       <span class="dt">y =</span><span class="st">&quot;Density&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb256"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb256-1"><a href="yelp-classification-and-sentiment-test.html#cb256-1"></a>yelp_big_bal_afinn <span class="op">%&gt;%</span></span>
+<span id="cb256-2"><a href="yelp-classification-and-sentiment-test.html#cb256-2"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x=</span>afinn_sent, <span class="dt">fill=</span>rating_factor)) <span class="op">+</span></span>
+<span id="cb256-3"><a href="yelp-classification-and-sentiment-test.html#cb256-3"></a><span class="st">  </span><span class="kw">geom_density</span>(<span class="dt">alpha=</span><span class="fl">0.5</span>) <span class="op">+</span></span>
+<span id="cb256-4"><a href="yelp-classification-and-sentiment-test.html#cb256-4"></a><span class="st">  </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;Density Distributions of AFINN Sentiment for POS and NEG Reviews&quot;</span>,</span>
+<span id="cb256-5"><a href="yelp-classification-and-sentiment-test.html#cb256-5"></a>       <span class="dt">subtitle =</span> <span class="st">&quot;Large Balanced Yelp Dataset, n=43,855&quot;</span>,</span>
+<span id="cb256-6"><a href="yelp-classification-and-sentiment-test.html#cb256-6"></a>       <span class="dt">x =</span> <span class="st">&quot;AFINN Sentiment&quot;</span>,</span>
+<span id="cb256-7"><a href="yelp-classification-and-sentiment-test.html#cb256-7"></a>       <span class="dt">y =</span><span class="st">&quot;Density&quot;</span>)</span></code></pre></div>
 <p><img src="telfer-mba-nlp_files/figure-html/big_yelp_density-1.png" width="672" /></p>
 <div id="naive-bayes-classifier" class="section level3">
 <h3><span class="header-section-number">6.2.1</span> Naive Bayes Classifier</h3>
 <p>We will again go through the tidymodels process of setting up a naive Bayes classifier. First we do a test/train split of our large balanced dataset.</p>
-<div class="sourceCode" id="cb264"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb264-1"><a href="yelp-classification-and-sentiment-test.html#cb264-1"></a><span class="kw">set.seed</span>(<span class="dv">1234</span>)</span>
-<span id="cb264-2"><a href="yelp-classification-and-sentiment-test.html#cb264-2"></a></span>
-<span id="cb264-3"><a href="yelp-classification-and-sentiment-test.html#cb264-3"></a>yelp_split &lt;-<span class="st"> </span><span class="kw">initial_split</span>(yelp_big_bal_afinn, <span class="dt">strata =</span> rating_factor)</span>
-<span id="cb264-4"><a href="yelp-classification-and-sentiment-test.html#cb264-4"></a></span>
-<span id="cb264-5"><a href="yelp-classification-and-sentiment-test.html#cb264-5"></a>yelp_test &lt;-<span class="st"> </span><span class="kw">testing</span>(yelp_split)</span>
-<span id="cb264-6"><a href="yelp-classification-and-sentiment-test.html#cb264-6"></a></span>
-<span id="cb264-7"><a href="yelp-classification-and-sentiment-test.html#cb264-7"></a>yelp_train &lt;-<span class="st"> </span><span class="kw">training</span>(yelp_split)</span></code></pre></div>
+<div class="sourceCode" id="cb257"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb257-1"><a href="yelp-classification-and-sentiment-test.html#cb257-1"></a><span class="kw">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb257-2"><a href="yelp-classification-and-sentiment-test.html#cb257-2"></a></span>
+<span id="cb257-3"><a href="yelp-classification-and-sentiment-test.html#cb257-3"></a>yelp_split &lt;-<span class="st"> </span><span class="kw">initial_split</span>(yelp_big_bal_afinn, <span class="dt">strata =</span> rating_factor)</span>
+<span id="cb257-4"><a href="yelp-classification-and-sentiment-test.html#cb257-4"></a></span>
+<span id="cb257-5"><a href="yelp-classification-and-sentiment-test.html#cb257-5"></a>yelp_test &lt;-<span class="st"> </span><span class="kw">testing</span>(yelp_split)</span>
+<span id="cb257-6"><a href="yelp-classification-and-sentiment-test.html#cb257-6"></a></span>
+<span id="cb257-7"><a href="yelp-classification-and-sentiment-test.html#cb257-7"></a>yelp_train &lt;-<span class="st"> </span><span class="kw">training</span>(yelp_split)</span></code></pre></div>
 <p>Then we set up a recipe, a naive Bayes model, and a workflow, and then fit our model to our training data.</p>
-<div class="sourceCode" id="cb265"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb265-1"><a href="yelp-classification-and-sentiment-test.html#cb265-1"></a>yelp_rec &lt;-<span class="st"> </span><span class="kw">recipe</span>(rating_factor <span class="op">~</span><span class="st"> </span>afinn_sent,</span>
-<span id="cb265-2"><a href="yelp-classification-and-sentiment-test.html#cb265-2"></a>                   <span class="dt">data =</span> yelp_train)</span>
-<span id="cb265-3"><a href="yelp-classification-and-sentiment-test.html#cb265-3"></a></span>
-<span id="cb265-4"><a href="yelp-classification-and-sentiment-test.html#cb265-4"></a>yelp_wf &lt;-<span class="st"> </span><span class="kw">workflow</span>() <span class="op">%&gt;%</span></span>
-<span id="cb265-5"><a href="yelp-classification-and-sentiment-test.html#cb265-5"></a><span class="st">  </span><span class="kw">add_recipe</span>(yelp_rec)</span>
-<span id="cb265-6"><a href="yelp-classification-and-sentiment-test.html#cb265-6"></a></span>
-<span id="cb265-7"><a href="yelp-classification-and-sentiment-test.html#cb265-7"></a>nb_spec &lt;-<span class="st"> </span><span class="kw">naive_Bayes</span>() <span class="op">%&gt;%</span></span>
-<span id="cb265-8"><a href="yelp-classification-and-sentiment-test.html#cb265-8"></a><span class="st">  </span><span class="kw">set_mode</span>(<span class="st">&quot;classification&quot;</span>) <span class="op">%&gt;%</span></span>
-<span id="cb265-9"><a href="yelp-classification-and-sentiment-test.html#cb265-9"></a><span class="st">  </span><span class="kw">set_engine</span>(<span class="st">&quot;naivebayes&quot;</span>)</span>
-<span id="cb265-10"><a href="yelp-classification-and-sentiment-test.html#cb265-10"></a></span>
-<span id="cb265-11"><a href="yelp-classification-and-sentiment-test.html#cb265-11"></a>nb_fit &lt;-<span class="st"> </span>yelp_wf <span class="op">%&gt;%</span></span>
-<span id="cb265-12"><a href="yelp-classification-and-sentiment-test.html#cb265-12"></a><span class="st">  </span><span class="kw">add_model</span>(nb_spec) <span class="op">%&gt;%</span></span>
-<span id="cb265-13"><a href="yelp-classification-and-sentiment-test.html#cb265-13"></a><span class="st">  </span><span class="kw">fit</span>(<span class="dt">data =</span> yelp_train)</span>
-<span id="cb265-14"><a href="yelp-classification-and-sentiment-test.html#cb265-14"></a></span>
-<span id="cb265-15"><a href="yelp-classification-and-sentiment-test.html#cb265-15"></a>nb_fit</span></code></pre></div>
+<div class="sourceCode" id="cb258"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb258-1"><a href="yelp-classification-and-sentiment-test.html#cb258-1"></a>yelp_rec &lt;-<span class="st"> </span><span class="kw">recipe</span>(rating_factor <span class="op">~</span><span class="st"> </span>afinn_sent,</span>
+<span id="cb258-2"><a href="yelp-classification-and-sentiment-test.html#cb258-2"></a>                   <span class="dt">data =</span> yelp_train)</span>
+<span id="cb258-3"><a href="yelp-classification-and-sentiment-test.html#cb258-3"></a></span>
+<span id="cb258-4"><a href="yelp-classification-and-sentiment-test.html#cb258-4"></a>yelp_wf &lt;-<span class="st"> </span><span class="kw">workflow</span>() <span class="op">%&gt;%</span></span>
+<span id="cb258-5"><a href="yelp-classification-and-sentiment-test.html#cb258-5"></a><span class="st">  </span><span class="kw">add_recipe</span>(yelp_rec)</span>
+<span id="cb258-6"><a href="yelp-classification-and-sentiment-test.html#cb258-6"></a></span>
+<span id="cb258-7"><a href="yelp-classification-and-sentiment-test.html#cb258-7"></a>nb_spec &lt;-<span class="st"> </span><span class="kw">naive_Bayes</span>() <span class="op">%&gt;%</span></span>
+<span id="cb258-8"><a href="yelp-classification-and-sentiment-test.html#cb258-8"></a><span class="st">  </span><span class="kw">set_mode</span>(<span class="st">&quot;classification&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb258-9"><a href="yelp-classification-and-sentiment-test.html#cb258-9"></a><span class="st">  </span><span class="kw">set_engine</span>(<span class="st">&quot;naivebayes&quot;</span>)</span>
+<span id="cb258-10"><a href="yelp-classification-and-sentiment-test.html#cb258-10"></a></span>
+<span id="cb258-11"><a href="yelp-classification-and-sentiment-test.html#cb258-11"></a>nb_fit &lt;-<span class="st"> </span>yelp_wf <span class="op">%&gt;%</span></span>
+<span id="cb258-12"><a href="yelp-classification-and-sentiment-test.html#cb258-12"></a><span class="st">  </span><span class="kw">add_model</span>(nb_spec) <span class="op">%&gt;%</span></span>
+<span id="cb258-13"><a href="yelp-classification-and-sentiment-test.html#cb258-13"></a><span class="st">  </span><span class="kw">fit</span>(<span class="dt">data =</span> yelp_train)</span>
+<span id="cb258-14"><a href="yelp-classification-and-sentiment-test.html#cb258-14"></a></span>
+<span id="cb258-15"><a href="yelp-classification-and-sentiment-test.html#cb258-15"></a>nb_fit</span></code></pre></div>
 <pre><code>## == Workflow [trained] ==========================================================
 ## Preprocessor: Recipe
 ## Model: naive_Bayes()
@@ -620,51 +622,51 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 ## ...
 ## and 7 more lines.</code></pre>
 <p>Then we use resampling to evaluate the model, again with 10 cross-fold validation sets.</p>
-<div class="sourceCode" id="cb267"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb267-1"><a href="yelp-classification-and-sentiment-test.html#cb267-1"></a>yelp_folds &lt;-<span class="st"> </span><span class="kw">vfold_cv</span>(yelp_train)</span>
-<span id="cb267-2"><a href="yelp-classification-and-sentiment-test.html#cb267-2"></a></span>
-<span id="cb267-3"><a href="yelp-classification-and-sentiment-test.html#cb267-3"></a>nb_wf &lt;-<span class="st"> </span><span class="kw">workflow</span>() <span class="op">%&gt;%</span></span>
-<span id="cb267-4"><a href="yelp-classification-and-sentiment-test.html#cb267-4"></a><span class="st">  </span><span class="kw">add_recipe</span>(yelp_rec) <span class="op">%&gt;%</span></span>
-<span id="cb267-5"><a href="yelp-classification-and-sentiment-test.html#cb267-5"></a><span class="st">  </span><span class="kw">add_model</span>(nb_spec)</span>
-<span id="cb267-6"><a href="yelp-classification-and-sentiment-test.html#cb267-6"></a></span>
-<span id="cb267-7"><a href="yelp-classification-and-sentiment-test.html#cb267-7"></a>nb_rs &lt;-<span class="st"> </span><span class="kw">fit_resamples</span>(</span>
-<span id="cb267-8"><a href="yelp-classification-and-sentiment-test.html#cb267-8"></a>  nb_wf,</span>
-<span id="cb267-9"><a href="yelp-classification-and-sentiment-test.html#cb267-9"></a>  yelp_folds,</span>
-<span id="cb267-10"><a href="yelp-classification-and-sentiment-test.html#cb267-10"></a>  <span class="dt">control =</span> <span class="kw">control_resamples</span>(<span class="dt">save_pred =</span> <span class="ot">TRUE</span>)</span>
-<span id="cb267-11"><a href="yelp-classification-and-sentiment-test.html#cb267-11"></a>)</span>
-<span id="cb267-12"><a href="yelp-classification-and-sentiment-test.html#cb267-12"></a></span>
-<span id="cb267-13"><a href="yelp-classification-and-sentiment-test.html#cb267-13"></a>nb_rs_metrics &lt;-<span class="st"> </span><span class="kw">collect_metrics</span>(nb_rs)</span>
-<span id="cb267-14"><a href="yelp-classification-and-sentiment-test.html#cb267-14"></a>nb_rs_predictions &lt;-<span class="st"> </span><span class="kw">collect_predictions</span>(nb_rs)</span></code></pre></div>
+<div class="sourceCode" id="cb260"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb260-1"><a href="yelp-classification-and-sentiment-test.html#cb260-1"></a>yelp_folds &lt;-<span class="st"> </span><span class="kw">vfold_cv</span>(yelp_train)</span>
+<span id="cb260-2"><a href="yelp-classification-and-sentiment-test.html#cb260-2"></a></span>
+<span id="cb260-3"><a href="yelp-classification-and-sentiment-test.html#cb260-3"></a>nb_wf &lt;-<span class="st"> </span><span class="kw">workflow</span>() <span class="op">%&gt;%</span></span>
+<span id="cb260-4"><a href="yelp-classification-and-sentiment-test.html#cb260-4"></a><span class="st">  </span><span class="kw">add_recipe</span>(yelp_rec) <span class="op">%&gt;%</span></span>
+<span id="cb260-5"><a href="yelp-classification-and-sentiment-test.html#cb260-5"></a><span class="st">  </span><span class="kw">add_model</span>(nb_spec)</span>
+<span id="cb260-6"><a href="yelp-classification-and-sentiment-test.html#cb260-6"></a></span>
+<span id="cb260-7"><a href="yelp-classification-and-sentiment-test.html#cb260-7"></a>nb_rs &lt;-<span class="st"> </span><span class="kw">fit_resamples</span>(</span>
+<span id="cb260-8"><a href="yelp-classification-and-sentiment-test.html#cb260-8"></a>  nb_wf,</span>
+<span id="cb260-9"><a href="yelp-classification-and-sentiment-test.html#cb260-9"></a>  yelp_folds,</span>
+<span id="cb260-10"><a href="yelp-classification-and-sentiment-test.html#cb260-10"></a>  <span class="dt">control =</span> <span class="kw">control_resamples</span>(<span class="dt">save_pred =</span> <span class="ot">TRUE</span>)</span>
+<span id="cb260-11"><a href="yelp-classification-and-sentiment-test.html#cb260-11"></a>)</span>
+<span id="cb260-12"><a href="yelp-classification-and-sentiment-test.html#cb260-12"></a></span>
+<span id="cb260-13"><a href="yelp-classification-and-sentiment-test.html#cb260-13"></a>nb_rs_metrics &lt;-<span class="st"> </span><span class="kw">collect_metrics</span>(nb_rs)</span>
+<span id="cb260-14"><a href="yelp-classification-and-sentiment-test.html#cb260-14"></a>nb_rs_predictions &lt;-<span class="st"> </span><span class="kw">collect_predictions</span>(nb_rs)</span></code></pre></div>
 <p>Let’s see the fit metrics. Our accuracy is ~78.7%, which is quite a bit better than chance so there is good evidence that the model is getting something right.</p>
-<div class="sourceCode" id="cb268"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb268-1"><a href="yelp-classification-and-sentiment-test.html#cb268-1"></a><span class="co"># create a character a vector with the accuracy % that we can use in the text later</span></span>
-<span id="cb268-2"><a href="yelp-classification-and-sentiment-test.html#cb268-2"></a>nb_acc &lt;-<span class="st"> </span>nb_rs_metrics <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">pull</span>(mean) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">head</span>(<span class="dv">1</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">round</span>(<span class="dv">3</span>) <span class="op">%&gt;%</span><span class="st"> `</span><span class="dt">*</span><span class="st">`</span>(<span class="dv">100</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;%&quot;</span>,.)</span>
-<span id="cb268-3"><a href="yelp-classification-and-sentiment-test.html#cb268-3"></a></span>
-<span id="cb268-4"><a href="yelp-classification-and-sentiment-test.html#cb268-4"></a><span class="co"># print out the metrics</span></span>
-<span id="cb268-5"><a href="yelp-classification-and-sentiment-test.html#cb268-5"></a>nb_rs_metrics</span></code></pre></div>
+<div class="sourceCode" id="cb261"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb261-1"><a href="yelp-classification-and-sentiment-test.html#cb261-1"></a><span class="co"># create a character a vector with the accuracy % that we can use in the text later</span></span>
+<span id="cb261-2"><a href="yelp-classification-and-sentiment-test.html#cb261-2"></a>nb_acc &lt;-<span class="st"> </span>nb_rs_metrics <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">pull</span>(mean) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">head</span>(<span class="dv">1</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">round</span>(<span class="dv">3</span>) <span class="op">%&gt;%</span><span class="st"> `</span><span class="dt">*</span><span class="st">`</span>(<span class="dv">100</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;%&quot;</span>,.)</span>
+<span id="cb261-3"><a href="yelp-classification-and-sentiment-test.html#cb261-3"></a></span>
+<span id="cb261-4"><a href="yelp-classification-and-sentiment-test.html#cb261-4"></a><span class="co"># print out the metrics</span></span>
+<span id="cb261-5"><a href="yelp-classification-and-sentiment-test.html#cb261-5"></a>nb_rs_metrics</span></code></pre></div>
 <pre><code>## # A tibble: 2 x 5
 ##   .metric  .estimator  mean     n std_err
 ##   &lt;chr&gt;    &lt;chr&gt;      &lt;dbl&gt; &lt;int&gt;   &lt;dbl&gt;
 ## 1 accuracy binary     0.787    10 0.00188
 ## 2 roc_auc  binary     0.854    10 0.00167</code></pre>
 <p>We can also look at the ROC curve, which again shows some good performance:</p>
-<div class="sourceCode" id="cb270"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb270-1"><a href="yelp-classification-and-sentiment-test.html#cb270-1"></a>nb_rs_predictions <span class="op">%&gt;%</span></span>
-<span id="cb270-2"><a href="yelp-classification-and-sentiment-test.html#cb270-2"></a><span class="st">  </span><span class="kw">group_by</span>(id) <span class="op">%&gt;%</span></span>
-<span id="cb270-3"><a href="yelp-classification-and-sentiment-test.html#cb270-3"></a><span class="st">  </span><span class="kw">roc_curve</span>(<span class="dt">truth =</span> rating_factor, .pred_NEG) <span class="op">%&gt;%</span></span>
-<span id="cb270-4"><a href="yelp-classification-and-sentiment-test.html#cb270-4"></a><span class="st">  </span><span class="kw">autoplot</span>() <span class="op">+</span></span>
-<span id="cb270-5"><a href="yelp-classification-and-sentiment-test.html#cb270-5"></a><span class="st">  </span><span class="kw">labs</span>(</span>
-<span id="cb270-6"><a href="yelp-classification-and-sentiment-test.html#cb270-6"></a>    <span class="dt">color =</span> <span class="ot">NULL</span>,</span>
-<span id="cb270-7"><a href="yelp-classification-and-sentiment-test.html#cb270-7"></a>    <span class="dt">title =</span> <span class="st">&quot;Receiver operator curve for big balanced Yelp dataset, AFINN sentiment&quot;</span>,</span>
-<span id="cb270-8"><a href="yelp-classification-and-sentiment-test.html#cb270-8"></a>    <span class="dt">subtitle =</span> <span class="st">&quot;Each resample fold is shown in a different color&quot;</span></span>
-<span id="cb270-9"><a href="yelp-classification-and-sentiment-test.html#cb270-9"></a>  )</span></code></pre></div>
+<div class="sourceCode" id="cb263"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb263-1"><a href="yelp-classification-and-sentiment-test.html#cb263-1"></a>nb_rs_predictions <span class="op">%&gt;%</span></span>
+<span id="cb263-2"><a href="yelp-classification-and-sentiment-test.html#cb263-2"></a><span class="st">  </span><span class="kw">group_by</span>(id) <span class="op">%&gt;%</span></span>
+<span id="cb263-3"><a href="yelp-classification-and-sentiment-test.html#cb263-3"></a><span class="st">  </span><span class="kw">roc_curve</span>(<span class="dt">truth =</span> rating_factor, .pred_NEG) <span class="op">%&gt;%</span></span>
+<span id="cb263-4"><a href="yelp-classification-and-sentiment-test.html#cb263-4"></a><span class="st">  </span><span class="kw">autoplot</span>() <span class="op">+</span></span>
+<span id="cb263-5"><a href="yelp-classification-and-sentiment-test.html#cb263-5"></a><span class="st">  </span><span class="kw">labs</span>(</span>
+<span id="cb263-6"><a href="yelp-classification-and-sentiment-test.html#cb263-6"></a>    <span class="dt">color =</span> <span class="ot">NULL</span>,</span>
+<span id="cb263-7"><a href="yelp-classification-and-sentiment-test.html#cb263-7"></a>    <span class="dt">title =</span> <span class="st">&quot;Receiver operator curve for big balanced Yelp dataset, AFINN sentiment&quot;</span>,</span>
+<span id="cb263-8"><a href="yelp-classification-and-sentiment-test.html#cb263-8"></a>    <span class="dt">subtitle =</span> <span class="st">&quot;Each resample fold is shown in a different color&quot;</span></span>
+<span id="cb263-9"><a href="yelp-classification-and-sentiment-test.html#cb263-9"></a>  )</span></code></pre></div>
 <p><img src="telfer-mba-nlp_files/figure-html/big_nb_ROC-1.png" width="672" /></p>
 <p>And a confusion matrix:</p>
-<div class="sourceCode" id="cb271"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb271-1"><a href="yelp-classification-and-sentiment-test.html#cb271-1"></a>nb_rs_predictions <span class="op">%&gt;%</span></span>
-<span id="cb271-2"><a href="yelp-classification-and-sentiment-test.html#cb271-2"></a><span class="st">  </span><span class="kw">filter</span>(id <span class="op">==</span><span class="st"> &quot;Fold01&quot;</span>) <span class="op">%&gt;%</span></span>
-<span id="cb271-3"><a href="yelp-classification-and-sentiment-test.html#cb271-3"></a><span class="st">  </span><span class="kw">conf_mat</span>(rating_factor, .pred_class) <span class="op">%&gt;%</span></span>
-<span id="cb271-4"><a href="yelp-classification-and-sentiment-test.html#cb271-4"></a><span class="st">  </span><span class="kw">autoplot</span>(<span class="dt">type =</span> <span class="st">&quot;heatmap&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb264"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb264-1"><a href="yelp-classification-and-sentiment-test.html#cb264-1"></a>nb_rs_predictions <span class="op">%&gt;%</span></span>
+<span id="cb264-2"><a href="yelp-classification-and-sentiment-test.html#cb264-2"></a><span class="st">  </span><span class="kw">filter</span>(id <span class="op">==</span><span class="st"> &quot;Fold01&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb264-3"><a href="yelp-classification-and-sentiment-test.html#cb264-3"></a><span class="st">  </span><span class="kw">conf_mat</span>(rating_factor, .pred_class) <span class="op">%&gt;%</span></span>
+<span id="cb264-4"><a href="yelp-classification-and-sentiment-test.html#cb264-4"></a><span class="st">  </span><span class="kw">autoplot</span>(<span class="dt">type =</span> <span class="st">&quot;heatmap&quot;</span>)</span></code></pre></div>
 <p><img src="telfer-mba-nlp_files/figure-html/big_nb_confusion-1.png" width="672" /></p>
-<div class="sourceCode" id="cb272"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb272-1"><a href="yelp-classification-and-sentiment-test.html#cb272-1"></a>nb_rs_predictions <span class="op">%&gt;%</span></span>
-<span id="cb272-2"><a href="yelp-classification-and-sentiment-test.html#cb272-2"></a><span class="st">  </span><span class="kw">filter</span>(id <span class="op">==</span><span class="st"> &quot;Fold01&quot;</span>) <span class="op">%&gt;%</span></span>
-<span id="cb272-3"><a href="yelp-classification-and-sentiment-test.html#cb272-3"></a><span class="st">  </span><span class="kw">conf_mat</span>(rating_factor, .pred_class)</span></code></pre></div>
+<div class="sourceCode" id="cb265"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb265-1"><a href="yelp-classification-and-sentiment-test.html#cb265-1"></a>nb_rs_predictions <span class="op">%&gt;%</span></span>
+<span id="cb265-2"><a href="yelp-classification-and-sentiment-test.html#cb265-2"></a><span class="st">  </span><span class="kw">filter</span>(id <span class="op">==</span><span class="st"> &quot;Fold01&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb265-3"><a href="yelp-classification-and-sentiment-test.html#cb265-3"></a><span class="st">  </span><span class="kw">conf_mat</span>(rating_factor, .pred_class)</span></code></pre></div>
 <pre><code>##           Truth
 ## Prediction  NEG  POS
 ##        NEG 1195  230
@@ -680,20 +682,20 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul>
 <p>For the code here, I referred to <a href="https://rpubs.com/ryankelly/ml_logistic">this website</a> to remind me of the basics of doing logistic regression in R. I elected not to do it in a tidymodels framework.</p>
 <p>We’ll use the same big balanced dataset. First we’ll split our data into testing and training:</p>
-<div class="sourceCode" id="cb274"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb274-1"><a href="yelp-classification-and-sentiment-test.html#cb274-1"></a>index &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="kw">c</span>(T,F), </span>
-<span id="cb274-2"><a href="yelp-classification-and-sentiment-test.html#cb274-2"></a>                <span class="dt">size =</span> <span class="kw">nrow</span>(yelp_big_bal_afinn),</span>
-<span id="cb274-3"><a href="yelp-classification-and-sentiment-test.html#cb274-3"></a>                <span class="dt">replace =</span> T,</span>
-<span id="cb274-4"><a href="yelp-classification-and-sentiment-test.html#cb274-4"></a>                <span class="dt">prob=</span><span class="kw">c</span>(<span class="fl">0.75</span>,<span class="fl">0.25</span>))</span>
-<span id="cb274-5"><a href="yelp-classification-and-sentiment-test.html#cb274-5"></a></span>
-<span id="cb274-6"><a href="yelp-classification-and-sentiment-test.html#cb274-6"></a>train &lt;-<span class="st"> </span>yelp_big_bal_afinn[index,]</span>
-<span id="cb274-7"><a href="yelp-classification-and-sentiment-test.html#cb274-7"></a></span>
-<span id="cb274-8"><a href="yelp-classification-and-sentiment-test.html#cb274-8"></a>test &lt;-<span class="st"> </span>yelp_big_bal_afinn[<span class="op">!</span>index,]</span></code></pre></div>
+<div class="sourceCode" id="cb267"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb267-1"><a href="yelp-classification-and-sentiment-test.html#cb267-1"></a>index &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="kw">c</span>(T,F), </span>
+<span id="cb267-2"><a href="yelp-classification-and-sentiment-test.html#cb267-2"></a>                <span class="dt">size =</span> <span class="kw">nrow</span>(yelp_big_bal_afinn),</span>
+<span id="cb267-3"><a href="yelp-classification-and-sentiment-test.html#cb267-3"></a>                <span class="dt">replace =</span> T,</span>
+<span id="cb267-4"><a href="yelp-classification-and-sentiment-test.html#cb267-4"></a>                <span class="dt">prob=</span><span class="kw">c</span>(<span class="fl">0.75</span>,<span class="fl">0.25</span>))</span>
+<span id="cb267-5"><a href="yelp-classification-and-sentiment-test.html#cb267-5"></a></span>
+<span id="cb267-6"><a href="yelp-classification-and-sentiment-test.html#cb267-6"></a>train &lt;-<span class="st"> </span>yelp_big_bal_afinn[index,]</span>
+<span id="cb267-7"><a href="yelp-classification-and-sentiment-test.html#cb267-7"></a></span>
+<span id="cb267-8"><a href="yelp-classification-and-sentiment-test.html#cb267-8"></a>test &lt;-<span class="st"> </span>yelp_big_bal_afinn[<span class="op">!</span>index,]</span></code></pre></div>
 <p>Then we’ll use <code>glm()</code> to run a simple logistic regression, predicting the rating factor based on the AFINN sentiment score. Here is the model output:</p>
-<div class="sourceCode" id="cb275"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb275-1"><a href="yelp-classification-and-sentiment-test.html#cb275-1"></a>logit &lt;-<span class="st"> </span><span class="kw">glm</span>(<span class="dt">data=</span> train,</span>
-<span id="cb275-2"><a href="yelp-classification-and-sentiment-test.html#cb275-2"></a>             <span class="dt">formula=</span> rating_factor <span class="op">~</span><span class="st"> </span>afinn_sent,</span>
-<span id="cb275-3"><a href="yelp-classification-and-sentiment-test.html#cb275-3"></a>             <span class="dt">family=</span><span class="st">&quot;binomial&quot;</span>)</span>
-<span id="cb275-4"><a href="yelp-classification-and-sentiment-test.html#cb275-4"></a></span>
-<span id="cb275-5"><a href="yelp-classification-and-sentiment-test.html#cb275-5"></a><span class="kw">summary</span>(logit)</span></code></pre></div>
+<div class="sourceCode" id="cb268"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb268-1"><a href="yelp-classification-and-sentiment-test.html#cb268-1"></a>logit &lt;-<span class="st"> </span><span class="kw">glm</span>(<span class="dt">data=</span> train,</span>
+<span id="cb268-2"><a href="yelp-classification-and-sentiment-test.html#cb268-2"></a>             <span class="dt">formula=</span> rating_factor <span class="op">~</span><span class="st"> </span>afinn_sent,</span>
+<span id="cb268-3"><a href="yelp-classification-and-sentiment-test.html#cb268-3"></a>             <span class="dt">family=</span><span class="st">&quot;binomial&quot;</span>)</span>
+<span id="cb268-4"><a href="yelp-classification-and-sentiment-test.html#cb268-4"></a></span>
+<span id="cb268-5"><a href="yelp-classification-and-sentiment-test.html#cb268-5"></a><span class="kw">summary</span>(logit)</span></code></pre></div>
 <pre><code>## 
 ## Call:
 ## glm(formula = rating_factor ~ afinn_sent, family = &quot;binomial&quot;, 
@@ -719,17 +721,17 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 ## Number of Fisher Scoring iterations: 5</code></pre>
 <p>Our results are strongly significant, so we have some reason to take this model seriously.</p>
 <p>Referring to <a href="https://www.machinelearningplus.com/machine-learning/logistic-regression-tutorial-examples-r/#:~:text=Logistic%20regression%20is%20a%20predictive,the%20probability%20of%20event%201.">this website for more pointers</a>, we can use our logistic regression results to predict rating scores for our test dataset. The simplest way to do this is to say that we predict whichever outcome the model says is more likely. In other words, if a review has a predicted probability &gt;0.5 of being positive, then we predict it’s positive. How accurate would we be?</p>
-<div class="sourceCode" id="cb277"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb277-1"><a href="yelp-classification-and-sentiment-test.html#cb277-1"></a>pred &lt;-<span class="st"> </span><span class="kw">predict</span>(logit, </span>
-<span id="cb277-2"><a href="yelp-classification-and-sentiment-test.html#cb277-2"></a>        <span class="dt">newdata =</span> test,</span>
-<span id="cb277-3"><a href="yelp-classification-and-sentiment-test.html#cb277-3"></a>        <span class="dt">type=</span><span class="st">&quot;response&quot;</span>)</span>
-<span id="cb277-4"><a href="yelp-classification-and-sentiment-test.html#cb277-4"></a></span>
-<span id="cb277-5"><a href="yelp-classification-and-sentiment-test.html#cb277-5"></a>test_results &lt;-<span class="st"> </span>test <span class="op">%&gt;%</span></span>
-<span id="cb277-6"><a href="yelp-classification-and-sentiment-test.html#cb277-6"></a><span class="st">  </span><span class="kw">bind_cols</span>(<span class="kw">tibble</span>(<span class="dt">pred =</span> pred)) <span class="op">%&gt;%</span></span>
-<span id="cb277-7"><a href="yelp-classification-and-sentiment-test.html#cb277-7"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">pred =</span> <span class="kw">if_else</span>(pred <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.5</span>, <span class="st">&quot;POS&quot;</span>, <span class="st">&quot;NEG&quot;</span>)) <span class="op">%&gt;%</span></span>
-<span id="cb277-8"><a href="yelp-classification-and-sentiment-test.html#cb277-8"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">correct =</span> <span class="kw">if_else</span> (pred <span class="op">==</span><span class="st"> </span>rating_factor, T, F)) <span class="op">%&gt;%</span></span>
-<span id="cb277-9"><a href="yelp-classification-and-sentiment-test.html#cb277-9"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">accuracy =</span> <span class="kw">sum</span>(correct) <span class="op">/</span><span class="st"> </span><span class="kw">nrow</span>(.))</span>
-<span id="cb277-10"><a href="yelp-classification-and-sentiment-test.html#cb277-10"></a></span>
-<span id="cb277-11"><a href="yelp-classification-and-sentiment-test.html#cb277-11"></a>logit_acc &lt;-<span class="st"> </span>test_results <span class="op">%&gt;%</span><span class="st"> `</span><span class="dt">*</span><span class="st">`</span>(<span class="dv">100</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">round</span>(<span class="dv">3</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;%&quot;</span>,.)</span></code></pre></div>
+<div class="sourceCode" id="cb270"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb270-1"><a href="yelp-classification-and-sentiment-test.html#cb270-1"></a>pred &lt;-<span class="st"> </span><span class="kw">predict</span>(logit, </span>
+<span id="cb270-2"><a href="yelp-classification-and-sentiment-test.html#cb270-2"></a>        <span class="dt">newdata =</span> test,</span>
+<span id="cb270-3"><a href="yelp-classification-and-sentiment-test.html#cb270-3"></a>        <span class="dt">type=</span><span class="st">&quot;response&quot;</span>)</span>
+<span id="cb270-4"><a href="yelp-classification-and-sentiment-test.html#cb270-4"></a></span>
+<span id="cb270-5"><a href="yelp-classification-and-sentiment-test.html#cb270-5"></a>test_results &lt;-<span class="st"> </span>test <span class="op">%&gt;%</span></span>
+<span id="cb270-6"><a href="yelp-classification-and-sentiment-test.html#cb270-6"></a><span class="st">  </span><span class="kw">bind_cols</span>(<span class="kw">tibble</span>(<span class="dt">pred =</span> pred)) <span class="op">%&gt;%</span></span>
+<span id="cb270-7"><a href="yelp-classification-and-sentiment-test.html#cb270-7"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">pred =</span> <span class="kw">if_else</span>(pred <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.5</span>, <span class="st">&quot;POS&quot;</span>, <span class="st">&quot;NEG&quot;</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb270-8"><a href="yelp-classification-and-sentiment-test.html#cb270-8"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">correct =</span> <span class="kw">if_else</span> (pred <span class="op">==</span><span class="st"> </span>rating_factor, T, F)) <span class="op">%&gt;%</span></span>
+<span id="cb270-9"><a href="yelp-classification-and-sentiment-test.html#cb270-9"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">accuracy =</span> <span class="kw">sum</span>(correct) <span class="op">/</span><span class="st"> </span><span class="kw">nrow</span>(.))</span>
+<span id="cb270-10"><a href="yelp-classification-and-sentiment-test.html#cb270-10"></a></span>
+<span id="cb270-11"><a href="yelp-classification-and-sentiment-test.html#cb270-11"></a>logit_acc &lt;-<span class="st"> </span>test_results <span class="op">%&gt;%</span><span class="st"> `</span><span class="dt">*</span><span class="st">`</span>(<span class="dv">100</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">round</span>(<span class="dv">3</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;%&quot;</span>,.)</span></code></pre></div>
 <p>For this data, a simple logistic regression was only a little bit less accurate than the naive Bayes classifier: %76.848, as opposed to %78.7.</p>
 </div>
 </div>
@@ -743,7 +745,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 <div id="sessioninfo" class="section level2">
 <h2><span class="header-section-number">6.4</span> SessionInfo</h2>
-<div class="sourceCode" id="cb278"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb278-1"><a href="yelp-classification-and-sentiment-test.html#cb278-1"></a><span class="kw">sessionInfo</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb271"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb271-1"><a href="yelp-classification-and-sentiment-test.html#cb271-1"></a><span class="kw">sessionInfo</span>()</span></code></pre></div>
 <pre><code>## R version 4.0.2 (2020-06-22)
 ## Platform: x86_64-w64-mingw32/x64 (64-bit)
 ## Running under: Windows 10 x64 (build 18363)
@@ -757,22 +759,22 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-##  [1] discrim_0.1.1     vip_0.2.2         tictoc_1.0        textrecipes_0.3.0 lubridate_1.7.9   yardstick_0.0.7   workflows_0.2.0   tune_0.1.1        rsample_0.0.8     recipes_0.1.13   
-## [11] parsnip_0.1.4     modeldata_0.0.2   infer_0.5.3       dials_0.0.9       scales_1.1.1      broom_0.7.0       tidymodels_0.1.1  tidytext_0.2.5    forcats_0.5.0     stringr_1.4.0    
-## [21] dplyr_1.0.2       purrr_0.3.4       readr_1.3.1       tidyr_1.1.1       tibble_3.0.3      ggplot2_3.3.2     tidyverse_1.3.0  
+##  [1] glmnet_4.0-2      Matrix_1.2-18     discrim_0.1.1     vip_0.2.2         tictoc_1.0        textrecipes_0.3.0 lubridate_1.7.9   yardstick_0.0.7   workflows_0.2.0   tune_0.1.1       
+## [11] rsample_0.0.8     recipes_0.1.13    parsnip_0.1.4     modeldata_0.0.2   infer_0.5.3       dials_0.0.9       scales_1.1.1      broom_0.7.0       tidymodels_0.1.1  tidytext_0.2.5   
+## [21] forcats_0.5.0     stringr_1.4.0     dplyr_1.0.2       purrr_0.3.4       readr_1.3.1       tidyr_1.1.1       tibble_3.0.3      ggplot2_3.3.2     tidyverse_1.3.0  
 ## 
 ## loaded via a namespace (and not attached):
 ##  [1] colorspace_1.4-1   ellipsis_0.3.1     class_7.3-17       fs_1.5.0           rstudioapi_0.11    listenv_0.8.0      furrr_0.1.0        farver_2.0.3       SnowballC_0.7.0   
 ## [10] prodlim_2019.11.13 fansi_0.4.1        xml2_1.3.2         codetools_0.2-16   splines_4.0.2      knitr_1.29         jsonlite_1.7.0     pROC_1.16.2        packrat_0.5.0     
-## [19] dbplyr_1.4.4       compiler_4.0.2     httr_1.4.2         backports_1.1.7    assertthat_0.2.1   Matrix_1.2-18      cli_2.0.2          htmltools_0.5.0    tools_4.0.2       
-## [28] gtable_0.3.0       glue_1.4.1         naivebayes_0.9.7   rappdirs_0.3.1     Rcpp_1.0.5         cellranger_1.1.0   DiceDesign_1.8-1   vctrs_0.3.2        iterators_1.0.12  
-## [37] timeDate_3043.102  gower_0.2.2        xfun_0.16          stopwords_2.0      globals_0.13.0     rvest_0.3.6        lifecycle_0.2.0    future_1.19.1      MASS_7.3-51.6     
-## [46] ipred_0.9-9        hms_0.5.3          parallel_4.0.2     yaml_2.2.1         gridExtra_2.3      rpart_4.1-15       stringi_1.4.6      highr_0.8          tokenizers_0.2.1  
-## [55] foreach_1.5.0      textdata_0.4.1     lhs_1.0.2          hardhat_0.1.4      shape_1.4.5        lava_1.6.8         rlang_0.4.7        pkgconfig_2.0.3    evaluate_0.14     
-## [64] lattice_0.20-41    labeling_0.3       tidyselect_1.1.0   plyr_1.8.6         magrittr_1.5       bookdown_0.20      R6_2.4.1           generics_0.0.2     DBI_1.1.0         
-## [73] pillar_1.4.6       haven_2.3.1        withr_2.2.0        survival_3.1-12    nnet_7.3-14        janeaustenr_0.1.5  modelr_0.1.8       crayon_1.3.4       utf8_1.1.4        
-## [82] rmarkdown_2.3      usethis_1.6.1      grid_4.0.2         readxl_1.3.1       blob_1.2.1         reprex_0.3.0       digest_0.6.25      webshot_0.5.2      glmnet_4.0-2      
-## [91] munsell_0.5.0      GPfit_1.0-8        viridisLite_0.3.0  kableExtra_1.1.0</code></pre>
+## [19] servr_0.18         dbplyr_1.4.4       compiler_4.0.2     httr_1.4.2         backports_1.1.7    assertthat_0.2.1   cli_2.0.2          later_1.1.0.1      htmltools_0.5.0   
+## [28] tools_4.0.2        gtable_0.3.0       glue_1.4.1         naivebayes_0.9.7   rappdirs_0.3.1     Rcpp_1.0.5         cellranger_1.1.0   DiceDesign_1.8-1   vctrs_0.3.2       
+## [37] iterators_1.0.12   timeDate_3043.102  gower_0.2.2        xfun_0.16          stopwords_2.0      globals_0.13.0     rvest_0.3.6        mime_0.9           lifecycle_0.2.0   
+## [46] future_1.19.1      MASS_7.3-51.6      ipred_0.9-9        promises_1.1.1     hms_0.5.3          parallel_4.0.2     yaml_2.2.1         gridExtra_2.3      rpart_4.1-15      
+## [55] stringi_1.4.6      highr_0.8          tokenizers_0.2.1   foreach_1.5.0      textdata_0.4.1     lhs_1.0.2          hardhat_0.1.4      shape_1.4.5        lava_1.6.8        
+## [64] rlang_0.4.7        pkgconfig_2.0.3    evaluate_0.14      lattice_0.20-41    labeling_0.3       tidyselect_1.1.0   plyr_1.8.6         magrittr_1.5       bookdown_0.20     
+## [73] R6_2.4.1           generics_0.0.2     DBI_1.1.0          pillar_1.4.6       haven_2.3.1        withr_2.2.0        survival_3.1-12    nnet_7.3-14        janeaustenr_0.1.5 
+## [82] modelr_0.1.8       crayon_1.3.4       utf8_1.1.4         rmarkdown_2.3      usethis_1.6.1      grid_4.0.2         readxl_1.3.1       blob_1.2.1         reprex_0.3.0      
+## [91] digest_0.6.25      webshot_0.5.2      httpuv_1.5.4       munsell_0.5.0      GPfit_1.0-8        viridisLite_0.3.0  kableExtra_1.1.0</code></pre>
 
 </div>
 </div>
