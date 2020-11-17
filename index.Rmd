@@ -10,7 +10,6 @@ biblio-style: apalike
 link-citations: yes
 github-repo: rstudio/bookdown-demo
 description: "This is Christopher Belanger's work product for the Telfer School of Management course *MBA6292*, Directed Readings in Natural Language Processing."
-output_dir: "docs"
 ---
 
 # Preface
