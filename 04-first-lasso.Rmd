@@ -19,7 +19,7 @@ I'm going to use the **tidymodels** framework as much as possible, both because 
 
 I will begin with the Yelp data because we have a lot of it, and because based on our EDA it seemed to be "cleaner" than the Goodreads data which had a lot of duplicate posts, spam posts, plot summaries, etc.
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 reviews_yelp <- read_csv("../tests/data/ottawa_yelp_reviews.csv") %>%
   mutate(date = lubridate::mdy(date)) %>%
   rename(text = comment,
@@ -27,6 +27,7 @@ reviews_yelp <- read_csv("../tests/data/ottawa_yelp_reviews.csv") %>%
 
 reviews_yelp %>%
   head(10) %>%
+  mutate(text = stringr::str_trunc(text, 100)) %>%
   knitr::kable()
 ```
 
