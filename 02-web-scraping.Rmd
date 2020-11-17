@@ -1,3 +1,9 @@
 # Web Scraping Our Data
 
-Here is a review of existing methods.
+This section will describe the three different approaches I used to scrape the datasets from Yelp, Goodreads, and MEC.
+
+## Yelp: Embedded JSON
+
+## Goodreads: CSS Selectors
+
+## MEC: Reverse-Engineering Client-Side API Calls

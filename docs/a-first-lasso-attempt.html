@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Chapter 5 A First LASSO Attempt | Telfer 2020 Directed Reading: Natural Language Processing</title>
+  <meta name="description" content="This is Christopher Belanger’s work product for the Telfer School of Management course MBA6292, Directed Readings in Natural Language Processing." />
+  <meta name="generator" content="bookdown 0.20 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="Chapter 5 A First LASSO Attempt | Telfer 2020 Directed Reading: Natural Language Processing" />
+  <meta property="og:type" content="book" />
+  
+  
+  <meta property="og:description" content="This is Christopher Belanger’s work product for the Telfer School of Management course MBA6292, Directed Readings in Natural Language Processing." />
+  <meta name="github-repo" content="rstudio/bookdown-demo" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Chapter 5 A First LASSO Attempt | Telfer 2020 Directed Reading: Natural Language Processing" />
+  
+  <meta name="twitter:description" content="This is Christopher Belanger’s work product for the Telfer School of Management course MBA6292, Directed Readings in Natural Language Processing." />
+  
+
+<meta name="author" content="Christopher Belanger" />
+
+
+<meta name="date" content="2020-11-16" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="data-summary-eda-initial-model-attempts.html"/>
+<link rel="next" href="yelp-classification-and-sentiment-test.html"/>
+<script src="libs/jquery-2.2.3/jquery.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+<script src="libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
+<script src="libs/kePrint-0.0.1/kePrint.js"></script>
+
+
+<style type="text/css">
+code.sourceCode > span { display: inline-block; line-height: 1.25; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li><a href="./">MBA6292: Directed Readings in NLP</a></li>
+
+<li class="divider"></li>
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Preface</a></li>
+<li class="chapter" data-level="2" data-path="intro.html"><a href="intro.html"><i class="fa fa-check"></i><b>2</b> Introduction</a></li>
+<li class="chapter" data-level="3" data-path="web-scraping-our-data.html"><a href="web-scraping-our-data.html"><i class="fa fa-check"></i><b>3</b> Web Scraping Our Data</a></li>
+<li class="chapter" data-level="4" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html"><i class="fa fa-check"></i><b>4</b> Data Summary, EDA, &amp; Initial Model Attempts</a><ul>
+<li class="chapter" data-level="4.1" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#introduction"><i class="fa fa-check"></i><b>4.1</b> Introduction</a></li>
+<li class="chapter" data-level="4.2" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#goodreads"><i class="fa fa-check"></i><b>4.2</b> Goodreads</a><ul>
+<li class="chapter" data-level="4.2.1" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#star-ratings"><i class="fa fa-check"></i><b>4.2.1</b> Star Ratings</a></li>
+<li class="chapter" data-level="4.2.2" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#word-count"><i class="fa fa-check"></i><b>4.2.2</b> Word Count</a></li>
+<li class="chapter" data-level="4.2.3" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#reviewers"><i class="fa fa-check"></i><b>4.2.3</b> Reviewers</a></li>
+</ul></li>
+<li class="chapter" data-level="4.3" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#yelp"><i class="fa fa-check"></i><b>4.3</b> Yelp</a><ul>
+<li class="chapter" data-level="4.3.1" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#star-ratings-1"><i class="fa fa-check"></i><b>4.3.1</b> Star Ratings</a></li>
+<li class="chapter" data-level="4.3.2" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#word-count-1"><i class="fa fa-check"></i><b>4.3.2</b> Word Count</a></li>
+<li class="chapter" data-level="4.3.3" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#reviewers-1"><i class="fa fa-check"></i><b>4.3.3</b> Reviewers</a></li>
+</ul></li>
+<li class="chapter" data-level="4.4" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#mountain-equipment-co-op-mec"><i class="fa fa-check"></i><b>4.4</b> Mountain Equipment Co-op (MEC)</a><ul>
+<li class="chapter" data-level="4.4.1" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#star-ratings-2"><i class="fa fa-check"></i><b>4.4.1</b> Star Ratings</a></li>
+<li class="chapter" data-level="4.4.2" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#word-counts"><i class="fa fa-check"></i><b>4.4.2</b> Word Counts</a></li>
+<li class="chapter" data-level="4.4.3" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#reviewers-2"><i class="fa fa-check"></i><b>4.4.3</b> Reviewers</a></li>
+</ul></li>
+<li class="chapter" data-level="4.5" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#comparing-goodreads-mec-and-yelp"><i class="fa fa-check"></i><b>4.5</b> Comparing Goodreads, MEC, and Yelp</a><ul>
+<li class="chapter" data-level="4.5.1" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#star-ratings-3"><i class="fa fa-check"></i><b>4.5.1</b> Star Ratings</a></li>
+<li class="chapter" data-level="4.5.2" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#word-counts-1"><i class="fa fa-check"></i><b>4.5.2</b> Word Counts</a></li>
+</ul></li>
+<li class="chapter" data-level="4.6" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#reviews-over-time"><i class="fa fa-check"></i><b>4.6</b> Reviews Over Time</a><ul>
+<li class="chapter" data-level="4.6.1" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#goodreads-1"><i class="fa fa-check"></i><b>4.6.1</b> Goodreads</a></li>
+<li class="chapter" data-level="4.6.2" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#yelp-1"><i class="fa fa-check"></i><b>4.6.2</b> Yelp</a></li>
+<li class="chapter" data-level="4.6.3" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#mec"><i class="fa fa-check"></i><b>4.6.3</b> MEC</a></li>
+</ul></li>
+<li class="chapter" data-level="4.7" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#proposed-next-steps"><i class="fa fa-check"></i><b>4.7</b> Proposed Next Steps</a></li>
+<li class="chapter" data-level="4.8" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#sessioninfo"><i class="fa fa-check"></i><b>4.8</b> SessionInfo</a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="a-first-lasso-attempt.html"><a href="a-first-lasso-attempt.html"><i class="fa fa-check"></i><b>5</b> A First LASSO Attempt</a><ul>
+<li class="chapter" data-level="5.1" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#introduction"><i class="fa fa-check"></i><b>5.1</b> Introduction</a></li>
+<li class="chapter" data-level="5.2" data-path="a-first-lasso-attempt.html"><a href="a-first-lasso-attempt.html#a-first-regression-yelp-data"><i class="fa fa-check"></i><b>5.2</b> A First Regression: Yelp Data</a><ul>
+<li class="chapter" data-level="5.2.1" data-path="a-first-lasso-attempt.html"><a href="a-first-lasso-attempt.html#splitting-the-data"><i class="fa fa-check"></i><b>5.2.1</b> Splitting the data</a></li>
+<li class="chapter" data-level="5.2.2" data-path="a-first-lasso-attempt.html"><a href="a-first-lasso-attempt.html#evaluating-the-first-model"><i class="fa fa-check"></i><b>5.2.2</b> Evaluating the first model</a></li>
+<li class="chapter" data-level="5.2.3" data-path="a-first-lasso-attempt.html"><a href="a-first-lasso-attempt.html#tuning-model-parameters"><i class="fa fa-check"></i><b>5.2.3</b> Tuning model parameters</a></li>
+</ul></li>
+<li class="chapter" data-level="5.3" data-path="a-first-lasso-attempt.html"><a href="a-first-lasso-attempt.html#trying-lasso-again"><i class="fa fa-check"></i><b>5.3</b> Trying lasso again</a><ul>
+<li class="chapter" data-level="5.3.1" data-path="a-first-lasso-attempt.html"><a href="a-first-lasso-attempt.html#with-1000-tokens"><i class="fa fa-check"></i><b>5.3.1</b> With 1000 tokens</a></li>
+<li class="chapter" data-level="5.3.2" data-path="a-first-lasso-attempt.html"><a href="a-first-lasso-attempt.html#short-reviews-only-125-words"><i class="fa fa-check"></i><b>5.3.2</b> Short reviews only: &lt;125 words</a></li>
+<li class="chapter" data-level="5.3.3" data-path="a-first-lasso-attempt.html"><a href="a-first-lasso-attempt.html#longer-reviews-125-words"><i class="fa fa-check"></i><b>5.3.3</b> Longer reviews &gt; 125 words</a></li>
+</ul></li>
+<li class="chapter" data-level="5.4" data-path="a-first-lasso-attempt.html"><a href="a-first-lasso-attempt.html#removing-stop-words"><i class="fa fa-check"></i><b>5.4</b> Removing stop words</a></li>
+<li class="chapter" data-level="5.5" data-path="a-first-lasso-attempt.html"><a href="a-first-lasso-attempt.html#adjusting-n-grams"><i class="fa fa-check"></i><b>5.5</b> Adjusting n-grams</a></li>
+<li class="chapter" data-level="5.6" data-path="a-first-lasso-attempt.html"><a href="a-first-lasso-attempt.html#full-final-regression"><i class="fa fa-check"></i><b>5.6</b> Full final regression</a></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="yelp-classification-and-sentiment-test.html"><a href="yelp-classification-and-sentiment-test.html"><i class="fa fa-check"></i><b>6</b> Yelp Classification and Sentiment Test</a><ul>
+<li class="chapter" data-level="6.1" data-path="yelp-classification-and-sentiment-test.html"><a href="yelp-classification-and-sentiment-test.html#yelp-dataset"><i class="fa fa-check"></i><b>6.1</b> Yelp Dataset</a><ul>
+<li class="chapter" data-level="6.1.1" data-path="yelp-classification-and-sentiment-test.html"><a href="yelp-classification-and-sentiment-test.html#afinn"><i class="fa fa-check"></i><b>6.1.1</b> AFINN</a></li>
+<li class="chapter" data-level="6.1.2" data-path="yelp-classification-and-sentiment-test.html"><a href="yelp-classification-and-sentiment-test.html#classification-naive-bayes-classifier"><i class="fa fa-check"></i><b>6.1.2</b> Classification: Naive Bayes Classifier</a></li>
+</ul></li>
+<li class="chapter" data-level="6.2" data-path="yelp-classification-and-sentiment-test.html"><a href="yelp-classification-and-sentiment-test.html#kaggle-yelp-dataset"><i class="fa fa-check"></i><b>6.2</b> Kaggle Yelp dataset</a><ul>
+<li class="chapter" data-level="6.2.1" data-path="yelp-classification-and-sentiment-test.html"><a href="yelp-classification-and-sentiment-test.html#naive-bayes-classifier"><i class="fa fa-check"></i><b>6.2.1</b> Naive Bayes Classifier</a></li>
+<li class="chapter" data-level="6.2.2" data-path="yelp-classification-and-sentiment-test.html"><a href="yelp-classification-and-sentiment-test.html#logistic-regression"><i class="fa fa-check"></i><b>6.2.2</b> Logistic Regression</a></li>
+</ul></li>
+<li class="chapter" data-level="6.3" data-path="yelp-classification-and-sentiment-test.html"><a href="yelp-classification-and-sentiment-test.html#next-steps"><i class="fa fa-check"></i><b>6.3</b> NEXT STEPS</a></li>
+<li class="chapter" data-level="6.4" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#sessioninfo"><i class="fa fa-check"></i><b>6.4</b> SessionInfo</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
+<li class="divider"></li>
+<li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
+
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Telfer 2020 Directed Reading: Natural Language Processing</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="a-first-lasso-attempt" class="section level1">
+<h1><span class="header-section-number">Chapter 5</span> A First LASSO Attempt</h1>
+<div id="introduction" class="section level2">
+<h2><span class="header-section-number">5.1</span> Introduction</h2>
+<p>This analysis will use regression methods to attemp to predict star ratings from the text and/or titles of the reviews in our Yelp, Goodreads, and MEC datasets. My methods will closely follow those given in Chapter 6 of <a href="https://smltar.com/mlregression.html">Supervised Machine Learning for Text Analysis in R</a> (SMLTAR) by Hvitfeldt &amp; Silge. In the first case I will work through an example in detail to describe the steps (and to learn them!!), and in later sections I will move more quickly to try some different variations on the analysis.</p>
+<p>I’m going to use the <code>tidymodels</code> framework as much as possible, both because it’s the approach used in SMLTAR and because I’m a fan of the Tidyverse approach to software design and analysis.</p>
+</div>
+<div id="a-first-regression-yelp-data" class="section level2">
+<h2><span class="header-section-number">5.2</span> A First Regression: Yelp Data</h2>
+<p>I will begin with the Yelp data because we have a lot of it, and because based on our EDA it seemed to be “cleaner” than the Goodreads data which had a lot of duplicate posts, spam posts, plot summaries, etc.</p>
+<div class="sourceCode" id="cb84"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb84-1"><a href="a-first-lasso-attempt.html#cb84-1"></a>reviews_yelp &lt;-<span class="st"> </span><span class="kw">read_csv</span>(<span class="st">&quot;../tests/data/ottawa_yelp_reviews.csv&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb84-2"><a href="a-first-lasso-attempt.html#cb84-2"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">date =</span> lubridate<span class="op">::</span><span class="kw">mdy</span>(date)) <span class="op">%&gt;%</span></span>
+<span id="cb84-3"><a href="a-first-lasso-attempt.html#cb84-3"></a><span class="st">  </span><span class="kw">rename</span>(<span class="dt">text =</span> comment,</span>
+<span id="cb84-4"><a href="a-first-lasso-attempt.html#cb84-4"></a>         <span class="dt">rating_num =</span> rating)</span></code></pre></div>
+<pre><code>## Parsed with column specification:
+## cols(
+##   business = col_character(),
+##   name = col_character(),
+##   date = col_character(),
+##   comment = col_character(),
+##   rating = col_double(),
+##   url = col_character()
+## )</code></pre>
+<div class="sourceCode" id="cb86"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb86-1"><a href="a-first-lasso-attempt.html#cb86-1"></a>reviews_yelp</span></code></pre></div>
+<pre><code>## # A tibble: 9,402 x 6
+##    business           name      date       text                                                                                                  rating_num url                            
+##    &lt;chr&gt;              &lt;chr&gt;     &lt;date&gt;     &lt;chr&gt;                                                                                                      &lt;dbl&gt; &lt;chr&gt;                          
+##  1 La Squadra         Alain G.  2017-08-21 Confession: I am a foodie and I am a restaurant trained amateur Chef.&lt;br&amp;gt;Been wanting to try this~          5 http://www.yelp.ca/biz/la-squa~
+##  2 La Squadra         Amelia J. 2018-12-19 I came here for a Christmas lunch with coworkers and we tried the set Christmas menu (appetizer + ma~          4 http://www.yelp.ca/biz/la-squa~
+##  3 La Squadra         Michael ~ 2017-07-03 Beautiful venue, great service and incredible food.  Try Squadra pasta and pizza...and the Arancini ~          5 http://www.yelp.ca/biz/la-squa~
+##  4 La Squadra         Cee Y.    2019-03-30 My husband and I stopped into this place as per a recommendation by Yelp. We had a fantastic time an~          5 http://www.yelp.ca/biz/la-squa~
+##  5 La Squadra         Luc S.    2018-03-04 Best Italian restaurant in Gatineau ! The food is authentic and fresh with good wine recommendation.~          5 http://www.yelp.ca/biz/la-squa~
+##  6 Kallisto Greek Re~ Amster S. 2020-04-18 I&amp;amp;#39;ve been here twice. Once with my work friends and second with my family. I will come back ~          5 http://www.yelp.ca/biz/kallist~
+##  7 Kallisto Greek Re~ Reema D.  2020-01-12 Waitress was pretty slow. Didn&amp;amp;#39;t take our dinner orders until after we finished apps and she~          4 http://www.yelp.ca/biz/kallist~
+##  8 Kallisto Greek Re~ Jennifer~ 2018-05-21 My husband and I had dinner here recently and overall it was very good 3.75 stars, rounded up to 4.&lt;~          4 http://www.yelp.ca/biz/kallist~
+##  9 Kallisto Greek Re~ Teena D.  2018-02-07 I had lunch today at Kallisto Greek Restaurant.&lt;br&amp;gt;&lt;br&amp;gt;I love chicken souvlaki and that&amp;amp;#3~          2 http://www.yelp.ca/biz/kallist~
+## 10 Kallisto Greek Re~ Janie M.  2019-06-26 Find there&amp;amp;#39;s always warm and friendly service. Best Greek food in Ottawa!  My son, daughter ~          5 http://www.yelp.ca/biz/kallist~
+## # ... with 9,392 more rows</code></pre>
+<div id="splitting-the-data" class="section level3">
+<h3><span class="header-section-number">5.2.1</span> Splitting the data</h3>
+<p>First we will split our data into a training set and a testing set. This is a standard practice, wherein we build a model using the training data but set aside some other data so we can test it later. Otherwise we might have concerns about overfitting or model validity.</p>
+<p>I’m setting the value <code>strata = "rating_num"</code> to ensure that our random sampling has about the same distribution of star ratings as our full population–see the documentation for <code>initial_split()</code>.</p>
+<div class="sourceCode" id="cb88"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb88-1"><a href="a-first-lasso-attempt.html#cb88-1"></a><span class="kw">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb88-2"><a href="a-first-lasso-attempt.html#cb88-2"></a></span>
+<span id="cb88-3"><a href="a-first-lasso-attempt.html#cb88-3"></a>yelp_split &lt;-<span class="st"> </span>reviews_yelp <span class="op">%&gt;%</span></span>
+<span id="cb88-4"><a href="a-first-lasso-attempt.html#cb88-4"></a><span class="st">  </span><span class="kw">initial_split</span>(<span class="dt">strata =</span> <span class="st">&quot;rating_num&quot;</span>)</span>
+<span id="cb88-5"><a href="a-first-lasso-attempt.html#cb88-5"></a></span>
+<span id="cb88-6"><a href="a-first-lasso-attempt.html#cb88-6"></a>yelp_train &lt;-<span class="st"> </span>yelp_split <span class="op">%&gt;%</span></span>
+<span id="cb88-7"><a href="a-first-lasso-attempt.html#cb88-7"></a><span class="st">  </span><span class="kw">training</span>()</span>
+<span id="cb88-8"><a href="a-first-lasso-attempt.html#cb88-8"></a></span>
+<span id="cb88-9"><a href="a-first-lasso-attempt.html#cb88-9"></a>yelp_test &lt;-<span class="st"> </span>yelp_split <span class="op">%&gt;%</span></span>
+<span id="cb88-10"><a href="a-first-lasso-attempt.html#cb88-10"></a><span class="st">  </span><span class="kw">testing</span>()</span></code></pre></div>
+<p>The next step is to define our preprocessing steps: the stuff we’ll do to the text before we put it into a regression model. In the <code>tidymodels</code> approach we do this by creating a “recipe” objects and then adding a number of steps to it. We modify the object by using the pipe operator to add a bunch of steps to it using verb functions. This makes it easy to read the step-by-step process and understand what’s going on.</p>
+<p>I’ll note, though, that when I follow SMLTAR’s guide the recipe still includes explicit references to the dataset we’re analyzing, so it’s not a completely generic object that could be applied to other datasets: we would need to make other recipes for MEC and Goodreads. There may be more advanced ways to create generic recipes that can be reused.</p>
+<p>Here, following SMLTAR, we will use a recipe with the following steps:</p>
+<ul>
+<li><em>Tokenizing</em> the text, which means breaking it down into constituent bits (words here),</li>
+<li><em>Filtering the tokens</em> based on frequency, taking only the 250 most-common tokens, (NOTE this is not many tokens!!)</li>
+<li><em>TFIDF</em>, or “term frequency inverse document frequency,” which weights each token based on both how frequent it is and on how common it is across documents (see <code>step_tfidf()</code>’s help page for details), and then</li>
+<li><em>Normalizing</em> so our lasso regression will work properly.</li>
+</ul>
+<div class="sourceCode" id="cb89"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb89-1"><a href="a-first-lasso-attempt.html#cb89-1"></a>num_tokens &lt;-<span class="st"> </span><span class="dv">250</span></span>
+<span id="cb89-2"><a href="a-first-lasso-attempt.html#cb89-2"></a></span>
+<span id="cb89-3"><a href="a-first-lasso-attempt.html#cb89-3"></a>yelp_rec &lt;-<span class="st"> </span><span class="kw">recipe</span>(rating_num <span class="op">~</span><span class="st"> </span>text, <span class="dt">data =</span> yelp_train) <span class="op">%&gt;%</span></span>
+<span id="cb89-4"><a href="a-first-lasso-attempt.html#cb89-4"></a><span class="st">  </span><span class="kw">step_tokenize</span>(text) <span class="op">%&gt;%</span></span>
+<span id="cb89-5"><a href="a-first-lasso-attempt.html#cb89-5"></a><span class="st">  </span><span class="kw">step_tokenfilter</span>(text, <span class="dt">max_tokens =</span> num_tokens) <span class="op">%&gt;%</span></span>
+<span id="cb89-6"><a href="a-first-lasso-attempt.html#cb89-6"></a><span class="st">  </span><span class="kw">step_tfidf</span>(text) <span class="op">%&gt;%</span></span>
+<span id="cb89-7"><a href="a-first-lasso-attempt.html#cb89-7"></a><span class="st">  </span><span class="kw">step_normalize</span>(<span class="kw">all_predictors</span>())</span>
+<span id="cb89-8"><a href="a-first-lasso-attempt.html#cb89-8"></a>  </span>
+<span id="cb89-9"><a href="a-first-lasso-attempt.html#cb89-9"></a><span class="kw">rm</span>(num_tokens)</span>
+<span id="cb89-10"><a href="a-first-lasso-attempt.html#cb89-10"></a></span>
+<span id="cb89-11"><a href="a-first-lasso-attempt.html#cb89-11"></a>yelp_rec</span></code></pre></div>
+<pre><code>## Data Recipe
+## 
+## Inputs:
+## 
+##       role #variables
+##    outcome          1
+##  predictor          1
+## 
+## Operations:
+## 
+## Tokenization for text
+## Text filtering for text
+## Term frequency-inverse document frequency with text
+## Centering and scaling for all_predictors()</code></pre>
+<p>Next, Hvitfeldt and Silge suggest we create a <code>workflow()</code> object that combines preprocessing steps and models.</p>
+<div class="sourceCode" id="cb91"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb91-1"><a href="a-first-lasso-attempt.html#cb91-1"></a>yelp_wf &lt;-<span class="st"> </span><span class="kw">workflow</span>() <span class="op">%&gt;%</span></span>
+<span id="cb91-2"><a href="a-first-lasso-attempt.html#cb91-2"></a><span class="st">  </span><span class="kw">add_recipe</span>(yelp_rec) </span>
+<span id="cb91-3"><a href="a-first-lasso-attempt.html#cb91-3"></a>  </span>
+<span id="cb91-4"><a href="a-first-lasso-attempt.html#cb91-4"></a>yelp_wf</span></code></pre></div>
+<pre><code>## == Workflow ====================================================================
+## Preprocessor: Recipe
+## Model: None
+## 
+## -- Preprocessor ----------------------------------------------------------------
+## 4 Recipe Steps
+## 
+## * step_tokenize()
+## * step_tokenfilter()
+## * step_tfidf()
+## * step_normalize()</code></pre>
+<p>We now define a lasso regression model using <code>parsnip</code>. My understanding is that this acts as a “tidy wrapper” around other functions/packages, in this case <code>glmnet</code>, that lets you use them in a tidy way. I believe it can also make it easier to swap out models or parameters without having to completely rewrite your codebase.</p>
+<p>Note that <code>penalty = 0.1</code> is arbitrary and we’ll look into that parameter more closely later.</p>
+<div class="sourceCode" id="cb93"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb93-1"><a href="a-first-lasso-attempt.html#cb93-1"></a>lasso_model &lt;-<span class="st"> </span>parsnip<span class="op">::</span><span class="kw">linear_reg</span>(<span class="dt">penalty =</span> <span class="fl">0.1</span>, <span class="dt">mixture =</span> <span class="dv">1</span>) <span class="op">%&gt;%</span></span>
+<span id="cb93-2"><a href="a-first-lasso-attempt.html#cb93-2"></a><span class="st">  </span><span class="kw">set_mode</span>(<span class="st">&quot;regression&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb93-3"><a href="a-first-lasso-attempt.html#cb93-3"></a><span class="st">  </span><span class="kw">set_engine</span>(<span class="st">&quot;glmnet&quot;</span>)</span>
+<span id="cb93-4"><a href="a-first-lasso-attempt.html#cb93-4"></a></span>
+<span id="cb93-5"><a href="a-first-lasso-attempt.html#cb93-5"></a>lasso_model</span></code></pre></div>
+<pre><code>## Linear Regression Model Specification (regression)
+## 
+## Main Arguments:
+##   penalty = 0.1
+##   mixture = 1
+## 
+## Computational engine: glmnet</code></pre>
+<p>Now we add the lasso model to the workflow and run the model. This takes about 9 seconds on my machine using only 250 tokens. (I expect we’ll need to use more to get a good result.)</p>
+<div class="sourceCode" id="cb95"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb95-1"><a href="a-first-lasso-attempt.html#cb95-1"></a><span class="kw">tic</span>()</span>
+<span id="cb95-2"><a href="a-first-lasso-attempt.html#cb95-2"></a>lasso_fit &lt;-<span class="st"> </span>yelp_wf <span class="op">%&gt;%</span></span>
+<span id="cb95-3"><a href="a-first-lasso-attempt.html#cb95-3"></a><span class="st">  </span><span class="kw">add_model</span>(lasso_model) <span class="op">%&gt;%</span></span>
+<span id="cb95-4"><a href="a-first-lasso-attempt.html#cb95-4"></a><span class="st">  </span><span class="kw">fit</span>(<span class="dt">data =</span> yelp_train)</span>
+<span id="cb95-5"><a href="a-first-lasso-attempt.html#cb95-5"></a><span class="kw">toc</span>()</span></code></pre></div>
+<pre><code>## 8.82 sec elapsed</code></pre>
+<p>We can look at the terms with the highest coefficients in the model:</p>
+<div class="sourceCode" id="cb97"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb97-1"><a href="a-first-lasso-attempt.html#cb97-1"></a>lasso_fit <span class="op">%&gt;%</span></span>
+<span id="cb97-2"><a href="a-first-lasso-attempt.html#cb97-2"></a><span class="st">  </span><span class="kw">pull_workflow_fit</span>() <span class="op">%&gt;%</span></span>
+<span id="cb97-3"><a href="a-first-lasso-attempt.html#cb97-3"></a><span class="st">  </span><span class="kw">tidy</span>() <span class="op">%&gt;%</span></span>
+<span id="cb97-4"><a href="a-first-lasso-attempt.html#cb97-4"></a><span class="st">  </span><span class="kw">arrange</span>(<span class="op">-</span>estimate)</span></code></pre></div>
+<pre><code>## Loading required package: Matrix</code></pre>
+<pre><code>## 
+## Attaching package: &#39;Matrix&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:tidyr&#39;:
+## 
+##     expand, pack, unpack</code></pre>
+<pre><code>## Loaded glmnet 4.0-2</code></pre>
+<pre><code>## # A tibble: 251 x 3
+##    term                 estimate penalty
+##    &lt;chr&gt;                   &lt;dbl&gt;   &lt;dbl&gt;
+##  1 (Intercept)           4.16        0.1
+##  2 tfidf_text_amazing    0.0490      0.1
+##  3 tfidf_text_delicious  0.0395      0.1
+##  4 tfidf_text_great      0.0379      0.1
+##  5 tfidf_text_best       0.0307      0.1
+##  6 tfidf_text_and        0.00624     0.1
+##  7 tfidf_text_2          0           0.1
+##  8 tfidf_text_3          0           0.1
+##  9 tfidf_text_34         0           0.1
+## 10 tfidf_text_39         0           0.1
+## # ... with 241 more rows</code></pre>
+<p>This already doesn’t look too promising; only 5 terms have positive coefficients, and the intercept is 4.16. But let’s see how it goes.</p>
+</div>
+<div id="evaluating-the-first-model" class="section level3">
+<h3><span class="header-section-number">5.2.2</span> Evaluating the first model</h3>
+<p>Following SMLTAR, we’ll evaluate the model using cross-fold validation, which is a way of trying to squeeze as much validation as you can out of a finite dataset. We will resample our training dataset to create 10 <em>new</em> datasets, and in each one we’ll use 90% for training and 10% for assessment.</p>
+<div class="sourceCode" id="cb103"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb103-1"><a href="a-first-lasso-attempt.html#cb103-1"></a><span class="kw">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb103-2"><a href="a-first-lasso-attempt.html#cb103-2"></a>yelp_folds &lt;-<span class="st"> </span><span class="kw">vfold_cv</span>(yelp_train)</span>
+<span id="cb103-3"><a href="a-first-lasso-attempt.html#cb103-3"></a></span>
+<span id="cb103-4"><a href="a-first-lasso-attempt.html#cb103-4"></a>lasso_rs &lt;-<span class="st"> </span><span class="kw">fit_resamples</span>(</span>
+<span id="cb103-5"><a href="a-first-lasso-attempt.html#cb103-5"></a>  yelp_wf <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">add_model</span>(lasso_model),</span>
+<span id="cb103-6"><a href="a-first-lasso-attempt.html#cb103-6"></a>  yelp_folds,</span>
+<span id="cb103-7"><a href="a-first-lasso-attempt.html#cb103-7"></a>  <span class="dt">control =</span> <span class="kw">control_resamples</span>(<span class="dt">save_pred =</span> <span class="ot">TRUE</span>)</span>
+<span id="cb103-8"><a href="a-first-lasso-attempt.html#cb103-8"></a>)</span>
+<span id="cb103-9"><a href="a-first-lasso-attempt.html#cb103-9"></a></span>
+<span id="cb103-10"><a href="a-first-lasso-attempt.html#cb103-10"></a><span class="kw">tic</span>()</span>
+<span id="cb103-11"><a href="a-first-lasso-attempt.html#cb103-11"></a>lasso_rs</span></code></pre></div>
+<pre><code>## # Resampling results
+## # 10-fold cross-validation 
+## # A tibble: 10 x 5
+##    splits             id     .metrics         .notes           .predictions      
+##    &lt;list&gt;             &lt;chr&gt;  &lt;list&gt;           &lt;list&gt;           &lt;list&gt;            
+##  1 &lt;split [6.3K/706]&gt; Fold01 &lt;tibble [2 x 3]&gt; &lt;tibble [0 x 1]&gt; &lt;tibble [706 x 3]&gt;
+##  2 &lt;split [6.3K/706]&gt; Fold02 &lt;tibble [2 x 3]&gt; &lt;tibble [0 x 1]&gt; &lt;tibble [706 x 3]&gt;
+##  3 &lt;split [6.3K/706]&gt; Fold03 &lt;tibble [2 x 3]&gt; &lt;tibble [0 x 1]&gt; &lt;tibble [706 x 3]&gt;
+##  4 &lt;split [6.3K/705]&gt; Fold04 &lt;tibble [2 x 3]&gt; &lt;tibble [0 x 1]&gt; &lt;tibble [705 x 3]&gt;
+##  5 &lt;split [6.3K/705]&gt; Fold05 &lt;tibble [2 x 3]&gt; &lt;tibble [0 x 1]&gt; &lt;tibble [705 x 3]&gt;
+##  6 &lt;split [6.3K/705]&gt; Fold06 &lt;tibble [2 x 3]&gt; &lt;tibble [0 x 1]&gt; &lt;tibble [705 x 3]&gt;
+##  7 &lt;split [6.3K/705]&gt; Fold07 &lt;tibble [2 x 3]&gt; &lt;tibble [0 x 1]&gt; &lt;tibble [705 x 3]&gt;
+##  8 &lt;split [6.3K/705]&gt; Fold08 &lt;tibble [2 x 3]&gt; &lt;tibble [0 x 1]&gt; &lt;tibble [705 x 3]&gt;
+##  9 &lt;split [6.3K/705]&gt; Fold09 &lt;tibble [2 x 3]&gt; &lt;tibble [0 x 1]&gt; &lt;tibble [705 x 3]&gt;
+## 10 &lt;split [6.3K/705]&gt; Fold10 &lt;tibble [2 x 3]&gt; &lt;tibble [0 x 1]&gt; &lt;tibble [705 x 3]&gt;</code></pre>
+<div class="sourceCode" id="cb105"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb105-1"><a href="a-first-lasso-attempt.html#cb105-1"></a><span class="kw">toc</span>()</span></code></pre></div>
+<pre><code>## 0.02 sec elapsed</code></pre>
+<p>Our <span class="math inline">\(R^2\)</span> and RMSEs look really quite terrible:</p>
+<div class="sourceCode" id="cb107"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb107-1"><a href="a-first-lasso-attempt.html#cb107-1"></a>lasso_rs <span class="op">%&gt;%</span></span>
+<span id="cb107-2"><a href="a-first-lasso-attempt.html#cb107-2"></a><span class="st">  </span><span class="kw">collect_metrics</span>()</span></code></pre></div>
+<pre><code>## # A tibble: 2 x 5
+##   .metric .estimator  mean     n std_err
+##   &lt;chr&gt;   &lt;chr&gt;      &lt;dbl&gt; &lt;int&gt;   &lt;dbl&gt;
+## 1 rmse    standard   0.985    10 0.00732
+## 2 rsq     standard   0.147    10 0.0122</code></pre>
+<p>And when we plot predictions vs. true values, that also looks quite terrible:</p>
+<div class="sourceCode" id="cb109"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb109-1"><a href="a-first-lasso-attempt.html#cb109-1"></a>lasso_rs <span class="op">%&gt;%</span></span>
+<span id="cb109-2"><a href="a-first-lasso-attempt.html#cb109-2"></a><span class="st">  </span><span class="kw">collect_predictions</span>() <span class="op">%&gt;%</span></span>
+<span id="cb109-3"><a href="a-first-lasso-attempt.html#cb109-3"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(rating_num, .pred, <span class="dt">color =</span> id)) <span class="op">+</span></span>
+<span id="cb109-4"><a href="a-first-lasso-attempt.html#cb109-4"></a><span class="st">  </span><span class="kw">geom_abline</span>(<span class="dt">slope=</span><span class="dv">1</span>, <span class="dt">intercept =</span> <span class="dv">0</span>,<span class="dt">color =</span> <span class="st">&quot;gray80&quot;</span>, <span class="dt">size =</span> <span class="fl">1.5</span>) <span class="op">+</span></span>
+<span id="cb109-5"><a href="a-first-lasso-attempt.html#cb109-5"></a><span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">alpha =</span> <span class="fl">0.3</span>) <span class="op">+</span></span>
+<span id="cb109-6"><a href="a-first-lasso-attempt.html#cb109-6"></a><span class="st">  </span><span class="kw">labs</span>(</span>
+<span id="cb109-7"><a href="a-first-lasso-attempt.html#cb109-7"></a>    <span class="dt">x =</span> <span class="st">&quot;Truth&quot;</span>,</span>
+<span id="cb109-8"><a href="a-first-lasso-attempt.html#cb109-8"></a>    <span class="dt">y =</span> <span class="st">&quot;Predicted Rating&quot;</span>,</span>
+<span id="cb109-9"><a href="a-first-lasso-attempt.html#cb109-9"></a>    <span class="dt">color =</span> <span class="ot">NULL</span>,</span>
+<span id="cb109-10"><a href="a-first-lasso-attempt.html#cb109-10"></a>    <span class="dt">title =</span> <span class="st">&quot;Predicted and true star ratings for Yelp reviews&quot;</span>,</span>
+<span id="cb109-11"><a href="a-first-lasso-attempt.html#cb109-11"></a>    <span class="dt">subtitle =</span> <span class="st">&quot;Each cross-validation fold is shown in a different color&quot;</span></span>
+<span id="cb109-12"><a href="a-first-lasso-attempt.html#cb109-12"></a>  )</span></code></pre></div>
+<p><img src="telfer-mba-nlp_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p>The model generally predicts that everything will have a star rating of between 3 and 5, and is especially poor at predicting lower values.</p>
+<p>We’re now operating without much of a map, since the example in SMLTAR worked beautifully (predicting the year a USA Supreme Court decision was written based on its text). However, we can follow one last SMLTAR step by tuning our lasso hyperparameters.</p>
+</div>
+<div id="tuning-model-parameters" class="section level3">
+<h3><span class="header-section-number">5.2.3</span> Tuning model parameters</h3>
+<p>We can repeat the process but use <em>model tuning</em> to set the paramters in our lasso regression. Now instead of choosing a random lasso penalty of 0.1, we’re going to use the <code>tune()</code> function to figure out which penalty gives the best results on our training data.</p>
+<div class="sourceCode" id="cb110"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb110-1"><a href="a-first-lasso-attempt.html#cb110-1"></a>tune_model &lt;-<span class="st"> </span><span class="kw">linear_reg</span>(<span class="dt">penalty =</span> <span class="kw">tune</span>(), <span class="dt">mixture =</span> <span class="dv">1</span>) <span class="op">%&gt;%</span></span>
+<span id="cb110-2"><a href="a-first-lasso-attempt.html#cb110-2"></a><span class="st">  </span><span class="kw">set_mode</span>(<span class="st">&quot;regression&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb110-3"><a href="a-first-lasso-attempt.html#cb110-3"></a><span class="st">  </span><span class="kw">set_engine</span>(<span class="st">&quot;glmnet&quot;</span>)</span>
+<span id="cb110-4"><a href="a-first-lasso-attempt.html#cb110-4"></a></span>
+<span id="cb110-5"><a href="a-first-lasso-attempt.html#cb110-5"></a>tune_model</span></code></pre></div>
+<pre><code>## Linear Regression Model Specification (regression)
+## 
+## Main Arguments:
+##   penalty = tune()
+##   mixture = 1
+## 
+## Computational engine: glmnet</code></pre>
+<p>We create a grid of values to try:</p>
+<div class="sourceCode" id="cb112"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb112-1"><a href="a-first-lasso-attempt.html#cb112-1"></a>lambda_grid &lt;-<span class="st"> </span><span class="kw">grid_regular</span>(<span class="kw">penalty</span>(), <span class="dt">levels =</span> <span class="dv">30</span>)</span></code></pre></div>
+<p>And now we use the function <code>tune_grid()</code> to fit our model at many different parameter values to see how they fare on our cross-fold validation set. <em>Note: this takes a long time, 81.5 seconds for the 250-token model on my machine.</em></p>
+<div class="sourceCode" id="cb113"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb113-1"><a href="a-first-lasso-attempt.html#cb113-1"></a><span class="kw">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb113-2"><a href="a-first-lasso-attempt.html#cb113-2"></a><span class="kw">tic</span>()</span>
+<span id="cb113-3"><a href="a-first-lasso-attempt.html#cb113-3"></a>tune_rs &lt;-<span class="st"> </span><span class="kw">tune_grid</span>(</span>
+<span id="cb113-4"><a href="a-first-lasso-attempt.html#cb113-4"></a>  yelp_wf <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">add_model</span>(tune_model),</span>
+<span id="cb113-5"><a href="a-first-lasso-attempt.html#cb113-5"></a>  yelp_folds,</span>
+<span id="cb113-6"><a href="a-first-lasso-attempt.html#cb113-6"></a>  <span class="dt">grid =</span> lambda_grid,</span>
+<span id="cb113-7"><a href="a-first-lasso-attempt.html#cb113-7"></a>  <span class="dt">control =</span> <span class="kw">control_resamples</span>(<span class="dt">save_pred =</span> <span class="ot">TRUE</span>)</span>
+<span id="cb113-8"><a href="a-first-lasso-attempt.html#cb113-8"></a>)</span></code></pre></div>
+<pre><code>## ! Fold01: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold02: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold03: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold04: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold05: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold06: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold07: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold08: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold09: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold10: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<div class="sourceCode" id="cb124"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb124-1"><a href="a-first-lasso-attempt.html#cb124-1"></a><span class="kw">toc</span>()</span></code></pre></div>
+<pre><code>## 80.04 sec elapsed</code></pre>
+<div class="sourceCode" id="cb126"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb126-1"><a href="a-first-lasso-attempt.html#cb126-1"></a>tune_rs</span></code></pre></div>
+<pre><code>## Warning: This tuning result has notes. Example notes on model fitting include:
+## internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.
+## internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.
+## internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## # Tuning results
+## # 10-fold cross-validation 
+## # A tibble: 10 x 5
+##    splits             id     .metrics          .notes           .predictions         
+##    &lt;list&gt;             &lt;chr&gt;  &lt;list&gt;            &lt;list&gt;           &lt;list&gt;               
+##  1 &lt;split [6.3K/706]&gt; Fold01 &lt;tibble [60 x 5]&gt; &lt;tibble [1 x 1]&gt; &lt;tibble [21,180 x 5]&gt;
+##  2 &lt;split [6.3K/706]&gt; Fold02 &lt;tibble [60 x 5]&gt; &lt;tibble [1 x 1]&gt; &lt;tibble [21,180 x 5]&gt;
+##  3 &lt;split [6.3K/706]&gt; Fold03 &lt;tibble [60 x 5]&gt; &lt;tibble [1 x 1]&gt; &lt;tibble [21,180 x 5]&gt;
+##  4 &lt;split [6.3K/705]&gt; Fold04 &lt;tibble [60 x 5]&gt; &lt;tibble [1 x 1]&gt; &lt;tibble [21,150 x 5]&gt;
+##  5 &lt;split [6.3K/705]&gt; Fold05 &lt;tibble [60 x 5]&gt; &lt;tibble [1 x 1]&gt; &lt;tibble [21,150 x 5]&gt;
+##  6 &lt;split [6.3K/705]&gt; Fold06 &lt;tibble [60 x 5]&gt; &lt;tibble [1 x 1]&gt; &lt;tibble [21,150 x 5]&gt;
+##  7 &lt;split [6.3K/705]&gt; Fold07 &lt;tibble [60 x 5]&gt; &lt;tibble [1 x 1]&gt; &lt;tibble [21,150 x 5]&gt;
+##  8 &lt;split [6.3K/705]&gt; Fold08 &lt;tibble [60 x 5]&gt; &lt;tibble [1 x 1]&gt; &lt;tibble [21,150 x 5]&gt;
+##  9 &lt;split [6.3K/705]&gt; Fold09 &lt;tibble [60 x 5]&gt; &lt;tibble [1 x 1]&gt; &lt;tibble [21,150 x 5]&gt;
+## 10 &lt;split [6.3K/705]&gt; Fold10 &lt;tibble [60 x 5]&gt; &lt;tibble [1 x 1]&gt; &lt;tibble [21,150 x 5]&gt;</code></pre>
+<p>We can visualize our lasso model’s performance for each parameter value:</p>
+<div class="sourceCode" id="cb129"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb129-1"><a href="a-first-lasso-attempt.html#cb129-1"></a>tune_rs <span class="op">%&gt;%</span></span>
+<span id="cb129-2"><a href="a-first-lasso-attempt.html#cb129-2"></a><span class="st">  </span><span class="kw">collect_metrics</span>() <span class="op">%&gt;%</span></span>
+<span id="cb129-3"><a href="a-first-lasso-attempt.html#cb129-3"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(penalty, mean, <span class="dt">color =</span> .metric)) <span class="op">+</span></span>
+<span id="cb129-4"><a href="a-first-lasso-attempt.html#cb129-4"></a><span class="st">  </span><span class="kw">geom_errorbar</span>(<span class="kw">aes</span>(</span>
+<span id="cb129-5"><a href="a-first-lasso-attempt.html#cb129-5"></a>    <span class="dt">ymin =</span> mean <span class="op">-</span><span class="st"> </span>std_err,</span>
+<span id="cb129-6"><a href="a-first-lasso-attempt.html#cb129-6"></a>    <span class="dt">ymax =</span> mean <span class="op">+</span><span class="st"> </span>std_err</span>
+<span id="cb129-7"><a href="a-first-lasso-attempt.html#cb129-7"></a>  ),</span>
+<span id="cb129-8"><a href="a-first-lasso-attempt.html#cb129-8"></a>  <span class="dt">alpha =</span> <span class="fl">0.5</span></span>
+<span id="cb129-9"><a href="a-first-lasso-attempt.html#cb129-9"></a>  ) <span class="op">+</span></span>
+<span id="cb129-10"><a href="a-first-lasso-attempt.html#cb129-10"></a><span class="st">  </span><span class="kw">geom_line</span>(<span class="dt">size =</span> <span class="fl">1.5</span>) <span class="op">+</span></span>
+<span id="cb129-11"><a href="a-first-lasso-attempt.html#cb129-11"></a><span class="st">  </span><span class="kw">facet_wrap</span>(<span class="op">~</span>.metric, <span class="dt">scales =</span> <span class="st">&quot;free&quot;</span>, <span class="dt">nrow =</span> <span class="dv">2</span>) <span class="op">+</span></span>
+<span id="cb129-12"><a href="a-first-lasso-attempt.html#cb129-12"></a><span class="st">  </span><span class="kw">scale_x_log10</span>() <span class="op">+</span></span>
+<span id="cb129-13"><a href="a-first-lasso-attempt.html#cb129-13"></a><span class="st">  </span><span class="kw">theme</span>(<span class="dt">legend.position =</span> <span class="st">&quot;none&quot;</span>) <span class="op">+</span></span>
+<span id="cb129-14"><a href="a-first-lasso-attempt.html#cb129-14"></a><span class="st">  </span><span class="kw">labs</span>(</span>
+<span id="cb129-15"><a href="a-first-lasso-attempt.html#cb129-15"></a>    <span class="dt">title =</span> <span class="st">&quot;Lasso model performance across regularization penalties&quot;</span>,</span>
+<span id="cb129-16"><a href="a-first-lasso-attempt.html#cb129-16"></a>    <span class="dt">subtitle =</span> <span class="st">&quot;Performance metrics can be used to identity the best penalty&quot;</span></span>
+<span id="cb129-17"><a href="a-first-lasso-attempt.html#cb129-17"></a>  )</span></code></pre></div>
+<pre><code>## Warning: Removed 2 row(s) containing missing values (geom_path).</code></pre>
+<p><img src="telfer-mba-nlp_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<p>We generally want to choose the value that minimizes our RMSE (<em>TODO source this claim</em>)</p>
+<div class="sourceCode" id="cb131"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb131-1"><a href="a-first-lasso-attempt.html#cb131-1"></a>tune_rs <span class="op">%&gt;%</span></span>
+<span id="cb131-2"><a href="a-first-lasso-attempt.html#cb131-2"></a><span class="st">  </span><span class="kw">show_best</span>(<span class="st">&quot;rmse&quot;</span>)</span></code></pre></div>
+<pre><code>## # A tibble: 5 x 7
+##    penalty .metric .estimator  mean     n std_err .config
+##      &lt;dbl&gt; &lt;chr&gt;   &lt;chr&gt;      &lt;dbl&gt; &lt;int&gt;   &lt;dbl&gt; &lt;chr&gt;  
+## 1 0.00853  rmse    standard   0.903    10  0.0129 Model24
+## 2 0.00386  rmse    standard   0.904    10  0.0133 Model23
+## 3 0.00174  rmse    standard   0.905    10  0.0135 Model22
+## 4 0.000788 rmse    standard   0.906    10  0.0136 Model21
+## 5 0.000356 rmse    standard   0.907    10  0.0136 Model20</code></pre>
+<p>And we can extract the penalty that gives us the lowest RMSE using the <code>select_best()</code> function as follows:</p>
+<div class="sourceCode" id="cb133"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb133-1"><a href="a-first-lasso-attempt.html#cb133-1"></a>lowest_rmse &lt;-<span class="st"> </span>tune_rs <span class="op">%&gt;%</span></span>
+<span id="cb133-2"><a href="a-first-lasso-attempt.html#cb133-2"></a><span class="st">  </span><span class="kw">select_best</span>(<span class="st">&quot;rmse&quot;</span>)</span></code></pre></div>
+<p>And we can put it all together into a final workflow:</p>
+<div class="sourceCode" id="cb134"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb134-1"><a href="a-first-lasso-attempt.html#cb134-1"></a>final_lasso &lt;-<span class="st"> </span><span class="kw">finalize_workflow</span>(</span>
+<span id="cb134-2"><a href="a-first-lasso-attempt.html#cb134-2"></a>  yelp_wf <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">add_model</span>(tune_model),</span>
+<span id="cb134-3"><a href="a-first-lasso-attempt.html#cb134-3"></a>  lowest_rmse</span>
+<span id="cb134-4"><a href="a-first-lasso-attempt.html#cb134-4"></a>)</span></code></pre></div>
+<p>SMLTAR says that now it’s ready to go, but I’m not sure how to test it… perhaps</p>
+<div class="sourceCode" id="cb135"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb135-1"><a href="a-first-lasso-attempt.html#cb135-1"></a>lasso_fit &lt;-<span class="st"> </span>final_lasso <span class="op">%&gt;%</span></span>
+<span id="cb135-2"><a href="a-first-lasso-attempt.html#cb135-2"></a><span class="st">  </span><span class="kw">last_fit</span>(<span class="dt">split =</span> yelp_split)</span></code></pre></div>
+<div class="sourceCode" id="cb136"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb136-1"><a href="a-first-lasso-attempt.html#cb136-1"></a>lasso_fit <span class="op">%&gt;%</span></span>
+<span id="cb136-2"><a href="a-first-lasso-attempt.html#cb136-2"></a><span class="st">  </span><span class="kw">collect_predictions</span>() <span class="op">%&gt;%</span></span>
+<span id="cb136-3"><a href="a-first-lasso-attempt.html#cb136-3"></a><span class="st">    </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(rating_num, .pred)) <span class="op">+</span></span>
+<span id="cb136-4"><a href="a-first-lasso-attempt.html#cb136-4"></a><span class="st">  </span><span class="kw">geom_abline</span>(<span class="dt">slope=</span><span class="dv">1</span>, <span class="dt">intercept =</span> <span class="dv">0</span>,<span class="dt">color =</span> <span class="st">&quot;gray80&quot;</span>, <span class="dt">size =</span> <span class="fl">1.5</span>) <span class="op">+</span></span>
+<span id="cb136-5"><a href="a-first-lasso-attempt.html#cb136-5"></a><span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">alpha =</span> <span class="fl">0.3</span>) <span class="op">+</span></span>
+<span id="cb136-6"><a href="a-first-lasso-attempt.html#cb136-6"></a><span class="st">  </span><span class="kw">labs</span>(</span>
+<span id="cb136-7"><a href="a-first-lasso-attempt.html#cb136-7"></a>    <span class="dt">x =</span> <span class="st">&quot;Truth&quot;</span>,</span>
+<span id="cb136-8"><a href="a-first-lasso-attempt.html#cb136-8"></a>    <span class="dt">y =</span> <span class="st">&quot;Predicted Rating&quot;</span>,</span>
+<span id="cb136-9"><a href="a-first-lasso-attempt.html#cb136-9"></a>    <span class="dt">color =</span> <span class="ot">NULL</span>,</span>
+<span id="cb136-10"><a href="a-first-lasso-attempt.html#cb136-10"></a>    <span class="dt">title =</span> <span class="st">&quot;Final lasso model: Predicted and true star ratings for Yelp reviews&quot;</span></span>
+<span id="cb136-11"><a href="a-first-lasso-attempt.html#cb136-11"></a>  )</span></code></pre></div>
+<p><img src="telfer-mba-nlp_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<p>This model looks better in some ways but worse in others. It’s better in that it gives lower predictions for in-truth lower reviews; it’s worse in that it predicts ratings over 5, and even over 6.5. The spread of predictions is also still quite large, but that may be to be expected with an <span class="math inline">\(R^2\)</span> of only about 0.25.</p>
+</div>
+</div>
+<div id="trying-lasso-again" class="section level2">
+<h2><span class="header-section-number">5.3</span> Trying lasso again</h2>
+<div id="with-1000-tokens" class="section level3">
+<h3><span class="header-section-number">5.3.1</span> With 1000 tokens</h3>
+<p>Here is the whole process again in a single code block using 1000 tokens.</p>
+<div class="sourceCode" id="cb137"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb137-1"><a href="a-first-lasso-attempt.html#cb137-1"></a>num_tokens &lt;-<span class="st"> </span><span class="dv">1000</span></span>
+<span id="cb137-2"><a href="a-first-lasso-attempt.html#cb137-2"></a></span>
+<span id="cb137-3"><a href="a-first-lasso-attempt.html#cb137-3"></a><span class="kw">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb137-4"><a href="a-first-lasso-attempt.html#cb137-4"></a></span>
+<span id="cb137-5"><a href="a-first-lasso-attempt.html#cb137-5"></a><span class="co"># do initial split</span></span>
+<span id="cb137-6"><a href="a-first-lasso-attempt.html#cb137-6"></a></span>
+<span id="cb137-7"><a href="a-first-lasso-attempt.html#cb137-7"></a>yelp_split &lt;-<span class="st"> </span>reviews_yelp <span class="op">%&gt;%</span></span>
+<span id="cb137-8"><a href="a-first-lasso-attempt.html#cb137-8"></a><span class="st">  </span><span class="kw">initial_split</span>(<span class="dt">strata =</span> <span class="st">&quot;rating_num&quot;</span>)</span>
+<span id="cb137-9"><a href="a-first-lasso-attempt.html#cb137-9"></a></span>
+<span id="cb137-10"><a href="a-first-lasso-attempt.html#cb137-10"></a>yelp_train &lt;-<span class="st"> </span>yelp_split <span class="op">%&gt;%</span></span>
+<span id="cb137-11"><a href="a-first-lasso-attempt.html#cb137-11"></a><span class="st">  </span><span class="kw">training</span>()</span>
+<span id="cb137-12"><a href="a-first-lasso-attempt.html#cb137-12"></a></span>
+<span id="cb137-13"><a href="a-first-lasso-attempt.html#cb137-13"></a>yelp_test &lt;-<span class="st"> </span>yelp_split <span class="op">%&gt;%</span></span>
+<span id="cb137-14"><a href="a-first-lasso-attempt.html#cb137-14"></a><span class="st">  </span><span class="kw">testing</span>()</span>
+<span id="cb137-15"><a href="a-first-lasso-attempt.html#cb137-15"></a></span>
+<span id="cb137-16"><a href="a-first-lasso-attempt.html#cb137-16"></a><span class="co"># set up recipe</span></span>
+<span id="cb137-17"><a href="a-first-lasso-attempt.html#cb137-17"></a></span>
+<span id="cb137-18"><a href="a-first-lasso-attempt.html#cb137-18"></a>yelp_rec &lt;-<span class="st"> </span><span class="kw">recipe</span>(rating_num <span class="op">~</span><span class="st"> </span>text, <span class="dt">data =</span> yelp_train) <span class="op">%&gt;%</span></span>
+<span id="cb137-19"><a href="a-first-lasso-attempt.html#cb137-19"></a><span class="st">  </span><span class="kw">step_tokenize</span>(text) <span class="op">%&gt;%</span></span>
+<span id="cb137-20"><a href="a-first-lasso-attempt.html#cb137-20"></a><span class="st">  </span><span class="kw">step_tokenfilter</span>(text, <span class="dt">max_tokens =</span> num_tokens) <span class="op">%&gt;%</span></span>
+<span id="cb137-21"><a href="a-first-lasso-attempt.html#cb137-21"></a><span class="st">  </span><span class="kw">step_tfidf</span>(text) <span class="op">%&gt;%</span></span>
+<span id="cb137-22"><a href="a-first-lasso-attempt.html#cb137-22"></a><span class="st">  </span><span class="kw">step_normalize</span>(<span class="kw">all_predictors</span>())</span>
+<span id="cb137-23"><a href="a-first-lasso-attempt.html#cb137-23"></a>  </span>
+<span id="cb137-24"><a href="a-first-lasso-attempt.html#cb137-24"></a><span class="kw">rm</span>(num_tokens)</span>
+<span id="cb137-25"><a href="a-first-lasso-attempt.html#cb137-25"></a></span>
+<span id="cb137-26"><a href="a-first-lasso-attempt.html#cb137-26"></a>yelp_wf &lt;-<span class="st"> </span><span class="kw">workflow</span>() <span class="op">%&gt;%</span></span>
+<span id="cb137-27"><a href="a-first-lasso-attempt.html#cb137-27"></a><span class="st">  </span><span class="kw">add_recipe</span>(yelp_rec)</span>
+<span id="cb137-28"><a href="a-first-lasso-attempt.html#cb137-28"></a></span>
+<span id="cb137-29"><a href="a-first-lasso-attempt.html#cb137-29"></a><span class="co"># set up our lasso model using tuning parameters</span></span>
+<span id="cb137-30"><a href="a-first-lasso-attempt.html#cb137-30"></a>tune_model &lt;-<span class="st"> </span><span class="kw">linear_reg</span>(<span class="dt">penalty =</span> <span class="kw">tune</span>(), <span class="dt">mixture =</span> <span class="dv">1</span>) <span class="op">%&gt;%</span></span>
+<span id="cb137-31"><a href="a-first-lasso-attempt.html#cb137-31"></a><span class="st">  </span><span class="kw">set_mode</span>(<span class="st">&quot;regression&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb137-32"><a href="a-first-lasso-attempt.html#cb137-32"></a><span class="st">  </span><span class="kw">set_engine</span>(<span class="st">&quot;glmnet&quot;</span>)</span>
+<span id="cb137-33"><a href="a-first-lasso-attempt.html#cb137-33"></a></span>
+<span id="cb137-34"><a href="a-first-lasso-attempt.html#cb137-34"></a><span class="co"># create a grid of tuning parameters</span></span>
+<span id="cb137-35"><a href="a-first-lasso-attempt.html#cb137-35"></a>lambda_grid &lt;-<span class="st"> </span><span class="kw">grid_regular</span>(<span class="kw">penalty</span>(), <span class="dt">levels =</span> <span class="dv">30</span>)</span>
+<span id="cb137-36"><a href="a-first-lasso-attempt.html#cb137-36"></a></span>
+<span id="cb137-37"><a href="a-first-lasso-attempt.html#cb137-37"></a><span class="co"># create cross-validation folds</span></span>
+<span id="cb137-38"><a href="a-first-lasso-attempt.html#cb137-38"></a><span class="kw">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb137-39"><a href="a-first-lasso-attempt.html#cb137-39"></a>yelp_folds &lt;-<span class="st"> </span><span class="kw">vfold_cv</span>(yelp_train)</span>
+<span id="cb137-40"><a href="a-first-lasso-attempt.html#cb137-40"></a></span>
+<span id="cb137-41"><a href="a-first-lasso-attempt.html#cb137-41"></a><span class="co"># fit our model at many different parameter values using the cross-fold validation set</span></span>
+<span id="cb137-42"><a href="a-first-lasso-attempt.html#cb137-42"></a><span class="kw">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb137-43"><a href="a-first-lasso-attempt.html#cb137-43"></a><span class="kw">tic</span>()</span>
+<span id="cb137-44"><a href="a-first-lasso-attempt.html#cb137-44"></a>tune_rs &lt;-<span class="st"> </span><span class="kw">tune_grid</span>(</span>
+<span id="cb137-45"><a href="a-first-lasso-attempt.html#cb137-45"></a>  yelp_wf <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">add_model</span>(tune_model),</span>
+<span id="cb137-46"><a href="a-first-lasso-attempt.html#cb137-46"></a>  yelp_folds,</span>
+<span id="cb137-47"><a href="a-first-lasso-attempt.html#cb137-47"></a>  <span class="dt">grid =</span> lambda_grid,</span>
+<span id="cb137-48"><a href="a-first-lasso-attempt.html#cb137-48"></a>  <span class="dt">control =</span> <span class="kw">control_resamples</span>(<span class="dt">save_pred =</span> <span class="ot">TRUE</span>)</span>
+<span id="cb137-49"><a href="a-first-lasso-attempt.html#cb137-49"></a>)</span>
+<span id="cb137-50"><a href="a-first-lasso-attempt.html#cb137-50"></a><span class="kw">toc</span>()</span></code></pre></div>
+<pre><code>## 182.2 sec elapsed</code></pre>
+<div class="sourceCode" id="cb139"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb139-1"><a href="a-first-lasso-attempt.html#cb139-1"></a><span class="co"># extract penalty that gives us the lowest RMSE</span></span>
+<span id="cb139-2"><a href="a-first-lasso-attempt.html#cb139-2"></a>lowest_rmse &lt;-<span class="st"> </span>tune_rs <span class="op">%&gt;%</span></span>
+<span id="cb139-3"><a href="a-first-lasso-attempt.html#cb139-3"></a><span class="st">  </span><span class="kw">select_best</span>(<span class="st">&quot;rmse&quot;</span>)</span>
+<span id="cb139-4"><a href="a-first-lasso-attempt.html#cb139-4"></a></span>
+<span id="cb139-5"><a href="a-first-lasso-attempt.html#cb139-5"></a><span class="co"># put it into a final workflow</span></span>
+<span id="cb139-6"><a href="a-first-lasso-attempt.html#cb139-6"></a>final_lasso &lt;-<span class="st"> </span><span class="kw">finalize_workflow</span>(</span>
+<span id="cb139-7"><a href="a-first-lasso-attempt.html#cb139-7"></a>  yelp_wf <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">add_model</span>(tune_model),</span>
+<span id="cb139-8"><a href="a-first-lasso-attempt.html#cb139-8"></a>  lowest_rmse</span>
+<span id="cb139-9"><a href="a-first-lasso-attempt.html#cb139-9"></a>)</span>
+<span id="cb139-10"><a href="a-first-lasso-attempt.html#cb139-10"></a></span>
+<span id="cb139-11"><a href="a-first-lasso-attempt.html#cb139-11"></a><span class="co"># do a last fit</span></span>
+<span id="cb139-12"><a href="a-first-lasso-attempt.html#cb139-12"></a>lasso_fit &lt;-<span class="st"> </span>final_lasso <span class="op">%&gt;%</span></span>
+<span id="cb139-13"><a href="a-first-lasso-attempt.html#cb139-13"></a><span class="st">  </span><span class="kw">last_fit</span>(<span class="dt">split =</span> yelp_split)</span>
+<span id="cb139-14"><a href="a-first-lasso-attempt.html#cb139-14"></a></span>
+<span id="cb139-15"><a href="a-first-lasso-attempt.html#cb139-15"></a><span class="co"># see the metrics</span></span>
+<span id="cb139-16"><a href="a-first-lasso-attempt.html#cb139-16"></a>lasso_fit <span class="op">%&gt;%</span></span>
+<span id="cb139-17"><a href="a-first-lasso-attempt.html#cb139-17"></a><span class="st">  </span><span class="kw">collect_metrics</span>()</span></code></pre></div>
+<pre><code>## # A tibble: 2 x 3
+##   .metric .estimator .estimate
+##   &lt;chr&gt;   &lt;chr&gt;          &lt;dbl&gt;
+## 1 rmse    standard       0.868
+## 2 rsq     standard       0.373</code></pre>
+<div class="sourceCode" id="cb141"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb141-1"><a href="a-first-lasso-attempt.html#cb141-1"></a><span class="co"># and plot it</span></span>
+<span id="cb141-2"><a href="a-first-lasso-attempt.html#cb141-2"></a>lasso_fit <span class="op">%&gt;%</span></span>
+<span id="cb141-3"><a href="a-first-lasso-attempt.html#cb141-3"></a><span class="st">  </span><span class="kw">collect_predictions</span>() <span class="op">%&gt;%</span></span>
+<span id="cb141-4"><a href="a-first-lasso-attempt.html#cb141-4"></a><span class="st">    </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(rating_num, .pred)) <span class="op">+</span></span>
+<span id="cb141-5"><a href="a-first-lasso-attempt.html#cb141-5"></a><span class="st">  </span><span class="kw">geom_abline</span>(<span class="dt">slope=</span><span class="dv">1</span>, <span class="dt">intercept =</span> <span class="dv">0</span>,<span class="dt">color =</span> <span class="st">&quot;gray80&quot;</span>, <span class="dt">size =</span> <span class="fl">1.5</span>) <span class="op">+</span></span>
+<span id="cb141-6"><a href="a-first-lasso-attempt.html#cb141-6"></a><span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">alpha =</span> <span class="fl">0.3</span>) <span class="op">+</span></span>
+<span id="cb141-7"><a href="a-first-lasso-attempt.html#cb141-7"></a><span class="st">  </span><span class="kw">labs</span>(</span>
+<span id="cb141-8"><a href="a-first-lasso-attempt.html#cb141-8"></a>    <span class="dt">x =</span> <span class="st">&quot;Truth&quot;</span>,</span>
+<span id="cb141-9"><a href="a-first-lasso-attempt.html#cb141-9"></a>    <span class="dt">y =</span> <span class="st">&quot;Predicted Rating&quot;</span>,</span>
+<span id="cb141-10"><a href="a-first-lasso-attempt.html#cb141-10"></a>    <span class="dt">color =</span> <span class="ot">NULL</span>,</span>
+<span id="cb141-11"><a href="a-first-lasso-attempt.html#cb141-11"></a>    <span class="dt">title =</span> <span class="st">&quot;Final lasso model: Predicted and true star ratings for Yelp reviews&quot;</span>,</span>
+<span id="cb141-12"><a href="a-first-lasso-attempt.html#cb141-12"></a>    <span class="dt">subtitle =</span> <span class="st">&quot;All reviews, 1000 tokens&quot;</span></span>
+<span id="cb141-13"><a href="a-first-lasso-attempt.html#cb141-13"></a>  )</span></code></pre></div>
+<p><img src="telfer-mba-nlp_files/figure-html/yelp_lasso_1000_tokens-1.png" width="672" /></p>
+<p>This has an <span class="math inline">\(R^2\)</span> of 0.37, which is a big improvement over the 250-token model, but it’s still nowhere near good enough to use in practice.</p>
+</div>
+<div id="short-reviews-only-125-words" class="section level3">
+<h3><span class="header-section-number">5.3.2</span> Short reviews only: &lt;125 words</h3>
+<p>Let’s try only using reviews under 125 words. It’s possible that shorter reviews are “denser” and more to the point, and that longer reviews contain too much “noise.” This leaves us with 6,323 reviews. I’m also going to try making a function to run the lasso regression with these different inputs.</p>
+<div class="sourceCode" id="cb142"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb142-1"><a href="a-first-lasso-attempt.html#cb142-1"></a>run_lasso &lt;-<span class="st"> </span><span class="cf">function</span>(dataset, num_tokens){</span>
+<span id="cb142-2"><a href="a-first-lasso-attempt.html#cb142-2"></a>  </span>
+<span id="cb142-3"><a href="a-first-lasso-attempt.html#cb142-3"></a>  <span class="kw">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb142-4"><a href="a-first-lasso-attempt.html#cb142-4"></a></span>
+<span id="cb142-5"><a href="a-first-lasso-attempt.html#cb142-5"></a>data_split &lt;-<span class="st"> </span>dataset <span class="op">%&gt;%</span></span>
+<span id="cb142-6"><a href="a-first-lasso-attempt.html#cb142-6"></a><span class="st">  </span><span class="kw">initial_split</span>(<span class="dt">strata =</span> <span class="st">&quot;rating_num&quot;</span>)</span>
+<span id="cb142-7"><a href="a-first-lasso-attempt.html#cb142-7"></a></span>
+<span id="cb142-8"><a href="a-first-lasso-attempt.html#cb142-8"></a>data_train &lt;-<span class="st"> </span>data_split <span class="op">%&gt;%</span></span>
+<span id="cb142-9"><a href="a-first-lasso-attempt.html#cb142-9"></a><span class="st">  </span><span class="kw">training</span>()</span>
+<span id="cb142-10"><a href="a-first-lasso-attempt.html#cb142-10"></a></span>
+<span id="cb142-11"><a href="a-first-lasso-attempt.html#cb142-11"></a>data_test &lt;-<span class="st"> </span>data_split <span class="op">%&gt;%</span></span>
+<span id="cb142-12"><a href="a-first-lasso-attempt.html#cb142-12"></a><span class="st">  </span><span class="kw">testing</span>()</span>
+<span id="cb142-13"><a href="a-first-lasso-attempt.html#cb142-13"></a></span>
+<span id="cb142-14"><a href="a-first-lasso-attempt.html#cb142-14"></a>data_rec &lt;-<span class="st"> </span><span class="kw">recipe</span>(rating_num <span class="op">~</span><span class="st"> </span>text, <span class="dt">data =</span> data_train) <span class="op">%&gt;%</span></span>
+<span id="cb142-15"><a href="a-first-lasso-attempt.html#cb142-15"></a><span class="st">  </span><span class="kw">step_tokenize</span>(text) <span class="op">%&gt;%</span></span>
+<span id="cb142-16"><a href="a-first-lasso-attempt.html#cb142-16"></a><span class="st">  </span><span class="kw">step_tokenfilter</span>(text, <span class="dt">max_tokens =</span> num_tokens) <span class="op">%&gt;%</span></span>
+<span id="cb142-17"><a href="a-first-lasso-attempt.html#cb142-17"></a><span class="st">  </span><span class="kw">step_tfidf</span>(text) <span class="op">%&gt;%</span></span>
+<span id="cb142-18"><a href="a-first-lasso-attempt.html#cb142-18"></a><span class="st">  </span><span class="kw">step_normalize</span>(<span class="kw">all_predictors</span>())</span>
+<span id="cb142-19"><a href="a-first-lasso-attempt.html#cb142-19"></a>  </span>
+<span id="cb142-20"><a href="a-first-lasso-attempt.html#cb142-20"></a><span class="kw">rm</span>(num_tokens)</span>
+<span id="cb142-21"><a href="a-first-lasso-attempt.html#cb142-21"></a></span>
+<span id="cb142-22"><a href="a-first-lasso-attempt.html#cb142-22"></a>data_wf &lt;-<span class="st"> </span><span class="kw">workflow</span>() <span class="op">%&gt;%</span></span>
+<span id="cb142-23"><a href="a-first-lasso-attempt.html#cb142-23"></a><span class="st">  </span><span class="kw">add_recipe</span>(data_rec)</span>
+<span id="cb142-24"><a href="a-first-lasso-attempt.html#cb142-24"></a></span>
+<span id="cb142-25"><a href="a-first-lasso-attempt.html#cb142-25"></a><span class="co"># set up our lasso model using tuning parameters</span></span>
+<span id="cb142-26"><a href="a-first-lasso-attempt.html#cb142-26"></a>tune_model &lt;-<span class="st"> </span><span class="kw">linear_reg</span>(<span class="dt">penalty =</span> <span class="kw">tune</span>(), <span class="dt">mixture =</span> <span class="dv">1</span>) <span class="op">%&gt;%</span></span>
+<span id="cb142-27"><a href="a-first-lasso-attempt.html#cb142-27"></a><span class="st">  </span><span class="kw">set_mode</span>(<span class="st">&quot;regression&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb142-28"><a href="a-first-lasso-attempt.html#cb142-28"></a><span class="st">  </span><span class="kw">set_engine</span>(<span class="st">&quot;glmnet&quot;</span>)</span>
+<span id="cb142-29"><a href="a-first-lasso-attempt.html#cb142-29"></a></span>
+<span id="cb142-30"><a href="a-first-lasso-attempt.html#cb142-30"></a><span class="co"># create a grid of tuning parameters</span></span>
+<span id="cb142-31"><a href="a-first-lasso-attempt.html#cb142-31"></a>lambda_grid &lt;-<span class="st"> </span><span class="kw">grid_regular</span>(<span class="kw">penalty</span>(), <span class="dt">levels =</span> <span class="dv">30</span>)</span>
+<span id="cb142-32"><a href="a-first-lasso-attempt.html#cb142-32"></a></span>
+<span id="cb142-33"><a href="a-first-lasso-attempt.html#cb142-33"></a><span class="co"># create cross-validation folds</span></span>
+<span id="cb142-34"><a href="a-first-lasso-attempt.html#cb142-34"></a><span class="kw">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb142-35"><a href="a-first-lasso-attempt.html#cb142-35"></a>data_folds &lt;-<span class="st"> </span><span class="kw">vfold_cv</span>(data_train)</span>
+<span id="cb142-36"><a href="a-first-lasso-attempt.html#cb142-36"></a></span>
+<span id="cb142-37"><a href="a-first-lasso-attempt.html#cb142-37"></a><span class="co"># fit our model at many different parameter values using the cross-fold validation set</span></span>
+<span id="cb142-38"><a href="a-first-lasso-attempt.html#cb142-38"></a><span class="kw">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb142-39"><a href="a-first-lasso-attempt.html#cb142-39"></a><span class="kw">tic</span>()</span>
+<span id="cb142-40"><a href="a-first-lasso-attempt.html#cb142-40"></a>tune_rs &lt;-<span class="st"> </span><span class="kw">tune_grid</span>(</span>
+<span id="cb142-41"><a href="a-first-lasso-attempt.html#cb142-41"></a>  data_wf <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">add_model</span>(tune_model),</span>
+<span id="cb142-42"><a href="a-first-lasso-attempt.html#cb142-42"></a>  data_folds,</span>
+<span id="cb142-43"><a href="a-first-lasso-attempt.html#cb142-43"></a>  <span class="dt">grid =</span> lambda_grid,</span>
+<span id="cb142-44"><a href="a-first-lasso-attempt.html#cb142-44"></a>  <span class="dt">control =</span> <span class="kw">control_resamples</span>(<span class="dt">save_pred =</span> <span class="ot">TRUE</span>)</span>
+<span id="cb142-45"><a href="a-first-lasso-attempt.html#cb142-45"></a>)</span>
+<span id="cb142-46"><a href="a-first-lasso-attempt.html#cb142-46"></a><span class="kw">toc</span>()</span>
+<span id="cb142-47"><a href="a-first-lasso-attempt.html#cb142-47"></a></span>
+<span id="cb142-48"><a href="a-first-lasso-attempt.html#cb142-48"></a><span class="co"># extract penalty that gives us the lowest RMSE</span></span>
+<span id="cb142-49"><a href="a-first-lasso-attempt.html#cb142-49"></a>lowest_rmse &lt;-<span class="st"> </span>tune_rs <span class="op">%&gt;%</span></span>
+<span id="cb142-50"><a href="a-first-lasso-attempt.html#cb142-50"></a><span class="st">  </span><span class="kw">select_best</span>(<span class="st">&quot;rmse&quot;</span>)</span>
+<span id="cb142-51"><a href="a-first-lasso-attempt.html#cb142-51"></a></span>
+<span id="cb142-52"><a href="a-first-lasso-attempt.html#cb142-52"></a><span class="co"># put it into a final workflow</span></span>
+<span id="cb142-53"><a href="a-first-lasso-attempt.html#cb142-53"></a>final_lasso &lt;-<span class="st"> </span><span class="kw">finalize_workflow</span>(</span>
+<span id="cb142-54"><a href="a-first-lasso-attempt.html#cb142-54"></a>  data_wf <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">add_model</span>(tune_model),</span>
+<span id="cb142-55"><a href="a-first-lasso-attempt.html#cb142-55"></a>  lowest_rmse</span>
+<span id="cb142-56"><a href="a-first-lasso-attempt.html#cb142-56"></a>)</span>
+<span id="cb142-57"><a href="a-first-lasso-attempt.html#cb142-57"></a></span>
+<span id="cb142-58"><a href="a-first-lasso-attempt.html#cb142-58"></a><span class="co"># do a last fit</span></span>
+<span id="cb142-59"><a href="a-first-lasso-attempt.html#cb142-59"></a>lasso_fit &lt;-<span class="st"> </span>final_lasso <span class="op">%&gt;%</span></span>
+<span id="cb142-60"><a href="a-first-lasso-attempt.html#cb142-60"></a><span class="st">  </span><span class="kw">last_fit</span>(<span class="dt">split =</span> data_split)</span>
+<span id="cb142-61"><a href="a-first-lasso-attempt.html#cb142-61"></a></span>
+<span id="cb142-62"><a href="a-first-lasso-attempt.html#cb142-62"></a><span class="kw">return</span>(lasso_fit)</span>
+<span id="cb142-63"><a href="a-first-lasso-attempt.html#cb142-63"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb143"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb143-1"><a href="a-first-lasso-attempt.html#cb143-1"></a>max_length &lt;-<span class="st"> </span><span class="dv">125</span></span>
+<span id="cb143-2"><a href="a-first-lasso-attempt.html#cb143-2"></a>min_length &lt;-<span class="st"> </span><span class="dv">1</span></span>
+<span id="cb143-3"><a href="a-first-lasso-attempt.html#cb143-3"></a></span>
+<span id="cb143-4"><a href="a-first-lasso-attempt.html#cb143-4"></a>wordcounts_yelp &lt;-<span class="st"> </span>reviews_yelp <span class="op">%&gt;%</span></span>
+<span id="cb143-5"><a href="a-first-lasso-attempt.html#cb143-5"></a><span class="st">  </span><span class="kw">select</span>(text) <span class="op">%&gt;%</span></span>
+<span id="cb143-6"><a href="a-first-lasso-attempt.html#cb143-6"></a><span class="st">  </span><span class="kw">rowid_to_column</span>() <span class="op">%&gt;%</span></span>
+<span id="cb143-7"><a href="a-first-lasso-attempt.html#cb143-7"></a><span class="st">  </span>tidytext<span class="op">::</span><span class="kw">unnest_tokens</span>(word, text) <span class="op">%&gt;%</span></span>
+<span id="cb143-8"><a href="a-first-lasso-attempt.html#cb143-8"></a><span class="st">  </span><span class="kw">group_by</span>(rowid) <span class="op">%&gt;%</span></span>
+<span id="cb143-9"><a href="a-first-lasso-attempt.html#cb143-9"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">n =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span></span>
+<span id="cb143-10"><a href="a-first-lasso-attempt.html#cb143-10"></a><span class="st">  </span><span class="kw">left_join</span> (reviews_yelp <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">rowid_to_column</span>(), <span class="dt">by =</span><span class="st">&quot;rowid&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb143-11"><a href="a-first-lasso-attempt.html#cb143-11"></a><span class="st">  </span><span class="kw">select</span>(<span class="op">-</span>rowid)</span>
+<span id="cb143-12"><a href="a-first-lasso-attempt.html#cb143-12"></a></span>
+<span id="cb143-13"><a href="a-first-lasso-attempt.html#cb143-13"></a></span>
+<span id="cb143-14"><a href="a-first-lasso-attempt.html#cb143-14"></a></span>
+<span id="cb143-15"><a href="a-first-lasso-attempt.html#cb143-15"></a>reviews_yelp_short &lt;-<span class="st"> </span>wordcounts_yelp <span class="op">%&gt;%</span></span>
+<span id="cb143-16"><a href="a-first-lasso-attempt.html#cb143-16"></a><span class="st">  </span><span class="kw">filter</span>(n <span class="op">&lt;=</span><span class="st"> </span>max_length <span class="op">&amp;</span><span class="st"> </span>n <span class="op">&gt;=</span><span class="st"> </span>min_length )</span>
+<span id="cb143-17"><a href="a-first-lasso-attempt.html#cb143-17"></a></span>
+<span id="cb143-18"><a href="a-first-lasso-attempt.html#cb143-18"></a></span>
+<span id="cb143-19"><a href="a-first-lasso-attempt.html#cb143-19"></a></span>
+<span id="cb143-20"><a href="a-first-lasso-attempt.html#cb143-20"></a>lasso_results_short &lt;-<span class="st"> </span><span class="kw">run_lasso</span>(<span class="dt">dataset =</span> reviews_yelp_short, <span class="dt">num_tokens =</span> <span class="dv">1000</span>)</span></code></pre></div>
+<pre><code>## 89.07 sec elapsed</code></pre>
+<div class="sourceCode" id="cb145"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb145-1"><a href="a-first-lasso-attempt.html#cb145-1"></a><span class="co"># see the metrics</span></span>
+<span id="cb145-2"><a href="a-first-lasso-attempt.html#cb145-2"></a>lasso_results_short <span class="op">%&gt;%</span></span>
+<span id="cb145-3"><a href="a-first-lasso-attempt.html#cb145-3"></a><span class="st">  </span><span class="kw">collect_metrics</span>()</span></code></pre></div>
+<pre><code>## # A tibble: 2 x 3
+##   .metric .estimator .estimate
+##   &lt;chr&gt;   &lt;chr&gt;          &lt;dbl&gt;
+## 1 rmse    standard       0.821
+## 2 rsq     standard       0.391</code></pre>
+<div class="sourceCode" id="cb147"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb147-1"><a href="a-first-lasso-attempt.html#cb147-1"></a><span class="co"># and plot it</span></span>
+<span id="cb147-2"><a href="a-first-lasso-attempt.html#cb147-2"></a>lasso_results_short <span class="op">%&gt;%</span></span>
+<span id="cb147-3"><a href="a-first-lasso-attempt.html#cb147-3"></a><span class="st">  </span><span class="kw">collect_predictions</span>() <span class="op">%&gt;%</span></span>
+<span id="cb147-4"><a href="a-first-lasso-attempt.html#cb147-4"></a><span class="st">    </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(rating_num, .pred)) <span class="op">+</span></span>
+<span id="cb147-5"><a href="a-first-lasso-attempt.html#cb147-5"></a><span class="st">  </span><span class="kw">geom_abline</span>(<span class="dt">slope=</span><span class="dv">1</span>, <span class="dt">intercept =</span> <span class="dv">0</span>,<span class="dt">color =</span> <span class="st">&quot;gray80&quot;</span>, <span class="dt">size =</span> <span class="fl">1.5</span>) <span class="op">+</span></span>
+<span id="cb147-6"><a href="a-first-lasso-attempt.html#cb147-6"></a><span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">alpha =</span> <span class="fl">0.3</span>) <span class="op">+</span></span>
+<span id="cb147-7"><a href="a-first-lasso-attempt.html#cb147-7"></a><span class="st">  </span><span class="kw">labs</span>(</span>
+<span id="cb147-8"><a href="a-first-lasso-attempt.html#cb147-8"></a>    <span class="dt">x =</span> <span class="st">&quot;Truth&quot;</span>,</span>
+<span id="cb147-9"><a href="a-first-lasso-attempt.html#cb147-9"></a>    <span class="dt">y =</span> <span class="st">&quot;Predicted Rating&quot;</span>,</span>
+<span id="cb147-10"><a href="a-first-lasso-attempt.html#cb147-10"></a>    <span class="dt">color =</span> <span class="ot">NULL</span>,</span>
+<span id="cb147-11"><a href="a-first-lasso-attempt.html#cb147-11"></a>    <span class="dt">title =</span> <span class="st">&quot;Final lasso model: Predicted and true star ratings for Yelp reviews&quot;</span>,</span>
+<span id="cb147-12"><a href="a-first-lasso-attempt.html#cb147-12"></a>    <span class="dt">subtitle =</span> <span class="st">&quot;Short Reviews &lt; 125 Words, 1000 Tokens&quot;</span></span>
+<span id="cb147-13"><a href="a-first-lasso-attempt.html#cb147-13"></a>  )</span></code></pre></div>
+<p><img src="telfer-mba-nlp_files/figure-html/yelp_short_reviews_lasso-1.png" width="672" /></p>
+<p>This gives us an <span class="math inline">\(R^2\)</span> of 0.39, slightly better than our full dataset. But looking at the chart, we can see that this won’t be useful in practice either.</p>
+</div>
+<div id="longer-reviews-125-words" class="section level3">
+<h3><span class="header-section-number">5.3.3</span> Longer reviews &gt; 125 words</h3>
+<p>For completeness, we’ll also try only using the long reviews &gt; 125 words. It’s possible that these reviews contain more useful information due to their length. This leaves us with 3,104 reviews.</p>
+<div class="sourceCode" id="cb148"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb148-1"><a href="a-first-lasso-attempt.html#cb148-1"></a>max_length &lt;-<span class="st"> </span><span class="dv">10000</span></span>
+<span id="cb148-2"><a href="a-first-lasso-attempt.html#cb148-2"></a>min_length &lt;-<span class="st"> </span><span class="dv">125</span></span>
+<span id="cb148-3"><a href="a-first-lasso-attempt.html#cb148-3"></a></span>
+<span id="cb148-4"><a href="a-first-lasso-attempt.html#cb148-4"></a>wordcounts_yelp &lt;-<span class="st"> </span>reviews_yelp <span class="op">%&gt;%</span></span>
+<span id="cb148-5"><a href="a-first-lasso-attempt.html#cb148-5"></a><span class="st">  </span><span class="kw">select</span>(text) <span class="op">%&gt;%</span></span>
+<span id="cb148-6"><a href="a-first-lasso-attempt.html#cb148-6"></a><span class="st">  </span><span class="kw">rowid_to_column</span>() <span class="op">%&gt;%</span></span>
+<span id="cb148-7"><a href="a-first-lasso-attempt.html#cb148-7"></a><span class="st">  </span>tidytext<span class="op">::</span><span class="kw">unnest_tokens</span>(word, text) <span class="op">%&gt;%</span></span>
+<span id="cb148-8"><a href="a-first-lasso-attempt.html#cb148-8"></a><span class="st">  </span><span class="kw">group_by</span>(rowid) <span class="op">%&gt;%</span></span>
+<span id="cb148-9"><a href="a-first-lasso-attempt.html#cb148-9"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">n =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span></span>
+<span id="cb148-10"><a href="a-first-lasso-attempt.html#cb148-10"></a><span class="st">  </span><span class="kw">left_join</span> (reviews_yelp <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">rowid_to_column</span>(), <span class="dt">by =</span><span class="st">&quot;rowid&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb148-11"><a href="a-first-lasso-attempt.html#cb148-11"></a><span class="st">  </span><span class="kw">select</span>(<span class="op">-</span>rowid)</span>
+<span id="cb148-12"><a href="a-first-lasso-attempt.html#cb148-12"></a></span>
+<span id="cb148-13"><a href="a-first-lasso-attempt.html#cb148-13"></a></span>
+<span id="cb148-14"><a href="a-first-lasso-attempt.html#cb148-14"></a></span>
+<span id="cb148-15"><a href="a-first-lasso-attempt.html#cb148-15"></a>reviews_yelp_long &lt;-<span class="st"> </span>wordcounts_yelp <span class="op">%&gt;%</span></span>
+<span id="cb148-16"><a href="a-first-lasso-attempt.html#cb148-16"></a><span class="st">  </span><span class="kw">filter</span>(n <span class="op">&lt;=</span><span class="st"> </span>max_length <span class="op">&amp;</span><span class="st"> </span>n <span class="op">&gt;=</span><span class="st"> </span>min_length )</span>
+<span id="cb148-17"><a href="a-first-lasso-attempt.html#cb148-17"></a></span>
+<span id="cb148-18"><a href="a-first-lasso-attempt.html#cb148-18"></a></span>
+<span id="cb148-19"><a href="a-first-lasso-attempt.html#cb148-19"></a></span>
+<span id="cb148-20"><a href="a-first-lasso-attempt.html#cb148-20"></a>lasso_results_long &lt;-<span class="st"> </span><span class="kw">run_lasso</span>(<span class="dt">dataset =</span> reviews_yelp_long, <span class="dt">num_tokens =</span> <span class="dv">1000</span>)</span></code></pre></div>
+<pre><code>## 72.61 sec elapsed</code></pre>
+<div class="sourceCode" id="cb150"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb150-1"><a href="a-first-lasso-attempt.html#cb150-1"></a><span class="co"># see the metrics</span></span>
+<span id="cb150-2"><a href="a-first-lasso-attempt.html#cb150-2"></a>lasso_results_long <span class="op">%&gt;%</span></span>
+<span id="cb150-3"><a href="a-first-lasso-attempt.html#cb150-3"></a><span class="st">  </span><span class="kw">collect_metrics</span>()</span></code></pre></div>
+<pre><code>## # A tibble: 2 x 3
+##   .metric .estimator .estimate
+##   &lt;chr&gt;   &lt;chr&gt;          &lt;dbl&gt;
+## 1 rmse    standard       0.824
+## 2 rsq     standard       0.429</code></pre>
+<div class="sourceCode" id="cb152"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb152-1"><a href="a-first-lasso-attempt.html#cb152-1"></a><span class="co"># and plot it</span></span>
+<span id="cb152-2"><a href="a-first-lasso-attempt.html#cb152-2"></a>lasso_results_long <span class="op">%&gt;%</span></span>
+<span id="cb152-3"><a href="a-first-lasso-attempt.html#cb152-3"></a><span class="st">  </span><span class="kw">collect_predictions</span>() <span class="op">%&gt;%</span></span>
+<span id="cb152-4"><a href="a-first-lasso-attempt.html#cb152-4"></a><span class="st">    </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(rating_num, .pred)) <span class="op">+</span></span>
+<span id="cb152-5"><a href="a-first-lasso-attempt.html#cb152-5"></a><span class="st">  </span><span class="kw">geom_abline</span>(<span class="dt">slope=</span><span class="dv">1</span>, <span class="dt">intercept =</span> <span class="dv">0</span>,<span class="dt">color =</span> <span class="st">&quot;gray80&quot;</span>, <span class="dt">size =</span> <span class="fl">1.5</span>) <span class="op">+</span></span>
+<span id="cb152-6"><a href="a-first-lasso-attempt.html#cb152-6"></a><span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">alpha =</span> <span class="fl">0.3</span>) <span class="op">+</span></span>
+<span id="cb152-7"><a href="a-first-lasso-attempt.html#cb152-7"></a><span class="st">  </span><span class="kw">labs</span>(</span>
+<span id="cb152-8"><a href="a-first-lasso-attempt.html#cb152-8"></a>    <span class="dt">x =</span> <span class="st">&quot;Truth&quot;</span>,</span>
+<span id="cb152-9"><a href="a-first-lasso-attempt.html#cb152-9"></a>    <span class="dt">y =</span> <span class="st">&quot;Predicted Rating&quot;</span>,</span>
+<span id="cb152-10"><a href="a-first-lasso-attempt.html#cb152-10"></a>    <span class="dt">color =</span> <span class="ot">NULL</span>,</span>
+<span id="cb152-11"><a href="a-first-lasso-attempt.html#cb152-11"></a>    <span class="dt">title =</span> <span class="st">&quot;Final lasso model: Predicted and true star ratings for Yelp reviews&quot;</span>,</span>
+<span id="cb152-12"><a href="a-first-lasso-attempt.html#cb152-12"></a>    <span class="dt">subtitle =</span> <span class="st">&quot;Long Reviews &gt; 125 Words, 1000 Tokens&quot;</span></span>
+<span id="cb152-13"><a href="a-first-lasso-attempt.html#cb152-13"></a>  )</span></code></pre></div>
+<p><img src="telfer-mba-nlp_files/figure-html/yelp_long_reviews_lasso-1.png" width="672" /></p>
+<p>Now our <span class="math inline">\(R^2\)</span> has gone up to 0.43, so it is possible that the longer reviews do in fact contain more information. And looking at the chart, the “cloud” of points does creep measurably higher for each true star rating. However,</p>
+</div>
+</div>
+<div id="removing-stop-words" class="section level2">
+<h2><span class="header-section-number">5.4</span> Removing stop words</h2>
+<p>Stop words are common words that contain little information on their own, like “the” and “to.” If using a bag-of-words approach, where you’re not looking at the input text in a way that considers syntax (or, really, sentence-wise semantics) then it can be helpful to remove stop words.</p>
+<p>Here I will follow <a href="https://smltar.com/mlregression.html#casestudystopwords">SMLTAR s6.6</a> to try using three different sets of stopwords, to see which performs best on this dataset.</p>
+<p>First, they build a wrapper function to make it easy to build recipes with different stopword sets.</p>
+<div class="sourceCode" id="cb153"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb153-1"><a href="a-first-lasso-attempt.html#cb153-1"></a>stopword_rec &lt;-<span class="st"> </span><span class="cf">function</span>(stopword_name) {</span>
+<span id="cb153-2"><a href="a-first-lasso-attempt.html#cb153-2"></a>  <span class="kw">recipe</span>(rating_num <span class="op">~</span><span class="st"> </span>text, <span class="dt">data =</span> yelp_train) <span class="op">%&gt;%</span></span>
+<span id="cb153-3"><a href="a-first-lasso-attempt.html#cb153-3"></a><span class="st">    </span><span class="kw">step_tokenize</span>(text) <span class="op">%&gt;%</span></span>
+<span id="cb153-4"><a href="a-first-lasso-attempt.html#cb153-4"></a><span class="st">    </span><span class="kw">step_stopwords</span>(text, <span class="dt">stopword_source =</span> stopword_name) <span class="op">%&gt;%</span></span>
+<span id="cb153-5"><a href="a-first-lasso-attempt.html#cb153-5"></a><span class="st">    </span><span class="kw">step_tokenfilter</span>(text, <span class="dt">max_tokens =</span> <span class="dv">1000</span>) <span class="op">%&gt;%</span></span>
+<span id="cb153-6"><a href="a-first-lasso-attempt.html#cb153-6"></a><span class="st">    </span><span class="kw">step_tfidf</span>(text)</span>
+<span id="cb153-7"><a href="a-first-lasso-attempt.html#cb153-7"></a>}</span></code></pre></div>
+<p>Next we set up a workflow that only has a model, using our tunable regularized regression model from before:</p>
+<div class="sourceCode" id="cb154"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb154-1"><a href="a-first-lasso-attempt.html#cb154-1"></a>tunable_wf &lt;-<span class="st"> </span><span class="kw">workflow</span>() <span class="op">%&gt;%</span></span>
+<span id="cb154-2"><a href="a-first-lasso-attempt.html#cb154-2"></a><span class="st">  </span><span class="kw">add_model</span>(tune_model)</span>
+<span id="cb154-3"><a href="a-first-lasso-attempt.html#cb154-3"></a></span>
+<span id="cb154-4"><a href="a-first-lasso-attempt.html#cb154-4"></a>tunable_wf</span></code></pre></div>
+<pre><code>## == Workflow ====================================================================
+## Preprocessor: None
+## Model: linear_reg()
+## 
+## -- Model -----------------------------------------------------------------------
+## Linear Regression Model Specification (regression)
+## 
+## Main Arguments:
+##   penalty = tune()
+##   mixture = 1
+## 
+## Computational engine: glmnet</code></pre>
+<p>Now we will combine our functionized preprocessor with this tunable model and try three different stopword sets: snowball, smart, and stopwords-iso. <em>This takes about 8 minutes on my machine.</em></p>
+<div class="sourceCode" id="cb156"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb156-1"><a href="a-first-lasso-attempt.html#cb156-1"></a><span class="kw">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb156-2"><a href="a-first-lasso-attempt.html#cb156-2"></a><span class="kw">tic</span>()</span>
+<span id="cb156-3"><a href="a-first-lasso-attempt.html#cb156-3"></a>snowball_rs &lt;-<span class="st"> </span><span class="kw">tune_grid</span>(</span>
+<span id="cb156-4"><a href="a-first-lasso-attempt.html#cb156-4"></a>  tunable_wf <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">add_recipe</span>(<span class="kw">stopword_rec</span>(<span class="st">&quot;snowball&quot;</span>)),</span>
+<span id="cb156-5"><a href="a-first-lasso-attempt.html#cb156-5"></a>  yelp_folds,</span>
+<span id="cb156-6"><a href="a-first-lasso-attempt.html#cb156-6"></a>  <span class="dt">grid =</span> lambda_grid</span>
+<span id="cb156-7"><a href="a-first-lasso-attempt.html#cb156-7"></a>)</span>
+<span id="cb156-8"><a href="a-first-lasso-attempt.html#cb156-8"></a><span class="kw">toc</span>()</span></code></pre></div>
+<pre><code>## 176.97 sec elapsed</code></pre>
+<div class="sourceCode" id="cb158"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb158-1"><a href="a-first-lasso-attempt.html#cb158-1"></a><span class="kw">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb158-2"><a href="a-first-lasso-attempt.html#cb158-2"></a><span class="kw">tic</span>()</span>
+<span id="cb158-3"><a href="a-first-lasso-attempt.html#cb158-3"></a>smart_rs &lt;-<span class="st"> </span><span class="kw">tune_grid</span>(</span>
+<span id="cb158-4"><a href="a-first-lasso-attempt.html#cb158-4"></a>  tunable_wf <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">add_recipe</span>(<span class="kw">stopword_rec</span>(<span class="st">&quot;smart&quot;</span>)),</span>
+<span id="cb158-5"><a href="a-first-lasso-attempt.html#cb158-5"></a>  yelp_folds,</span>
+<span id="cb158-6"><a href="a-first-lasso-attempt.html#cb158-6"></a>  <span class="dt">grid =</span> lambda_grid</span>
+<span id="cb158-7"><a href="a-first-lasso-attempt.html#cb158-7"></a>)</span>
+<span id="cb158-8"><a href="a-first-lasso-attempt.html#cb158-8"></a><span class="kw">toc</span>()</span></code></pre></div>
+<pre><code>## 160.64 sec elapsed</code></pre>
+<div class="sourceCode" id="cb160"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb160-1"><a href="a-first-lasso-attempt.html#cb160-1"></a><span class="kw">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb160-2"><a href="a-first-lasso-attempt.html#cb160-2"></a><span class="kw">tic</span>()</span>
+<span id="cb160-3"><a href="a-first-lasso-attempt.html#cb160-3"></a>stopwords_iso_rs &lt;-<span class="st"> </span><span class="kw">tune_grid</span>(</span>
+<span id="cb160-4"><a href="a-first-lasso-attempt.html#cb160-4"></a>  tunable_wf <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">add_recipe</span>(<span class="kw">stopword_rec</span>(<span class="st">&quot;stopwords-iso&quot;</span>)),</span>
+<span id="cb160-5"><a href="a-first-lasso-attempt.html#cb160-5"></a>  yelp_folds,</span>
+<span id="cb160-6"><a href="a-first-lasso-attempt.html#cb160-6"></a>  <span class="dt">grid =</span> lambda_grid</span>
+<span id="cb160-7"><a href="a-first-lasso-attempt.html#cb160-7"></a>)</span>
+<span id="cb160-8"><a href="a-first-lasso-attempt.html#cb160-8"></a><span class="kw">toc</span>()</span></code></pre></div>
+<pre><code>## 93.12 sec elapsed</code></pre>
+<p>And we plot their performance, using code straight from SMLTAR:</p>
+<div class="sourceCode" id="cb162"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb162-1"><a href="a-first-lasso-attempt.html#cb162-1"></a>word_counts &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">name =</span> <span class="kw">c</span>(<span class="st">&quot;snowball&quot;</span>, <span class="st">&quot;smart&quot;</span>, <span class="st">&quot;stopwords-iso&quot;</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb162-2"><a href="a-first-lasso-attempt.html#cb162-2"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">words =</span> <span class="kw">map_int</span>(name, <span class="op">~</span><span class="st"> </span><span class="kw">length</span>(stopwords<span class="op">::</span><span class="kw">stopwords</span>(<span class="dt">source =</span> .))))</span>
+<span id="cb162-3"><a href="a-first-lasso-attempt.html#cb162-3"></a></span>
+<span id="cb162-4"><a href="a-first-lasso-attempt.html#cb162-4"></a><span class="kw">list</span>(</span>
+<span id="cb162-5"><a href="a-first-lasso-attempt.html#cb162-5"></a>  <span class="dt">snowball =</span> snowball_rs,</span>
+<span id="cb162-6"><a href="a-first-lasso-attempt.html#cb162-6"></a>  <span class="dt">smart =</span> smart_rs,</span>
+<span id="cb162-7"><a href="a-first-lasso-attempt.html#cb162-7"></a>  <span class="st">`</span><span class="dt">stopwords-iso</span><span class="st">`</span> =<span class="st"> </span>stopwords_iso_rs</span>
+<span id="cb162-8"><a href="a-first-lasso-attempt.html#cb162-8"></a>) <span class="op">%&gt;%</span></span>
+<span id="cb162-9"><a href="a-first-lasso-attempt.html#cb162-9"></a><span class="st">  </span><span class="kw">map_dfr</span>(show_best, <span class="st">&quot;rmse&quot;</span>, <span class="dt">.id =</span> <span class="st">&quot;name&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb162-10"><a href="a-first-lasso-attempt.html#cb162-10"></a><span class="st">  </span><span class="kw">left_join</span>(word_counts) <span class="op">%&gt;%</span></span>
+<span id="cb162-11"><a href="a-first-lasso-attempt.html#cb162-11"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">name =</span> <span class="kw">paste0</span>(name, <span class="st">&quot; (&quot;</span>, words, <span class="st">&quot; words)&quot;</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb162-12"><a href="a-first-lasso-attempt.html#cb162-12"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="kw">fct_reorder</span>(name, words), mean, <span class="dt">color =</span> name)) <span class="op">+</span></span>
+<span id="cb162-13"><a href="a-first-lasso-attempt.html#cb162-13"></a><span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">alpha =</span> <span class="fl">0.8</span>, <span class="dt">show.legend =</span> <span class="ot">FALSE</span>) <span class="op">+</span></span>
+<span id="cb162-14"><a href="a-first-lasso-attempt.html#cb162-14"></a><span class="st">  </span><span class="kw">labs</span>(</span>
+<span id="cb162-15"><a href="a-first-lasso-attempt.html#cb162-15"></a>    <span class="dt">x =</span> <span class="ot">NULL</span>, <span class="dt">y =</span> <span class="st">&quot;mean RMSE for five best models&quot;</span>,</span>
+<span id="cb162-16"><a href="a-first-lasso-attempt.html#cb162-16"></a>    <span class="dt">title =</span> <span class="st">&quot;Model performance for three stop word lexicons&quot;</span>,</span>
+<span id="cb162-17"><a href="a-first-lasso-attempt.html#cb162-17"></a>    <span class="dt">subtitle =</span> <span class="st">&quot;For this dataset, the Snowball lexicon performed best&quot;</span></span>
+<span id="cb162-18"><a href="a-first-lasso-attempt.html#cb162-18"></a>  )</span></code></pre></div>
+<pre><code>## Joining, by = &quot;name&quot;</code></pre>
+<p><img src="telfer-mba-nlp_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
+<p>The RMSE is marginally better using the snowball set of stopwords, but is still quite terrible!</p>
+</div>
+<div id="adjusting-n-grams" class="section level2">
+<h2><span class="header-section-number">5.5</span> Adjusting n-grams</h2>
+<p>When tokenizing, we can in general consider text strings of any length. So far we have been considering one-word strings, which we could call “unigrams.” We could also consider two-word strings and three-word strings, called “bigrams” and “trigrams” respectively. We might expect using n-grams, where n&gt;1, to increase our accuracy because it will let us capture more of the syntactic information in our text. For example, if we only consider 1-grams then the short phrase “Not bad!” becomes “not” and “bad,” and our model has no way to differentiate between cases where they occur alone (which might be negative) and together (which might be positive). But if we also consider “not bad,” then the model might learn that that phrase is associated with positive reviews.</p>
+<p>As before, we follow <a href="study-varying-n-grams">SMLTAR s6.7</a> and set up a wrapper function that will let us easily change our model recipe to use different n-grams:</p>
+<div class="sourceCode" id="cb164"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb164-1"><a href="a-first-lasso-attempt.html#cb164-1"></a>ngram_rec &lt;-<span class="st"> </span><span class="cf">function</span>(ngram_options) {</span>
+<span id="cb164-2"><a href="a-first-lasso-attempt.html#cb164-2"></a>  <span class="kw">recipe</span>(rating_num <span class="op">~</span><span class="st"> </span>text, <span class="dt">data =</span> yelp_train) <span class="op">%&gt;%</span></span>
+<span id="cb164-3"><a href="a-first-lasso-attempt.html#cb164-3"></a><span class="st">    </span><span class="kw">step_tokenize</span>(text, <span class="dt">token =</span> <span class="st">&quot;ngrams&quot;</span>, <span class="dt">options =</span> ngram_options) <span class="op">%&gt;%</span></span>
+<span id="cb164-4"><a href="a-first-lasso-attempt.html#cb164-4"></a><span class="st">    </span><span class="kw">step_tokenfilter</span>(text, <span class="dt">max_tokens =</span> <span class="fl">1e3</span>) <span class="op">%&gt;%</span></span>
+<span id="cb164-5"><a href="a-first-lasso-attempt.html#cb164-5"></a><span class="st">    </span><span class="kw">step_tfidf</span>(text)</span>
+<span id="cb164-6"><a href="a-first-lasso-attempt.html#cb164-6"></a>}</span></code></pre></div>
+<p><code>step_tokenize()</code> takes two arguments, <code>n</code> for the highest-n n-grams to consider, and <code>n_min</code> for the lowest-n ngrams to consider. We will pass these values in the variable <code>ngram_options</code>.</p>
+<p>We then out these all together into a wrapper function that will let us run many different models easily:</p>
+<div class="sourceCode" id="cb165"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb165-1"><a href="a-first-lasso-attempt.html#cb165-1"></a>tune_ngram &lt;-<span class="st"> </span><span class="cf">function</span>(ngram_options) {</span>
+<span id="cb165-2"><a href="a-first-lasso-attempt.html#cb165-2"></a>  <span class="kw">tune_grid</span>(</span>
+<span id="cb165-3"><a href="a-first-lasso-attempt.html#cb165-3"></a>    tunable_wf <span class="op">%&gt;%</span></span>
+<span id="cb165-4"><a href="a-first-lasso-attempt.html#cb165-4"></a><span class="st">      </span><span class="kw">add_recipe</span>(<span class="kw">ngram_rec</span>(ngram_options)),</span>
+<span id="cb165-5"><a href="a-first-lasso-attempt.html#cb165-5"></a>    yelp_folds,</span>
+<span id="cb165-6"><a href="a-first-lasso-attempt.html#cb165-6"></a>    <span class="dt">grid =</span> lambda_grid</span>
+<span id="cb165-7"><a href="a-first-lasso-attempt.html#cb165-7"></a>  )</span>
+<span id="cb165-8"><a href="a-first-lasso-attempt.html#cb165-8"></a>}</span></code></pre></div>
+<p>We will try three cases, using n-grams where n=1, n=1,2, and n=1,2,3. I’ve added <code>tic()/toc()</code> calls for loose benchmarking. The processing time goes up with each additional n-gram:</p>
+<ul>
+<li>1-grams: 186s</li>
+<li>2-grams: 267s</li>
+<li>3-grams: 495s</li>
+</ul>
+<div class="sourceCode" id="cb166"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb166-1"><a href="a-first-lasso-attempt.html#cb166-1"></a><span class="kw">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb166-2"><a href="a-first-lasso-attempt.html#cb166-2"></a><span class="kw">tic</span>()</span>
+<span id="cb166-3"><a href="a-first-lasso-attempt.html#cb166-3"></a>unigram_rs &lt;-<span class="st"> </span><span class="kw">tune_ngram</span>(<span class="kw">list</span>(<span class="dt">n =</span> <span class="dv">1</span>))</span></code></pre></div>
+<pre><code>## ! Fold01: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold02: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold03: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold04: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold05: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold06: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold07: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold08: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold09: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold10: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<div class="sourceCode" id="cb177"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb177-1"><a href="a-first-lasso-attempt.html#cb177-1"></a><span class="kw">toc</span>()</span></code></pre></div>
+<pre><code>## 174.64 sec elapsed</code></pre>
+<div class="sourceCode" id="cb179"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb179-1"><a href="a-first-lasso-attempt.html#cb179-1"></a><span class="kw">tic</span>()</span>
+<span id="cb179-2"><a href="a-first-lasso-attempt.html#cb179-2"></a><span class="kw">set.seed</span>(<span class="dv">234</span>)</span>
+<span id="cb179-3"><a href="a-first-lasso-attempt.html#cb179-3"></a>bigram_rs &lt;-<span class="st"> </span><span class="kw">tune_ngram</span>(<span class="kw">list</span>(<span class="dt">n =</span> <span class="dv">2</span>, <span class="dt">n_min =</span> <span class="dv">1</span>))</span></code></pre></div>
+<pre><code>## ! Fold01: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold02: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold03: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold04: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold05: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold06: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold07: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold08: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold09: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold10: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<div class="sourceCode" id="cb190"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb190-1"><a href="a-first-lasso-attempt.html#cb190-1"></a><span class="kw">toc</span>()</span></code></pre></div>
+<pre><code>## 254.42 sec elapsed</code></pre>
+<div class="sourceCode" id="cb192"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb192-1"><a href="a-first-lasso-attempt.html#cb192-1"></a><span class="kw">tic</span>()</span>
+<span id="cb192-2"><a href="a-first-lasso-attempt.html#cb192-2"></a><span class="kw">set.seed</span>(<span class="dv">345</span>)</span>
+<span id="cb192-3"><a href="a-first-lasso-attempt.html#cb192-3"></a>trigram_rs &lt;-<span class="st"> </span><span class="kw">tune_ngram</span>(<span class="kw">list</span>(<span class="dt">n =</span> <span class="dv">3</span>, <span class="dt">n_min =</span> <span class="dv">1</span>))</span></code></pre></div>
+<pre><code>## ! Fold01: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold02: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold03: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold04: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold05: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold06: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold07: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold08: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold09: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<pre><code>## ! Fold10: internal: A correlation computation is required, but `estimate` is constant and has 0 standard deviation, resulting in a divide by 0 error. `NA` will be returned.</code></pre>
+<div class="sourceCode" id="cb203"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb203-1"><a href="a-first-lasso-attempt.html#cb203-1"></a><span class="kw">toc</span>()</span></code></pre></div>
+<pre><code>## 452.24 sec elapsed</code></pre>
+<p>And we can plot the results using a dot-plot, as per SMLTAR:</p>
+<div class="sourceCode" id="cb205"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb205-1"><a href="a-first-lasso-attempt.html#cb205-1"></a><span class="kw">list</span>(</span>
+<span id="cb205-2"><a href="a-first-lasso-attempt.html#cb205-2"></a>  <span class="st">`</span><span class="dt">1</span><span class="st">`</span> =<span class="st"> </span>unigram_rs,</span>
+<span id="cb205-3"><a href="a-first-lasso-attempt.html#cb205-3"></a>  <span class="st">`</span><span class="dt">1 and 2</span><span class="st">`</span> =<span class="st"> </span>bigram_rs,</span>
+<span id="cb205-4"><a href="a-first-lasso-attempt.html#cb205-4"></a>  <span class="st">`</span><span class="dt">1, 2, and 3</span><span class="st">`</span> =<span class="st"> </span>trigram_rs</span>
+<span id="cb205-5"><a href="a-first-lasso-attempt.html#cb205-5"></a>) <span class="op">%&gt;%</span></span>
+<span id="cb205-6"><a href="a-first-lasso-attempt.html#cb205-6"></a><span class="st">  </span><span class="kw">map_dfr</span>(collect_metrics, <span class="dt">.id =</span> <span class="st">&quot;name&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb205-7"><a href="a-first-lasso-attempt.html#cb205-7"></a><span class="st">  </span><span class="kw">filter</span>(.metric <span class="op">==</span><span class="st"> &quot;rmse&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb205-8"><a href="a-first-lasso-attempt.html#cb205-8"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(name, mean, <span class="dt">fill =</span> name)) <span class="op">+</span></span>
+<span id="cb205-9"><a href="a-first-lasso-attempt.html#cb205-9"></a><span class="st">  </span><span class="kw">geom_dotplot</span>(</span>
+<span id="cb205-10"><a href="a-first-lasso-attempt.html#cb205-10"></a>    <span class="dt">binaxis =</span> <span class="st">&quot;y&quot;</span>, <span class="dt">stackdir =</span> <span class="st">&quot;center&quot;</span>, <span class="dt">binpositions =</span> <span class="st">&quot;all&quot;</span>,</span>
+<span id="cb205-11"><a href="a-first-lasso-attempt.html#cb205-11"></a>    <span class="dt">show.legend =</span> <span class="ot">FALSE</span></span>
+<span id="cb205-12"><a href="a-first-lasso-attempt.html#cb205-12"></a>  ) <span class="op">+</span></span>
+<span id="cb205-13"><a href="a-first-lasso-attempt.html#cb205-13"></a><span class="st">  </span><span class="kw">labs</span>(</span>
+<span id="cb205-14"><a href="a-first-lasso-attempt.html#cb205-14"></a>    <span class="dt">x =</span> <span class="st">&quot;Degree of n-grams&quot;</span>, <span class="dt">y =</span> <span class="st">&quot;mean RMSE&quot;</span>,</span>
+<span id="cb205-15"><a href="a-first-lasso-attempt.html#cb205-15"></a>    <span class="dt">title =</span> <span class="st">&quot;Model performance for different degrees of n-gram tokenization&quot;</span>,</span>
+<span id="cb205-16"><a href="a-first-lasso-attempt.html#cb205-16"></a>    <span class="dt">subtitle =</span> <span class="st">&quot;For the same number of tokens, unigrams alone performed best&quot;</span></span>
+<span id="cb205-17"><a href="a-first-lasso-attempt.html#cb205-17"></a>  )</span></code></pre></div>
+<p><img src="telfer-mba-nlp_files/figure-html/plot_ngrams-1.png" width="672" /></p>
+<p>Amusingly, the fastest &amp; simplest approach of using only 1-grams worked best.</p>
+</div>
+<div id="full-final-regression" class="section level2">
+<h2><span class="header-section-number">5.6</span> Full final regression</h2>
+<p>After working through each piece of the regression preprocessing and recipe, we’ll now followed <a href="https://smltar.com/mlregression.html#the-full-game-regression">SMLTAR s6.10</a>’s lead and put it all together.</p>
+<p>We will:</p>
+<ul>
+<li>Train on the cross-validation resamples;</li>
+<li>Tune <em>both</em> the lasso regularization parameter and the number of tokens used in the model;</li>
+<li>Only include unigrams;</li>
+<li>Remove the snowball stop words;</li>
+<li>And evaluate on the testing set.</li>
+</ul>
+<p>Here is our final recipe. note that we are using <code>tune()</code> as our <code>max_tokens</code> value. This will let us fit the model to a grid of values and see which one performs best.</p>
+<div class="sourceCode" id="cb206"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb206-1"><a href="a-first-lasso-attempt.html#cb206-1"></a> final_rec &lt;-<span class="st"> </span><span class="kw">recipe</span>(rating_num <span class="op">~</span><span class="st"> </span>text, <span class="dt">data =</span> yelp_train) <span class="op">%&gt;%</span></span>
+<span id="cb206-2"><a href="a-first-lasso-attempt.html#cb206-2"></a><span class="st">  </span><span class="kw">step_tokenize</span>(text) <span class="op">%&gt;%</span></span>
+<span id="cb206-3"><a href="a-first-lasso-attempt.html#cb206-3"></a><span class="st">  </span><span class="kw">step_stopwords</span>(text, <span class="dt">stopword_source =</span> <span class="st">&quot;snowball&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb206-4"><a href="a-first-lasso-attempt.html#cb206-4"></a><span class="st">  </span><span class="kw">step_tokenfilter</span>(text, <span class="dt">max_tokens =</span> <span class="kw">tune</span>()) <span class="op">%&gt;%</span></span>
+<span id="cb206-5"><a href="a-first-lasso-attempt.html#cb206-5"></a><span class="st">  </span><span class="kw">step_tfidf</span>(text)</span>
+<span id="cb206-6"><a href="a-first-lasso-attempt.html#cb206-6"></a></span>
+<span id="cb206-7"><a href="a-first-lasso-attempt.html#cb206-7"></a>final_rec</span></code></pre></div>
+<pre><code>## Data Recipe
+## 
+## Inputs:
+## 
+##       role #variables
+##    outcome          1
+##  predictor          1
+## 
+## Operations:
+## 
+## Tokenization for text
+## Stop word removal for text
+## Text filtering for text
+## Term frequency-inverse document frequency with text</code></pre>
+<p>Then we specify our model again:</p>
+<div class="sourceCode" id="cb208"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb208-1"><a href="a-first-lasso-attempt.html#cb208-1"></a>tune_model &lt;-<span class="st"> </span><span class="kw">linear_reg</span>( <span class="dt">penalty =</span> <span class="kw">tune</span>(), <span class="dt">mixture =</span> <span class="dv">1</span>) <span class="op">%&gt;%</span></span>
+<span id="cb208-2"><a href="a-first-lasso-attempt.html#cb208-2"></a><span class="st">  </span><span class="kw">set_mode</span>(<span class="st">&quot;regression&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb208-3"><a href="a-first-lasso-attempt.html#cb208-3"></a><span class="st">  </span><span class="kw">set_engine</span>(<span class="st">&quot;glmnet&quot;</span>)</span>
+<span id="cb208-4"><a href="a-first-lasso-attempt.html#cb208-4"></a></span>
+<span id="cb208-5"><a href="a-first-lasso-attempt.html#cb208-5"></a>tune_model</span></code></pre></div>
+<pre><code>## Linear Regression Model Specification (regression)
+## 
+## Main Arguments:
+##   penalty = tune()
+##   mixture = 1
+## 
+## Computational engine: glmnet</code></pre>
+<p>Then we set up our workflow:</p>
+<div class="sourceCode" id="cb210"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb210-1"><a href="a-first-lasso-attempt.html#cb210-1"></a>tune_wf &lt;-<span class="st"> </span><span class="kw">workflow</span>() <span class="op">%&gt;%</span></span>
+<span id="cb210-2"><a href="a-first-lasso-attempt.html#cb210-2"></a><span class="st">  </span><span class="kw">add_recipe</span>(final_rec) <span class="op">%&gt;%</span></span>
+<span id="cb210-3"><a href="a-first-lasso-attempt.html#cb210-3"></a><span class="st">  </span><span class="kw">add_model</span>(tune_model)</span>
+<span id="cb210-4"><a href="a-first-lasso-attempt.html#cb210-4"></a></span>
+<span id="cb210-5"><a href="a-first-lasso-attempt.html#cb210-5"></a>tune_wf</span></code></pre></div>
+<pre><code>## == Workflow ====================================================================
+## Preprocessor: Recipe
+## Model: linear_reg()
+## 
+## -- Preprocessor ----------------------------------------------------------------
+## 4 Recipe Steps
+## 
+## * step_tokenize()
+## * step_stopwords()
+## * step_tokenfilter()
+## * step_tfidf()
+## 
+## -- Model -----------------------------------------------------------------------
+## Linear Regression Model Specification (regression)
+## 
+## Main Arguments:
+##   penalty = tune()
+##   mixture = 1
+## 
+## Computational engine: glmnet</code></pre>
+<p>Next we’ll tune the model. To do so, we need to choose the set of parameter values for the penalty and number of tokens we’ll test. We do this by setting up a “grid” of the value combinations using <code>grid_regular()</code>. With 20 steps for the penalty and with 6 steps for the tokens, we’ll have 120 combinations to test in total. <em>This took 2180s on my machine.</em></p>
+<div class="sourceCode" id="cb212"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb212-1"><a href="a-first-lasso-attempt.html#cb212-1"></a>final_grid &lt;-<span class="st"> </span><span class="kw">grid_regular</span>(</span>
+<span id="cb212-2"><a href="a-first-lasso-attempt.html#cb212-2"></a>  <span class="kw">penalty</span>(<span class="dt">range =</span> <span class="kw">c</span>(<span class="op">-</span><span class="dv">4</span>,<span class="dv">0</span>)),</span>
+<span id="cb212-3"><a href="a-first-lasso-attempt.html#cb212-3"></a>  <span class="kw">max_tokens</span>(<span class="dt">range =</span> <span class="kw">c</span>(<span class="fl">1e3</span>, <span class="fl">6e3</span>)),</span>
+<span id="cb212-4"><a href="a-first-lasso-attempt.html#cb212-4"></a>  <span class="dt">levels =</span> <span class="kw">c</span>(<span class="dt">penalty =</span> <span class="dv">20</span>, <span class="dt">max_tokens =</span> <span class="dv">6</span>)</span>
+<span id="cb212-5"><a href="a-first-lasso-attempt.html#cb212-5"></a>)</span>
+<span id="cb212-6"><a href="a-first-lasso-attempt.html#cb212-6"></a></span>
+<span id="cb212-7"><a href="a-first-lasso-attempt.html#cb212-7"></a>final_grid <span class="op">%&gt;%</span></span>
+<span id="cb212-8"><a href="a-first-lasso-attempt.html#cb212-8"></a><span class="st">  </span><span class="kw">head</span>(<span class="dv">10</span>)</span></code></pre></div>
+<pre><code>## # A tibble: 10 x 2
+##     penalty max_tokens
+##       &lt;dbl&gt;      &lt;int&gt;
+##  1 0.0001         1000
+##  2 0.000162       1000
+##  3 0.000264       1000
+##  4 0.000428       1000
+##  5 0.000695       1000
+##  6 0.00113        1000
+##  7 0.00183        1000
+##  8 0.00298        1000
+##  9 0.00483        1000
+## 10 0.00785        1000</code></pre>
+<p>Next we train our models using the tuning grid:</p>
+<div class="sourceCode" id="cb214"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb214-1"><a href="a-first-lasso-attempt.html#cb214-1"></a><span class="kw">tic</span>()</span>
+<span id="cb214-2"><a href="a-first-lasso-attempt.html#cb214-2"></a>final_rs &lt;-<span class="st"> </span><span class="kw">tune_grid</span>(</span>
+<span id="cb214-3"><a href="a-first-lasso-attempt.html#cb214-3"></a>  tune_wf,</span>
+<span id="cb214-4"><a href="a-first-lasso-attempt.html#cb214-4"></a>  yelp_folds,</span>
+<span id="cb214-5"><a href="a-first-lasso-attempt.html#cb214-5"></a>  <span class="dt">grid =</span> final_grid,</span>
+<span id="cb214-6"><a href="a-first-lasso-attempt.html#cb214-6"></a>  <span class="dt">metrics =</span> <span class="kw">metric_set</span>(rmse, mae, mape)</span>
+<span id="cb214-7"><a href="a-first-lasso-attempt.html#cb214-7"></a>)</span>
+<span id="cb214-8"><a href="a-first-lasso-attempt.html#cb214-8"></a><span class="kw">toc</span>()</span></code></pre></div>
+<pre><code>## 2063.39 sec elapsed</code></pre>
+<div class="sourceCode" id="cb216"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb216-1"><a href="a-first-lasso-attempt.html#cb216-1"></a>final_rs <span class="op">%&gt;%</span></span>
+<span id="cb216-2"><a href="a-first-lasso-attempt.html#cb216-2"></a><span class="st">  </span><span class="kw">collect_metrics</span>() <span class="op">%&gt;%</span></span>
+<span id="cb216-3"><a href="a-first-lasso-attempt.html#cb216-3"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(penalty, mean, <span class="dt">color =</span> <span class="kw">as.factor</span>(max_tokens))) <span class="op">+</span></span>
+<span id="cb216-4"><a href="a-first-lasso-attempt.html#cb216-4"></a><span class="st">  </span><span class="kw">geom_line</span>(<span class="dt">size =</span> <span class="fl">1.5</span>, <span class="dt">alpha =</span> <span class="fl">0.5</span>) <span class="op">+</span></span>
+<span id="cb216-5"><a href="a-first-lasso-attempt.html#cb216-5"></a><span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">2</span>, <span class="dt">alpha =</span> <span class="fl">0.9</span>) <span class="op">+</span></span>
+<span id="cb216-6"><a href="a-first-lasso-attempt.html#cb216-6"></a><span class="st">  </span><span class="kw">facet_wrap</span>(<span class="op">~</span>.metric, <span class="dt">scales =</span> <span class="st">&quot;free_y&quot;</span>) <span class="op">+</span></span>
+<span id="cb216-7"><a href="a-first-lasso-attempt.html#cb216-7"></a><span class="st">  </span><span class="kw">scale_x_log10</span>() <span class="op">+</span></span>
+<span id="cb216-8"><a href="a-first-lasso-attempt.html#cb216-8"></a><span class="st">  </span><span class="kw">labs</span>(</span>
+<span id="cb216-9"><a href="a-first-lasso-attempt.html#cb216-9"></a>    <span class="dt">color =</span> <span class="st">&quot;Number of tokens&quot;</span>,</span>
+<span id="cb216-10"><a href="a-first-lasso-attempt.html#cb216-10"></a>    <span class="dt">title =</span> <span class="st">&quot;Lasso model performance across regularization penalties and number of tokens&quot;</span>,</span>
+<span id="cb216-11"><a href="a-first-lasso-attempt.html#cb216-11"></a>    <span class="dt">subtitle =</span> <span class="st">&quot;The best model includes a high number of tokens but also significant regularization&quot;</span></span>
+<span id="cb216-12"><a href="a-first-lasso-attempt.html#cb216-12"></a>  )</span></code></pre></div>
+<p><img src="telfer-mba-nlp_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
+<div class="sourceCode" id="cb217"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb217-1"><a href="a-first-lasso-attempt.html#cb217-1"></a>lowest_mae &lt;-<span class="st"> </span>final_rs <span class="op">%&gt;%</span></span>
+<span id="cb217-2"><a href="a-first-lasso-attempt.html#cb217-2"></a><span class="st">  </span><span class="kw">select_best</span>(<span class="st">&quot;mae&quot;</span>)</span>
+<span id="cb217-3"><a href="a-first-lasso-attempt.html#cb217-3"></a></span>
+<span id="cb217-4"><a href="a-first-lasso-attempt.html#cb217-4"></a>lowest_mae</span></code></pre></div>
+<pre><code>## # A tibble: 1 x 3
+##   penalty max_tokens .config        
+##     &lt;dbl&gt;      &lt;int&gt; &lt;chr&gt;          
+## 1  0.0127       3000 Recipe3_Model11</code></pre>
+<div class="sourceCode" id="cb219"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb219-1"><a href="a-first-lasso-attempt.html#cb219-1"></a>final_wf &lt;-<span class="st"> </span><span class="kw">finalize_workflow</span>(</span>
+<span id="cb219-2"><a href="a-first-lasso-attempt.html#cb219-2"></a>  tune_wf,</span>
+<span id="cb219-3"><a href="a-first-lasso-attempt.html#cb219-3"></a>  lowest_mae</span>
+<span id="cb219-4"><a href="a-first-lasso-attempt.html#cb219-4"></a>)</span>
+<span id="cb219-5"><a href="a-first-lasso-attempt.html#cb219-5"></a></span>
+<span id="cb219-6"><a href="a-first-lasso-attempt.html#cb219-6"></a>final_wf</span></code></pre></div>
+<pre><code>## == Workflow ====================================================================
+## Preprocessor: Recipe
+## Model: linear_reg()
+## 
+## -- Preprocessor ----------------------------------------------------------------
+## 4 Recipe Steps
+## 
+## * step_tokenize()
+## * step_stopwords()
+## * step_tokenfilter()
+## * step_tfidf()
+## 
+## -- Model -----------------------------------------------------------------------
+## Linear Regression Model Specification (regression)
+## 
+## Main Arguments:
+##   penalty = 0.0127427498570313
+##   mixture = 1
+## 
+## Computational engine: glmnet</code></pre>
+<div class="sourceCode" id="cb221"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb221-1"><a href="a-first-lasso-attempt.html#cb221-1"></a><span class="kw">tic</span>()</span>
+<span id="cb221-2"><a href="a-first-lasso-attempt.html#cb221-2"></a>final_fitted &lt;-<span class="st"> </span><span class="kw">last_fit</span>(final_wf, yelp_split)</span>
+<span id="cb221-3"><a href="a-first-lasso-attempt.html#cb221-3"></a><span class="kw">toc</span>()</span></code></pre></div>
+<pre><code>## 20.48 sec elapsed</code></pre>
+<div class="sourceCode" id="cb223"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb223-1"><a href="a-first-lasso-attempt.html#cb223-1"></a><span class="kw">collect_metrics</span>(final_fitted)</span></code></pre></div>
+<pre><code>## # A tibble: 2 x 3
+##   .metric .estimator .estimate
+##   &lt;chr&gt;   &lt;chr&gt;          &lt;dbl&gt;
+## 1 rmse    standard       0.845
+## 2 rsq     standard       0.406</code></pre>
+<div class="sourceCode" id="cb225"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb225-1"><a href="a-first-lasso-attempt.html#cb225-1"></a><span class="kw">library</span>(vip)</span>
+<span id="cb225-2"><a href="a-first-lasso-attempt.html#cb225-2"></a></span>
+<span id="cb225-3"><a href="a-first-lasso-attempt.html#cb225-3"></a>scotus_imp &lt;-<span class="st"> </span><span class="kw">pull_workflow_fit</span>(final_fitted<span class="op">$</span>.workflow[[<span class="dv">1</span>]]) <span class="op">%&gt;%</span></span>
+<span id="cb225-4"><a href="a-first-lasso-attempt.html#cb225-4"></a><span class="st">  </span><span class="kw">vi</span>(<span class="dt">lambda =</span> lowest_mae<span class="op">$</span>penalty)</span>
+<span id="cb225-5"><a href="a-first-lasso-attempt.html#cb225-5"></a></span>
+<span id="cb225-6"><a href="a-first-lasso-attempt.html#cb225-6"></a>scotus_imp <span class="op">%&gt;%</span></span>
+<span id="cb225-7"><a href="a-first-lasso-attempt.html#cb225-7"></a><span class="st">  </span><span class="kw">mutate</span>(</span>
+<span id="cb225-8"><a href="a-first-lasso-attempt.html#cb225-8"></a>    <span class="dt">Sign =</span> <span class="kw">case_when</span>(</span>
+<span id="cb225-9"><a href="a-first-lasso-attempt.html#cb225-9"></a>      Sign <span class="op">==</span><span class="st"> &quot;POS&quot;</span> <span class="op">~</span><span class="st"> &quot;Better&quot;</span>,</span>
+<span id="cb225-10"><a href="a-first-lasso-attempt.html#cb225-10"></a>      Sign <span class="op">==</span><span class="st"> &quot;NEG&quot;</span> <span class="op">~</span><span class="st"> &quot;Worse&quot;</span>,</span>
+<span id="cb225-11"><a href="a-first-lasso-attempt.html#cb225-11"></a>    ),</span>
+<span id="cb225-12"><a href="a-first-lasso-attempt.html#cb225-12"></a>    <span class="dt">Importance =</span> <span class="kw">abs</span>(Importance),</span>
+<span id="cb225-13"><a href="a-first-lasso-attempt.html#cb225-13"></a>    <span class="dt">Variable =</span> <span class="kw">str_remove_all</span>(Variable, <span class="st">&quot;tfidf_text_&quot;</span>)</span>
+<span id="cb225-14"><a href="a-first-lasso-attempt.html#cb225-14"></a>  ) <span class="op">%&gt;%</span></span>
+<span id="cb225-15"><a href="a-first-lasso-attempt.html#cb225-15"></a><span class="st">  </span><span class="kw">group_by</span>(Sign) <span class="op">%&gt;%</span></span>
+<span id="cb225-16"><a href="a-first-lasso-attempt.html#cb225-16"></a><span class="st">  </span><span class="kw">top_n</span>(<span class="dv">20</span>, Importance) <span class="op">%&gt;%</span></span>
+<span id="cb225-17"><a href="a-first-lasso-attempt.html#cb225-17"></a><span class="st">  </span><span class="kw">ungroup</span>() <span class="op">%&gt;%</span></span>
+<span id="cb225-18"><a href="a-first-lasso-attempt.html#cb225-18"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(</span>
+<span id="cb225-19"><a href="a-first-lasso-attempt.html#cb225-19"></a>    <span class="dt">x =</span> Importance,</span>
+<span id="cb225-20"><a href="a-first-lasso-attempt.html#cb225-20"></a>    <span class="dt">y =</span> <span class="kw">fct_reorder</span>(Variable, Importance),</span>
+<span id="cb225-21"><a href="a-first-lasso-attempt.html#cb225-21"></a>    <span class="dt">fill =</span> Sign</span>
+<span id="cb225-22"><a href="a-first-lasso-attempt.html#cb225-22"></a>  )) <span class="op">+</span></span>
+<span id="cb225-23"><a href="a-first-lasso-attempt.html#cb225-23"></a><span class="st">  </span><span class="kw">geom_col</span>(<span class="dt">show.legend =</span> <span class="ot">FALSE</span>) <span class="op">+</span></span>
+<span id="cb225-24"><a href="a-first-lasso-attempt.html#cb225-24"></a><span class="st">  </span><span class="kw">scale_x_continuous</span>(<span class="dt">expand =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">0</span>)) <span class="op">+</span></span>
+<span id="cb225-25"><a href="a-first-lasso-attempt.html#cb225-25"></a><span class="st">  </span><span class="kw">facet_wrap</span>(<span class="op">~</span>Sign, <span class="dt">scales =</span> <span class="st">&quot;free&quot;</span>) <span class="op">+</span></span>
+<span id="cb225-26"><a href="a-first-lasso-attempt.html#cb225-26"></a><span class="st">  </span><span class="kw">labs</span>(</span>
+<span id="cb225-27"><a href="a-first-lasso-attempt.html#cb225-27"></a>    <span class="dt">y =</span> <span class="ot">NULL</span>,</span>
+<span id="cb225-28"><a href="a-first-lasso-attempt.html#cb225-28"></a>    <span class="dt">title =</span> <span class="st">&quot;Variable importance for predicting Yelp review star ratings&quot;</span></span>
+<span id="cb225-29"><a href="a-first-lasso-attempt.html#cb225-29"></a>  )</span></code></pre></div>
+<p><img src="telfer-mba-nlp_files/figure-html/unnamed-chunk-24-1.png" width="672" /></p>
+<div class="sourceCode" id="cb226"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb226-1"><a href="a-first-lasso-attempt.html#cb226-1"></a>final_fitted <span class="op">%&gt;%</span></span>
+<span id="cb226-2"><a href="a-first-lasso-attempt.html#cb226-2"></a><span class="st">  </span><span class="kw">collect_predictions</span>() <span class="op">%&gt;%</span></span>
+<span id="cb226-3"><a href="a-first-lasso-attempt.html#cb226-3"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(rating_num, .pred)) <span class="op">+</span></span>
+<span id="cb226-4"><a href="a-first-lasso-attempt.html#cb226-4"></a><span class="st">  </span><span class="kw">geom_abline</span>(<span class="dt">lty =</span> <span class="dv">2</span>, <span class="dt">color =</span> <span class="st">&quot;gray80&quot;</span>, <span class="dt">size =</span> <span class="fl">1.5</span>) <span class="op">+</span></span>
+<span id="cb226-5"><a href="a-first-lasso-attempt.html#cb226-5"></a><span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">alpha =</span> <span class="fl">0.3</span>) <span class="op">+</span></span>
+<span id="cb226-6"><a href="a-first-lasso-attempt.html#cb226-6"></a><span class="st">  </span><span class="kw">labs</span>(</span>
+<span id="cb226-7"><a href="a-first-lasso-attempt.html#cb226-7"></a>    <span class="dt">x =</span> <span class="st">&quot;Truth&quot;</span>,</span>
+<span id="cb226-8"><a href="a-first-lasso-attempt.html#cb226-8"></a>    <span class="dt">y =</span> <span class="st">&quot;Predicted year&quot;</span>,</span>
+<span id="cb226-9"><a href="a-first-lasso-attempt.html#cb226-9"></a>    <span class="dt">title =</span> <span class="st">&quot;Predicted and true years for the testing set of Supreme Court opinions&quot;</span>,</span>
+<span id="cb226-10"><a href="a-first-lasso-attempt.html#cb226-10"></a>    <span class="dt">subtitle =</span> <span class="st">&quot;For the testing set, predictions are more reliable after 1850&quot;</span></span>
+<span id="cb226-11"><a href="a-first-lasso-attempt.html#cb226-11"></a>  )</span></code></pre></div>
+<p><img src="telfer-mba-nlp_files/figure-html/unnamed-chunk-25-1.png" width="672" /></p>
+
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="data-summary-eda-initial-model-attempts.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="yelp-classification-and-sentiment-test.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": "https://github.com/rstudio/bookdown-demo/edit/master/04-first-lasso.Rmd",
+"text": "Edit"
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": ["telfer-mba-nlp.pdf", "telfer-mba-nlp.epub"],
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>
