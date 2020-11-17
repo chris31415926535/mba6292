@@ -11,9 +11,9 @@ library(tictoc)
 
 ## Introduction
 
-This analysis will use regression methods to attemp to predict star ratings from the text and/or titles of the reviews in our Yelp, Goodreads, and MEC datasets. My methods will closely follow those given in Chapter 6 of [Supervised Machine Learning for Text Analysis in R](https://smltar.com/mlregression.html) (SMLTAR) by Hvitfeldt & Silge. In the first case I will work through an example in detail to describe the steps (and to learn them!!), and in later sections I will move more quickly to try some different variations on the analysis.
+This analysis will use regression methods to attemp to predict star ratings from the text and/or titles of the reviews in our Yelp, Goodreads, and MEC datasets. My methods will closely follow those given in Chapter 6 of [Supervised Machine Learning for Text Analysis in R](https://smltar.com/mlregression.html) (SMLTAR) by @silge_supervised_2020. In the first case I will work through an example in detail to describe the steps (and to learn them!!), and in later sections I will move more quickly to try some different variations on the analysis.
 
-I'm going to use the `tidymodels` framework as much as possible, both because it's the approach used in SMLTAR and because I'm a fan of the  Tidyverse approach to software design and analysis.
+I'm going to use the **tidymodels** framework as much as possible, both because it's the approach used in SMLTAR and because I'm a fan of the  Tidyverse approach to software design and analysis.
 
 ## A First Regression: Yelp Data
 
@@ -25,7 +25,9 @@ reviews_yelp <- read_csv("../tests/data/ottawa_yelp_reviews.csv") %>%
   rename(text = comment,
          rating_num = rating)
 
-reviews_yelp
+reviews_yelp %>%
+  head(10) %>%
+  knitr::kable()
 ```
 
 
@@ -73,7 +75,7 @@ rm(num_tokens)
 yelp_rec
 ```
 
-Next, Hvitfeldt and Silge suggest we create a `workflow()` object that combines preprocessing steps and models. 
+Next, @silge_supervised_2020 suggest we create a `workflow()` object that combines preprocessing steps and models. 
 
 ```{r yelp_wf, cache=TRUE}
 
@@ -121,7 +123,7 @@ This already doesn't look too promising; only 5 terms have positive coefficients
 
 ### Evaluating the first model
 
-Following SMLTAR, we'll evaluate the model using cross-fold validation, which is a way of trying to squeeze as much validation as you can out of a finite dataset. We will resample our training dataset to create 10 *new* datasets, and in each one we'll use 90% for training and 10% for assessment.
+Following @silge_supervised_2020, we'll evaluate the model using cross-fold validation, which is a way of trying to squeeze as much validation as you can out of a finite dataset. We will resample our training dataset to create 10 *new* datasets, and in each one we'll use 90% for training and 10% for assessment.
 
 ```{r fit_first_lasso_resamples, cache=TRUE}
 set.seed(1234)
@@ -166,7 +168,7 @@ lasso_rs %>%
 
 The model generally predicts that everything will have a star rating of between 3 and 5, and is especially poor at predicting lower values. 
 
-We're now operating without much of a map, since the example in SMLTAR worked beautifully (predicting the year a USA Supreme Court decision was written based on its text). However, we can follow one last SMLTAR step by tuning our lasso hyperparameters.
+We're now operating without much of a map, since the example in @silge_supervised_2020 worked beautifully (predicting the year a USA Supreme Court decision was written based on its text). However, we can follow one of their last steps by tuning our lasso hyperparameters.
 
 ### Tuning model parameters
 
@@ -227,7 +229,7 @@ tune_rs %>%
   )
 ```
 
-We generally want to choose the value that minimizes our RMSE (*TODO source this claim*)
+Since we want the best model performance possible, we'll follow @silge_supervised_2020 and choose the value that minimizes our RMSE.
 
 
 ```{r, cache=TRUE}
@@ -252,7 +254,7 @@ final_lasso <- finalize_workflow(
 
 ```
 
-SMLTAR says that now it's ready to go, but I'm not sure how to test it... perhaps 
+We can then do a final fit by testing our model's predictions against our testing data using the following command.
 
 ```{r, cache=TRUE}
 lasso_fit <- final_lasso %>%
@@ -260,6 +262,7 @@ lasso_fit <- final_lasso %>%
   
 ```
 
+And then we can extract its predictions and plot them against the true values to see how it looks.
 
 ```{r, cache=TRUE}
 lasso_fit %>%
@@ -373,7 +376,9 @@ This has an $R^2$ of 0.37, which is a big improvement over the 250-token model, 
 
 ### Short reviews only: <125 words
 
-Let's try only using reviews under 125 words. It's possible that shorter reviews are "denser" and more to the point, and that longer reviews contain too much "noise." This leaves us with 6,323 reviews. I'm also going to try making a function to run the lasso regression with these different inputs.
+Let's try only using reviews under 125 words. It's possible that shorter reviews are "denser" and more to the point, and that longer reviews contain too much "noise." This leaves us with 6,323 reviews. 
+
+To begin with, I'm  going to define a function to run the lasso regression with different inputs.
 
 ```{r define_lasso_function}
 run_lasso <- function(dataset, num_tokens){
@@ -441,6 +446,7 @@ return(lasso_fit)
 }
 ```
 
+Then we can use this function to easily run lasso regressions on different datasets.
 
 ```{r yelp_short_reviews_lasso, message=FALSE, warning=FALSE, cache=TRUE}
 
@@ -535,13 +541,13 @@ lasso_results_long %>%
   )
 ```
 
-Now our $R^2$ has gone up to 0.43, so it is possible that the longer reviews do in fact contain more information. And looking at the chart, the "cloud" of points does creep measurably higher for each true star rating. However, 
+Now our $R^2$ has gone up to 0.43, so it is possible that the longer reviews do in fact contain more information. And looking at the chart, the "cloud" of points does creep measurably higher for each true star rating. However, I'm still skeptical that this would be useful for predicting anything in practice.
 
 ## Removing stop words
 
 Stop words are common words that contain little information on their own, like "the" and "to." If using a bag-of-words approach, where you're not looking at the input text in a way that considers syntax (or, really, sentence-wise semantics) then it can be helpful to remove stop words.
 
-Here I will follow [SMLTAR s6.6](https://smltar.com/mlregression.html#casestudystopwords) to try using three different sets of stopwords, to see which performs best on this dataset.
+Here I will follow @silge_supervised_2020 's [SMLTAR s6.6](https://smltar.com/mlregression.html#casestudystopwords) to try using three different sets of stopwords, to see which performs best on this dataset.
 
 First, they build a wrapper function to make it easy to build recipes with different stopword sets.
 
@@ -776,7 +782,9 @@ toc()
 ```
 
 
-```{r}
+Now we can plot each model's performance for the different numbers of tokens and regularization penalties. We see the familiar dip-shaped graph we expect in lasso regularization but the dips are much more pronounced for larger token numbers, suggesting that regularization is much more important as we use more tokens. Also note that the best performance happens with an intermediate number of tokens: for some reason, model performace gets worse on this dataset if you use more than 3000 tokens.
+
+```{r final_rs_plot, cache= TRUE}
 final_rs %>%
   collect_metrics() %>%
   ggplot(aes(penalty, mean, color = as.factor(max_tokens))) +
@@ -792,14 +800,18 @@ final_rs %>%
 ```
 
 
-```{r}
+We can extract the lowest MAE value from our models:
+
+```{r, cache= TRUE}
 lowest_mae <- final_rs %>%
   select_best("mae")
 
 lowest_mae
 ```
 
-```{r}
+And then we can use this value to set a final workflow:
+
+```{r final_lasso_wf, cache= TRUE}
 final_wf <- finalize_workflow(
   tune_wf,
   lowest_mae
@@ -808,7 +820,9 @@ final_wf <- finalize_workflow(
 final_wf
 ```
 
-```{r}
+Which we can then use to do one last final fit and view its metrics:
+
+```{r final_lasso_fit, cache= TRUE}
 tic()
 final_fitted <- last_fit(final_wf, yelp_split)
 toc()
@@ -816,9 +830,9 @@ toc()
 collect_metrics(final_fitted)
 ```
 
+This plot uses the **vip** package to extract the most important positive and negative terms, so we can see what our lasso regression is picking up on. Overall, the terms look kind of random. I would have expected words like "delicious," "great," and "awesome" to have been strongly correlated with positive reviews, and so I'm not what to make of the fact that "talked," "sounded," and "dipped" are the top three most-associated-with-positive-review words. The negative words look a bit better--"unfortunate" is #1 and "worst" is #3--but there are still some head-scratchers, like "2.50" and "striploin." (Although if you spend $2.50 on a striploin you have no one to blame but yourself.)
 
-
-```{r}
+```{r, cache= TRUE}
 library(vip)
 
 scotus_imp <- pull_workflow_fit(final_fitted$.workflow[[1]]) %>%
@@ -850,9 +864,9 @@ scotus_imp %>%
   )
 ```
 
+Finally, we can again plot our final lasso model's predicted ratings vs. the actual ratings to see how they compare. There is a definite improvement from the first model, but the results ultimately still aren't workable. The range of predictions is still much too wide, and true lower reviews are still predicted as much too high.
 
-
-```{r}
+```{r, cache= TRUE}
 final_fitted %>%
   collect_predictions() %>%
   ggplot(aes(rating_num, .pred)) +
@@ -861,12 +875,18 @@ final_fitted %>%
   labs(
     x = "Truth",
     y = "Predicted year",
-    title = "Predicted and true years for the testing set of Supreme Court opinions",
-    subtitle = "For the testing set, predictions are more reliable after 1850"
+    title = "Predicted and true ratings for Yelp Reviews"
   )
 ```
 
 
+## Conclusion
 
+In this section I followed @silge_supervised_2020 's recipe and tried to predict a Yelp review's star rating from its text using a lasso regression model. I varied a number of parameters, including the lasso regularization penalty, the number of tokens used in the model, the number and type of n-grams, and the lengths of the reviews. Although the models' accuracy did improve as I refined them, none of the models were especially effective and none come close to being workable in practice. 
 
+There are at least two possibilities:
 
+* **The problem might be with the dataset.** The dataset may be too small, or too imbalanced (there are far fewer negative reviews than positive reviews), or have some other deficiency that makes it unsuitable for lasso regression.
+* **Linear regression may not be the right tool for the job.** Given the relatively small number of discrete rating categories, this might be better modeled as a classification problem.
+
+We will look at both of these possibilities in subsequent entries.
