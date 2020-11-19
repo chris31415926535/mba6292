@@ -19,3 +19,7 @@ This is a work product for the Telfer School of Management course *MBA6292*, Dir
 This document is intended as a final-work-in-progress: I will continue to revise and add through it during the semester, with the intention that at the end of the semester it will stand as a final product.
 
 This document is written in **RMarkdown** using **RStudio** and the **bookdown** package. For details and to learn how to create your own, see @R-bookdown.
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache=TRUE)
+```
