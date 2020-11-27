@@ -351,19 +351,21 @@ Let's begin by looking at a few misclassified reviews in detail. Table \@ref(tab
 ```{r first-misclas }
 predictions[7,]$text %>% 
   knitr::kable(col.names = "Review Text (True Pos, Misclassified)",
-               caption="True positive misclassified as negative. Note the number of negative-valence words like 'cheesy.'")
+               caption="True positive misclassified as negative. Note the number of negative-valence words like 'cheesy.'") %>%
+  kableExtra::kable_styling(bootstrap_options = "striped")
 ```
 
 Table \@ref(tab:second-misclas) shows a true negative review that was misclassified as positive. The reviewer uses many positive-valence words like "quality," and uses few negative-valence words. Again the positive-valence words are negated or muted by modifiers ("*medium*-quality lamb"), but AFINN can't detect this subtlety.
 
 ```{r second-misclas }
-set.seed(1234)
+set.seed(1233)
 predictions %>%
   filter(pred=="POS" & correct==FALSE) %>%
   slice_sample(n=1) %>% 
   select(text) %>%
-  knitr::kable(col.names = "Review Text (True Neg, Misclassified)",
-               caption="True negative misclassified as positive. Note the number of positive-valence words like 'quality' and 'good,' and the relative absence of negative-valenec words like 'bad' or 'unpleasant.'" )
+ knitr::kable(col.names = "Review Text (True Neg, Misclassified)",
+              caption="True negative misclassified as positive. Note the number of positive-valence words like 'quality' and 'good,' and the relative absence of negative-valenec words like 'bad' or 'unpleasant.'" ) %>%
+  kableExtra::kable_styling(bootstrap_options = "striped")
 
 ```
 
@@ -372,14 +374,15 @@ As a final check, let's look at the true-negative review with the highest AFINN 
 
 
 ```{r mostwrong}
-# afinn sent 113
 predictions %>%
   filter(correct==FALSE) %>%
   arrange(desc(afinn_sent)) %>%
   head(1) %>%
   select(text) %>%
+  mutate(text = gsub("\n", " ", text)) %>%
   knitr::kable(col.names = "Review Text",
-               caption = "This review was a true negative, but had an incredibly high AFINN score of 113.")
+               caption = "This review was a true negative, but because it is very long it has a very high AFINN score of 113.") %>%
+  kableExtra::kable_styling(bootstrap_options = "striped")
 ```
 
 In addition, this shows a potential source of error when using raw AFINN scores: there is no weighting for review length. A review that makes 50 lukewarm statements will be rated 50 times more positive than a shorter review that only makes one. As Figure \@ref(fig:afinn-word-length) shows, there does seem to be a positive correlation between a review's word length and its AFINN score. It may therefore be worth looking at *normalizing* AFINN scores, either to word length or number of sentences, to see if we can improve our accuracy.
@@ -637,7 +640,7 @@ Based on our findings, let's create a second model where we add negators to our 
 ```{r}
 logit_predict_v2 <- function (dataset) {
 
-  # for a train/test split: get a random vector as long as our dataset that is 75% TRUE and 25% FALSEe.
+  # for a train/test split: get a random vector as long as our dataset that is 75% TRUE and 25% FALSE.
   index <- sample(c(T,F), 
                   size = nrow(dataset),
                   replace = T,
@@ -717,7 +720,7 @@ data_for_logit <- data_for_logit %>%
 ```{r}
 logit_predict_v3 <- function (dataset) {
 
-  # for a train/test split: get a random vector as long as our dataset that is 75% TRUE and 25% FALSEe.
+  # for a train/test split: get a random vector as long as our dataset that is 75% TRUE and 25% FALSE.
   index <- sample(c(T,F), 
                   size = nrow(dataset),
                   replace = T,

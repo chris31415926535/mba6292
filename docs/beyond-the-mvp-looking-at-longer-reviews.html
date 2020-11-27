@@ -51,6 +51,7 @@
 
 
 <script src="libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
+<script src="libs/kePrint-0.0.1/kePrint.js"></script>
 
 
 <style type="text/css">
@@ -369,101 +370,85 @@ Figure 8.2: Experiment 2: Boxplots of review accuracy by word-length quintile, s
 <p>Let’s begin by looking at a few misclassified reviews in detail. Table <a href="beyond-the-mvp-looking-at-longer-reviews.html#tab:first-misclas">8.1</a> shows a review that was actually positive, but was predicted to be negative. Although it says a lot of positive-valence words like “epic” and “nice,” it also uses negative-valence words like “desperate,” “chintzy,” and “cheesy” that balance out for an overall AFINN score of just 8. A human reader can tell that the reviewer introduces these negative words just to dismiss them (as in “Feels modern and not <em>too</em> cheesy”), but AFINN just sees these words and scores them as negative.</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb5-1"></a>predictions[<span class="dv">7</span>,]<span class="op">$</span>text <span class="op">%&gt;%</span><span class="st"> </span></span>
 <span id="cb5-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb5-2"></a><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(<span class="dt">col.names =</span> <span class="st">&quot;Review Text (True Pos, Misclassified)&quot;</span>,</span>
-<span id="cb5-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb5-3"></a>               <span class="dt">caption=</span><span class="st">&quot;True positive misclassified as negative. Note the number of negative-valence words like &#39;cheesy.&#39;&quot;</span>)</span></code></pre></div>
-<table>
-<caption><span id="tab:first-misclas">Table 8.1: </span>True positive misclassified as negative. Note the number of negative-valence words like ‘cheesy.’</caption>
-<colgroup>
-<col width="100%" />
-</colgroup>
+<span id="cb5-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb5-3"></a>               <span class="dt">caption=</span><span class="st">&quot;True positive misclassified as negative. Note the number of negative-valence words like &#39;cheesy.&#39;&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb5-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb5-4"></a><span class="st">  </span>kableExtra<span class="op">::</span><span class="kw">kable_styling</span>(<span class="dt">bootstrap_options =</span> <span class="st">&quot;striped&quot;</span>)</span></code></pre></div>
+<table class="table table-striped" style="margin-left: auto; margin-right: auto;">
+<caption>
+<span id="tab:first-misclas">Table 8.1: </span>True positive misclassified as negative. Note the number of negative-valence words like ‘cheesy.’
+</caption>
 <thead>
-<tr class="header">
-<th align="left">Review Text (True Pos, Misclassified)</th>
+<tr>
+<th style="text-align:left;">
+Review Text (True Pos, Misclassified)
+</th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td align="left">First and foremost, I want to say that the people watching here is EPIC. Beyond that, it’s pretty nice for a casino. Feels modern and not <em>too</em> cheesy although it’s kind of hard to have a casino and NOT have some chintzy decor. Also, this casino doesn’t quite have that “desperate” feeling that a lot of other, older, established casinos seem to have. I’m not a gambler so I won’t speak to the gaming aspect of things but I think this casino does a good job of drawing people in who aren’t looking to lose money at the slots and would prefer to drop their hard-earned cash at a bar. The bar areas here are loungy and well laid out and it doesn’t feel like everyone who works at the casino is giving you the stinkeye bc you want to sit down somewhere that isn’t connected to a machine or at a table. I could totally see myself coming in here to grab a drink or two before venturing on to some other bar.</td>
+<tr>
+<td style="text-align:left;">
+First and foremost, I want to say that the people watching here is EPIC. Beyond that, it’s pretty nice for a casino. Feels modern and not <em>too</em> cheesy although it’s kind of hard to have a casino and NOT have some chintzy decor. Also, this casino doesn’t quite have that “desperate” feeling that a lot of other, older, established casinos seem to have. I’m not a gambler so I won’t speak to the gaming aspect of things but I think this casino does a good job of drawing people in who aren’t looking to lose money at the slots and would prefer to drop their hard-earned cash at a bar. The bar areas here are loungy and well laid out and it doesn’t feel like everyone who works at the casino is giving you the stinkeye bc you want to sit down somewhere that isn’t connected to a machine or at a table. I could totally see myself coming in here to grab a drink or two before venturing on to some other bar.
+</td>
 </tr>
 </tbody>
 </table>
 <p>Table <a href="beyond-the-mvp-looking-at-longer-reviews.html#tab:second-misclas">8.2</a> shows a true negative review that was misclassified as positive. The reviewer uses many positive-valence words like “quality,” and uses few negative-valence words. Again the positive-valence words are negated or muted by modifiers (“<em>medium</em>-quality lamb”), but AFINN can’t detect this subtlety.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb6-1"></a><span class="kw">set.seed</span>(<span class="dv">1234</span>)</span>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb6-1"></a><span class="kw">set.seed</span>(<span class="dv">1233</span>)</span>
 <span id="cb6-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb6-2"></a>predictions <span class="op">%&gt;%</span></span>
 <span id="cb6-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb6-3"></a><span class="st">  </span><span class="kw">filter</span>(pred<span class="op">==</span><span class="st">&quot;POS&quot;</span> <span class="op">&amp;</span><span class="st"> </span>correct<span class="op">==</span><span class="ot">FALSE</span>) <span class="op">%&gt;%</span></span>
 <span id="cb6-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb6-4"></a><span class="st">  </span><span class="kw">slice_sample</span>(<span class="dt">n=</span><span class="dv">1</span>) <span class="op">%&gt;%</span><span class="st"> </span></span>
 <span id="cb6-5"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb6-5"></a><span class="st">  </span><span class="kw">select</span>(text) <span class="op">%&gt;%</span></span>
-<span id="cb6-6"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb6-6"></a><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(<span class="dt">col.names =</span> <span class="st">&quot;Review Text (True Neg, Misclassified)&quot;</span>,</span>
-<span id="cb6-7"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb6-7"></a>               <span class="dt">caption=</span><span class="st">&quot;True negative misclassified as positive. Note the number of positive-valence words like &#39;quality&#39; and &#39;good,&#39; and the relative absence of negative-valenec words like &#39;bad&#39; or &#39;unpleasant.&#39;&quot;</span> )</span></code></pre></div>
-<table>
-<caption><span id="tab:second-misclas">Table 8.2: </span>True negative misclassified as positive. Note the number of positive-valence words like ‘quality’ and ‘good,’ and the relative absence of negative-valenec words like ‘bad’ or ‘unpleasant.’</caption>
-<colgroup>
-<col width="100%" />
-</colgroup>
+<span id="cb6-6"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb6-6"></a><span class="st"> </span>knitr<span class="op">::</span><span class="kw">kable</span>(<span class="dt">col.names =</span> <span class="st">&quot;Review Text (True Neg, Misclassified)&quot;</span>,</span>
+<span id="cb6-7"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb6-7"></a>              <span class="dt">caption=</span><span class="st">&quot;True negative misclassified as positive. Note the number of positive-valence words like &#39;quality&#39; and &#39;good,&#39; and the relative absence of negative-valenec words like &#39;bad&#39; or &#39;unpleasant.&#39;&quot;</span> ) <span class="op">%&gt;%</span></span>
+<span id="cb6-8"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb6-8"></a><span class="st">  </span>kableExtra<span class="op">::</span><span class="kw">kable_styling</span>(<span class="dt">bootstrap_options =</span> <span class="st">&quot;striped&quot;</span>)</span></code></pre></div>
+<table class="table table-striped" style="margin-left: auto; margin-right: auto;">
+<caption>
+<span id="tab:second-misclas">Table 8.2: </span>True negative misclassified as positive. Note the number of positive-valence words like ‘quality’ and ‘good,’ and the relative absence of negative-valenec words like ‘bad’ or ‘unpleasant.’
+</caption>
 <thead>
-<tr class="header">
-<th align="left">Review Text (True Neg, Misclassified)</th>
+<tr>
+<th style="text-align:left;">
+Review Text (True Neg, Misclassified)
+</th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td align="left">We visited at 8:30 p.m. on Friday, me and wife and 10 month old. I always give the place an “out” if something’s not right. My wife and I got seated at a 2 top on the wall and the high chair placed between our table on the side. When the old lady and guy paid their bill to the left of us were 28 open seats, all 4 and 2 tops. To the right of us a 4 top and the dimwit hostess sat a 4 top there between us and another 4 top and I internally was pissed because we were so crowded the VERY friendly waitress was putting food on the table next to us. The reuben was DYNAMITE, HVAC was not. The front was open so we were “pitted-out” from fetid air. The 4 top next to us was pissed they were sandwiched between us and another table and they didn’t move they left. The VERY friendly waitress waiting that table agreed with me the hostesses must be brain-damaged…OK, she said one is “new.” $5.50 french fries (straight fries) were a tad old, not crispy. They did great on the reuben. Maybe I’d give 3 stars if when I walked out 4 hostesses and waitresses and one guy weren’t impeding our exit and didn’t thank us and were talking about slamming shots. I don’t care about the 50 bucks, I care about the experience and a beer glass that was not cold, it was slightly warm. We should have waited the 35 minutes for SanTan (this place was 30% full.) I suspect this place is 5 stars to get hammered, but they miss some basics I learned as a waiter / bartender. I cleaned crumbs off my seat - &amp; 5 people yapping outside.</td>
+<tr>
+<td style="text-align:left;">
+<p>I feel trolled by fellow Yelpers and IG foodies for thinking that James Cheese would be a great dinner choice. This is one of those cases where it looks good, but doesn’t taste good and I’m not afraid to call it as it is, despite the impeccable service that we got. Taste should come before presentation and service, sorry.</p>
+I would describe a meal at James Cheese as a waste of a cheat day. Go do AYCE sushi instead. We got the kimchi fries, coconut pineapple drink and the signature ribs platter in mild and medium. The kimchi fries were a bit dry and not nearly as good as the ones from Banh Mi Boyz, although kudos for the meat. It was just dry while at the same time soggy with kimchi juice. There wasn’t a discernable difference between the mild and medium ribs and both are overly sweet. The combo of ribs, mozzarella cheese, corn, scrambled eggs, hotdogs, and kimchi seems so mismatched. I would go so far to call out that anyone who gave this restaurant more than 3 stars not a real foodie. Please, I want to eat real good food, bonus if it looks good.
+</td>
 </tr>
 </tbody>
 </table>
 <p>As a final check, let’s look at the true-negative review with the highest AFINN score to see where AFINN went most wrong. Table <a href="beyond-the-mvp-looking-at-longer-reviews.html#tab:mostwrong">8.3</a> shows this review, which received an AFINN score of 113 despite being negative. The author here also uses positive-valence words with negating words (e.g. “I <em>wasn’t</em> particularly impressed”), which confuses AFINN and leads to a high score. In addition, the author does just have a lot of nice things to say about the meal, which even I find a bit confusing.</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb7-1"></a><span class="co"># afinn sent 113</span></span>
-<span id="cb7-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb7-2"></a>predictions <span class="op">%&gt;%</span></span>
-<span id="cb7-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb7-3"></a><span class="st">  </span><span class="kw">filter</span>(correct<span class="op">==</span><span class="ot">FALSE</span>) <span class="op">%&gt;%</span></span>
-<span id="cb7-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb7-4"></a><span class="st">  </span><span class="kw">arrange</span>(<span class="kw">desc</span>(afinn_sent)) <span class="op">%&gt;%</span></span>
-<span id="cb7-5"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb7-5"></a><span class="st">  </span><span class="kw">head</span>(<span class="dv">1</span>) <span class="op">%&gt;%</span></span>
-<span id="cb7-6"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb7-6"></a><span class="st">  </span><span class="kw">select</span>(text) <span class="op">%&gt;%</span></span>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb7-1"></a>predictions <span class="op">%&gt;%</span></span>
+<span id="cb7-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb7-2"></a><span class="st">  </span><span class="kw">filter</span>(correct<span class="op">==</span><span class="ot">FALSE</span>) <span class="op">%&gt;%</span></span>
+<span id="cb7-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb7-3"></a><span class="st">  </span><span class="kw">arrange</span>(<span class="kw">desc</span>(afinn_sent)) <span class="op">%&gt;%</span></span>
+<span id="cb7-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb7-4"></a><span class="st">  </span><span class="kw">head</span>(<span class="dv">1</span>) <span class="op">%&gt;%</span></span>
+<span id="cb7-5"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb7-5"></a><span class="st">  </span><span class="kw">select</span>(text) <span class="op">%&gt;%</span></span>
+<span id="cb7-6"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb7-6"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">text =</span> <span class="kw">gsub</span>(<span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>, <span class="st">&quot; &quot;</span>, text)) <span class="op">%&gt;%</span></span>
 <span id="cb7-7"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb7-7"></a><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(<span class="dt">col.names =</span> <span class="st">&quot;Review Text&quot;</span>,</span>
-<span id="cb7-8"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb7-8"></a>               <span class="dt">caption =</span> <span class="st">&quot;This review was a true negative, but had an incredibly high AFINN score of 113.&quot;</span>)</span></code></pre></div>
-<table>
-<caption><span id="tab:mostwrong">Table 8.3: </span>This review was a true negative, but had an incredibly high AFINN score of 113.</caption>
-<colgroup>
-<col width="100%" />
-</colgroup>
+<span id="cb7-8"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb7-8"></a>               <span class="dt">caption =</span> <span class="st">&quot;This review was a true negative, but because it is very long it has a very high AFINN score of 113.&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb7-9"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb7-9"></a><span class="st">  </span>kableExtra<span class="op">::</span><span class="kw">kable_styling</span>(<span class="dt">bootstrap_options =</span> <span class="st">&quot;striped&quot;</span>)</span></code></pre></div>
+<table class="table table-striped" style="margin-left: auto; margin-right: auto;">
+<caption>
+<span id="tab:mostwrong">Table 8.3: </span>This review was a true negative, but because it is very long it has a very high AFINN score of 113.
+</caption>
 <thead>
-<tr class="header">
-<th align="left">Review Text</th>
+<tr>
+<th style="text-align:left;">
+Review Text
+</th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td align="left">Tastefully decorated with wine bottles, glasses, and interesting lighting fixtures, the interior feels open and bright thanks to floor-to-ceiling windows. A fantastic outdoor back patio includes an outdoor bar and lounge areas.</td>
+<tr>
+<td style="text-align:left;">
+Tastefully decorated with wine bottles, glasses, and interesting lighting fixtures, the interior feels open and bright thanks to floor-to-ceiling windows. A fantastic outdoor back patio includes an outdoor bar and lounge areas. The service was pleasant and patient - We were given a bread basket with crispy flat bread seasoned with tarragon and a few slices of white bread. It was accompanied with a rather plain marinara sauce, which foreshadowed the upcoming meal. Baby Red Romaine &amp; Escarole Salad Cara Cara orange, fennel, shaved Parmigiano-Reggiano and old wine vinaigrette A light start of fresh lettuce, a slightly tart vinaigrette, ripe Cara Cara orange, and cheese. While the orange and the dressing was enjoyable, something was left to be desired…perhaps it’s because of my unrefined wine and cheese palette, but I wasn’t particularly impressed. Memorable Summerlicious starter salads include the butterleaf truffle salad at Truffles at the Four Seasons (which has since closed) and Tutti Matti’s carpaccio salads. Bigeye Tuna Tartare &amp; Spicy Sopressata Cracked olives, garlic grissini, arugula, lemon and Sicilian organic extra virgin olive oil Fresh tuna tartare on a bed of salami was a welcome dish, especially since I’ve never tried sopressata before. The saltyness of the cured ham paired with the freshnesses of the tuna created an interesting balance between bites. The olives were typical, and the bread sticks brought a crunch but no flavour to the plate. Perhaps if they were toasted a bit more or rolled in sesame, it would’ve been a nice compliment to the dish. Wild &amp; Tame Mushroom Soup Six kinds of mushrooms (no butter or cream) Thick, warm, and hearty - this had the rich texture of a comforting soup despite the lack of cream or butter. I was impressed with the consistency and I love the taste of mushrooms so I thoroughly enjoyed this soup. As with the salad, there was something lacking - the “wow” factor that I always hope for at ’licious restaurants. The best mushroom soup that I’ve tasted was Wild Mushroom Soup from Tutti Matti - unfortunately not on their current menu. Grilled Top Sirloin Fettina Charred onion, heirloom tomato and rocket salad with crumbled Gorgonzola The vegetables were nice and warm, and the sauce surrounding the steak sweet however the steak wasn’t particularly interesting or great. Tender and nicely cooked, it was a good, simple cut of sirloin but didn’t blow me away or leave a lasting impression on my palette. Grilled Jail Island Salmon Pickled summer beets, heirloom carrots, watercress salad and horseradish crème fraîche Despite my half-success with the fish at Biff’s Bistro, I decided that it was worth another go. While tasty, I’m quickly getting bored with this Summerlicious lunch. The beets were nice, warm, and soft and the horseradish crème fraîche had great flavour. However the salmon was…just salmon. Roasted Portobello Mushroom &amp; Brie Quesadilla Caramelized onions, pico de gallo, chipotle crema, plantain tortilla chips and cilantro cress My personal favourite of the entrées, the chipotle cream had a tangy flavour that tasted great with the pico de gallo and quesadilla. The pico de gallo (salsa) was ripe and simple. Always a fan of portobello, these quesadillas had great flavour. While an interesting visual, the tortilla chips were lacking the flavour I usually enjoy from plantains. As a plantain chip lover, they were a disappointment. I’d rather crack open a bag of the Samai Plantain chips that I got addicted to Barbados. Chocolate Toffee Crunch Cheesecake Dulce de leche cream Thick cheesecake that was more toffee-like than chocolate. The caramel was pleasant with the dense cake. I wasn’t a fan of the bit of toffee that accompanied the cake but overall I’d say that this was the best dessert out of the three. Bavarian Vanilla Cream Ontario strawberry compote and dark cherry balsamic Nice and warm with a smooth texture, the vanilla cream dessert sat on one of the better compotes that I’ve tried. I found myself scooping this dessert up more for the compote than the cream. Coconut Rum Baba Tropical fruit salad and banana cream This spongy cake was covered with coconut shavings over pineapple, mango, and lychee. A sweet, generous drizzle of rum syrup soaked into the cake quite nicely. While I wasn’t the biggest fan of this dessert initially, over time as I enjoyed my company it grew on me. It wasn’t too rich or filling. Wonderfully designed and decorated, Jump Café &amp; Bar creates a vibrant, young, and upscale environment quite well. I would return for a drink at the bar, and the service was fantastic. However, I thought it was missing that the “oomph” factor that would make me wholeheartedly recommend this restaurant for future Summerlicious romps. This is a good spot to take someone who wants a very simple no-frills meal.
+</td>
 </tr>
 </tbody>
 </table>
-<p>The service was pleasant and patient - We were given a bread basket with crispy flat bread seasoned with tarragon and a few slices of white bread. It was accompanied with a rather plain marinara sauce, which foreshadowed the upcoming meal.</p>
-<p>Baby Red Romaine &amp; Escarole Salad
-Cara Cara orange, fennel, shaved Parmigiano-Reggiano and old wine vinaigrette
-A light start of fresh lettuce, a slightly tart vinaigrette, ripe Cara Cara orange, and cheese. While the orange and the dressing was enjoyable, something was left to be desired…perhaps it’s because of my unrefined wine and cheese palette, but I wasn’t particularly impressed. Memorable Summerlicious starter salads include the butterleaf truffle salad at Truffles at the Four Seasons (which has since closed) and Tutti Matti’s carpaccio salads.</p>
-<p>Bigeye Tuna Tartare &amp; Spicy Sopressata
-Cracked olives, garlic grissini, arugula, lemon and Sicilian organic extra virgin olive oil
-Fresh tuna tartare on a bed of salami was a welcome dish, especially since I’ve never tried sopressata before. The saltyness of the cured ham paired with the freshnesses of the tuna created an interesting balance between bites. The olives were typical, and the bread sticks brought a crunch but no flavour to the plate. Perhaps if they were toasted a bit more or rolled in sesame, it would’ve been a nice compliment to the dish.</p>
-<p>Wild &amp; Tame Mushroom Soup
-Six kinds of mushrooms (no butter or cream)
-Thick, warm, and hearty - this had the rich texture of a comforting soup despite the lack of cream or butter. I was impressed with the consistency and I love the taste of mushrooms so I thoroughly enjoyed this soup. As with the salad, there was something lacking - the “wow” factor that I always hope for at ’licious restaurants. The best mushroom soup that I’ve tasted was Wild Mushroom Soup from Tutti Matti - unfortunately not on their current menu.</p>
-<p>Grilled Top Sirloin Fettina
-Charred onion, heirloom tomato and rocket salad with crumbled Gorgonzola
-The vegetables were nice and warm, and the sauce surrounding the steak sweet however the steak wasn’t particularly interesting or great. Tender and nicely cooked, it was a good, simple cut of sirloin but didn’t blow me away or leave a lasting impression on my palette.</p>
-<p>Grilled Jail Island Salmon
-Pickled summer beets, heirloom carrots, watercress salad and horseradish crème fraîche
-Despite my half-success with the fish at Biff’s Bistro, I decided that it was worth another go. While tasty, I’m quickly getting bored with this Summerlicious lunch. The beets were nice, warm, and soft and the horseradish crème fraîche had great flavour. However the salmon was…just salmon.</p>
-<p>Roasted Portobello Mushroom &amp; Brie Quesadilla
-Caramelized onions, pico de gallo, chipotle crema, plantain tortilla chips and cilantro cress
-My personal favourite of the entrées, the chipotle cream had a tangy flavour that tasted great with the pico de gallo and quesadilla. The pico de gallo (salsa) was ripe and simple. Always a fan of portobello, these quesadillas had great flavour. While an interesting visual, the tortilla chips were lacking the flavour I usually enjoy from plantains. As a plantain chip lover, they were a disappointment. I’d rather crack open a bag of the Samai Plantain chips that I got addicted to Barbados.</p>
-<p>Chocolate Toffee Crunch Cheesecake
-Dulce de leche cream
-Thick cheesecake that was more toffee-like than chocolate. The caramel was pleasant with the dense cake. I wasn’t a fan of the bit of toffee that accompanied the cake but overall I’d say that this was the best dessert out of the three.</p>
-<p>Bavarian Vanilla Cream
-Ontario strawberry compote and dark cherry balsamic
-Nice and warm with a smooth texture, the vanilla cream dessert sat on one of the better compotes that I’ve tried. I found myself scooping this dessert up more for the compote than the cream.</p>
-<p>Coconut Rum Baba
-Tropical fruit salad and banana cream
-This spongy cake was covered with coconut shavings over pineapple, mango, and lychee. A sweet, generous drizzle of rum syrup soaked into the cake quite nicely. While I wasn’t the biggest fan of this dessert initially, over time as I enjoyed my company it grew on me. It wasn’t too rich or filling.</p>
-<p>Wonderfully designed and decorated, Jump Café &amp; Bar creates a vibrant, young, and upscale environment quite well. I would return for a drink at the bar, and the service was fantastic. However, I thought it was missing that the “oomph” factor that would make me wholeheartedly recommend this restaurant for future Summerlicious romps. This is a good spot to take someone who wants a very simple no-frills meal. |</p>
 <p>In addition, this shows a potential source of error when using raw AFINN scores: there is no weighting for review length. A review that makes 50 lukewarm statements will be rated 50 times more positive than a shorter review that only makes one. As Figure <a href="beyond-the-mvp-looking-at-longer-reviews.html#fig:afinn-word-length">8.3</a> shows, there does seem to be a positive correlation between a review’s word length and its AFINN score. It may therefore be worth looking at <em>normalizing</em> AFINN scores, either to word length or number of sentences, to see if we can improve our accuracy.</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb8-1"></a>yelp_data <span class="op">%&gt;%</span></span>
 <span id="cb8-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb8-2"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x=</span>words, <span class="dt">y=</span>afinn_sent)) <span class="op">+</span></span>
@@ -845,7 +830,7 @@ Figure 8.8: Distributions of FK reading ease scores for reviews with correct and
 <p>Based on our findings, let’s create a second model where we add negators to our logistic regression. This next code chunk defines Model 2, and the main difference is that now our logistic regression formula is <code>rating_factor ~ afinn_sent + buts_nots</code>.</p>
 <div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-1"></a>logit_predict_v2 &lt;-<span class="st"> </span><span class="cf">function</span> (dataset) {</span>
 <span id="cb27-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-2"></a></span>
-<span id="cb27-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-3"></a>  <span class="co"># for a train/test split: get a random vector as long as our dataset that is 75% TRUE and 25% FALSEe.</span></span>
+<span id="cb27-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-3"></a>  <span class="co"># for a train/test split: get a random vector as long as our dataset that is 75% TRUE and 25% FALSE.</span></span>
 <span id="cb27-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-4"></a>  index &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="kw">c</span>(T,F), </span>
 <span id="cb27-5"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-5"></a>                  <span class="dt">size =</span> <span class="kw">nrow</span>(dataset),</span>
 <span id="cb27-6"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-6"></a>                  <span class="dt">replace =</span> T,</span>
@@ -923,7 +908,7 @@ Figure 8.8: Distributions of FK reading ease scores for reviews with correct and
 <span id="cb29-12"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb29-12"></a><span class="st">  </span><span class="kw">select</span>(<span class="op">-</span>rowid)</span></code></pre></div>
 <div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-1"></a>logit_predict_v3 &lt;-<span class="st"> </span><span class="cf">function</span> (dataset) {</span>
 <span id="cb30-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-2"></a></span>
-<span id="cb30-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-3"></a>  <span class="co"># for a train/test split: get a random vector as long as our dataset that is 75% TRUE and 25% FALSEe.</span></span>
+<span id="cb30-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-3"></a>  <span class="co"># for a train/test split: get a random vector as long as our dataset that is 75% TRUE and 25% FALSE.</span></span>
 <span id="cb30-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-4"></a>  index &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="kw">c</span>(T,F), </span>
 <span id="cb30-5"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-5"></a>                  <span class="dt">size =</span> <span class="kw">nrow</span>(dataset),</span>
 <span id="cb30-6"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-6"></a>                  <span class="dt">replace =</span> T,</span>
