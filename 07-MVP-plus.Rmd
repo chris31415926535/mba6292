@@ -1,0 +1,1015 @@
+
+```{r setup-beyond-mvp, include=FALSE}
+rm(list = ls())
+knitr::opts_chunk$set(echo = TRUE, cache=TRUE)
+
+
+library(tidyverse)
+library(tidytext)
+library(textrecipes)
+library(tidymodels)
+library(tidytext)
+library(stringr)
+library(discrim)
+library(readr)
+library(tictoc)
+library(ggridges)
+library(sylcount)
+library(beepr)
+
+
+
+
+afinn <- tidytext::get_sentiments("afinn")
+```
+
+# Beyond the MVP: Looking at Longer Reviews
+
+## Introduction
+
+In this notebook I'll dig deeper into the last section's strange finding that *longer* reviews generated *worse* predictions. Recall that we used a logistic regression to create a *classification model* to predict Yelp reviews' star ratings based on their sentiment as measured by AFINN. After evaluating 25 models using data subsets with review lengths and volumes, the two main results were:
+
+* **A1:** Review accuracy was better with shorter reviews, and the longest reviews were the least effective.
+* **A2:** Review accuracy was not correlated with the number of reviews used as inputs, provided the number of reviews is on the order of 10,000.
+
+Here I'll test two hypotheses:
+
+* **H1:** The presence of *negators* like "but" and "not" are associated with both incorrect predictions and with increasing review length.
+* **H2:** Decreasing *readability scores* are associated with both incorrect predictions and with increasing review length. 
+
+The intuition is twofold: first, that AFINN's simple "bag-of-words" approach can't capture complex sentence structures; and second, that the number of complex sentence structures will tend to increase as the length of a review increases. As a result, we would expect more complex reviews to have worse predictions using a simple model based on AFINN scores.
+
+## Results from the Previous Section
+
+I will again work with the large Yelp dataset available [at this link](https://www.kaggle.com/yelp-dataset/yelp-dataset). For brevity I'm omitting the code here (see the previous section or .Rmd source file), but the code:
+
+* Loads the first 500k reviews;
+* Converts integer star ratings to NEG and POS factors;
+* Balances the NEG and POS reviews using random downsampling;
+* Calculates each review's AFINN sentiment score; and
+* Calculates each review's word length. 
+
+```{r yelp_big_load_beyond_mvp, message=FALSE, warning=FALSE, echo=FALSE}
+
+# figure out how to do it reading between the lines of this stackoverflow:
+# https://stackoverflow.com/questions/53277351/read-first-1000-lines-from-very-big-json-lines-file-r
+
+yelp_big <- readLines("../tests/data/yelp_academic_dataset_review.json", n = 500000) %>%
+  textConnection() %>%
+  jsonlite::stream_in(verbose=FALSE)
+
+# convert integer ratings to POS/NEG factors
+yelp_big_factor <- yelp_big %>%
+  select(stars, text) %>%
+  mutate(rating_factor = case_when(
+    stars < 3 ~ "NEG",
+    stars > 3 ~ "POS") %>%
+      as.factor()
+  ) %>%
+  select(-stars) %>%
+  drop_na()
+
+# balance the dataset
+set.seed(1234)
+yelp_balanced <- yelp_big_factor %>%
+  filter(rating_factor == "NEG") %>%
+  bind_rows(yelp_big_factor%>%
+              filter(rating_factor == "POS") %>%
+              slice_sample(n=yelp_big_factor %>% filter(rating_factor == "NEG") %>% nrow() ))
+
+# get afinn scores
+afinn_yelp_big <- yelp_balanced %>%
+  rowid_to_column() %>%
+  tidytext::unnest_tokens(word, text) %>%
+  left_join(afinn) %>%
+  group_by(rowid) %>%
+  summarise(afinn_sent = sum(value, na.rm = T))
+
+
+yelp_big_bal_afinn <- afinn_yelp_big %>%
+  left_join(yelp_balanced %>% rowid_to_column()) %>%
+  select(-rowid)
+
+# get word counts
+wordcounts_yp <- yelp_big_bal_afinn %>%
+  select(text) %>%
+  rowid_to_column() %>%
+  tidytext::unnest_tokens(word, text) %>%
+  group_by(rowid) %>%
+  summarise(n = n()) %>%
+  arrange(n)  %>%
+  mutate(id = 1,
+         cumdist = cumsum(id)) 
+
+
+# create final dataset
+yelp_data <- bind_cols(
+  yelp_big_bal_afinn,
+  wordcounts_yp %>% 
+    arrange(rowid) %>%
+    select(words = n)
+)
+
+# remove the datasets we made along the way
+rm(afinn_yelp_big, yelp_big, yelp_balanced, yelp_big_bal_afinn, yelp_big_factor, wordcounts_yp)
+
+```
+
+
+```{r logit_setup_beyond_mvp, echo=FALSE}
+do_logit <- function (dataset) {
+
+  # for a train/test split: get a random vector as long as our dataset that is 75% TRUE and 25% FALSEe.
+  index <- sample(c(T,F), 
+                  size = nrow(dataset),
+                  replace = T,
+                  prob=c(0.75,0.25))
+  
+  # extract train and test datasets by indexing our dataset using our random index
+  train <- dataset[index,]
+  test <- dataset[!index,]
+  
+  # use `glm()` to run a logistic regression predicting the rating factor based on the AFINN score.
+  logit <- glm(data= train,
+               formula= rating_factor ~ afinn_sent,
+               family="binomial")
+  
+  pred <- predict(logit, 
+                  newdata = test,
+                  type="response")
+  
+  # now predict the outcome based on whichever has the greater probability, find out if each prediction is correct, and compute the accuracy
+  test_results <- test %>%
+    bind_cols(tibble(pred = pred)) %>%
+    mutate(pred = if_else(pred > 0.5, "POS", "NEG")) %>%
+    mutate(correct = if_else (pred == rating_factor, T, F)) %>%
+    summarise(accuracy = sum(correct) / nrow(.)) %>%
+    unlist()
+  
+  return (test_results)
+}
+
+```
+
+
+
+
+
+```{r big_code_block2_beyond_mvp, warning=FALSE, message=FALSE, echo=FALSE, cache=TRUE}
+# for reproducibility, set the random number generator seed
+set.seed(1234)
+
+# how many tests to run on each subset?
+num_tests <- 30
+
+# how many quantiles?
+num_qtiles <- 5
+
+# get the limits of the word-quantiles for display purposes
+qtiles <- quantile(yelp_data$words, probs = seq(0, 1, (1/num_qtiles)))
+
+# find the word-quantile for each review using the fabricatr::split_quantile() function
+yelp_data <- yelp_data %>%
+  mutate(qtile = fabricatr::split_quantile(words, 
+                                           type=num_qtiles))
+
+# get the number of reviews in the smallest subset of BOTH rating and length quintile.
+# we're going to use this to compare groups of the same/similar size.
+minn <- yelp_data %>%
+  group_by(qtile, rating_factor) %>%
+  summarise(n = n()) %>%
+  ungroup() %>%
+  summarise(minn = min(n)) %>%
+  unlist()
+
+# set up an empty results tibble.
+results <- tibble()
+
+# boolean flag: will we print updates to the console?
+# I used this for testing but it should be disabled in the final knit
+verbose <- FALSE
+
+
+# Consider each quantile of review word lengths one at a time
+for (word_qtile in 1:num_qtiles){
+  # within each quantile of reviews broken down by length, consider several different numbers of reviews
+  for (num_qtile in 1:num_qtiles){
+    
+    # number of reviews we will consider in this iteration.
+    num_reviews <- num_qtile * minn/num_qtiles
+    
+    # message for me to keep track
+    if (verbose == TRUE) {
+      message (paste0("Considering ", num_reviews*2, " reviews with word length in the range (",qtiles[[word_qtile]],",",qtiles[[word_qtile+1]],")"))
+    }
+    
+    # I'm doing this in two steps to keep it simple, since we need to get the same number of positive and negative reviews.
+    # First, filter the positive rows we want: the right number of words, and the right number of reviews
+    data_pos <- yelp_data %>%
+      filter(qtile == word_qtile) %>%
+      filter(rating_factor == "POS") %>%
+      slice_sample(n = num_reviews)
+    
+    # Then filter the negative rows we want:
+    data_neg <- yelp_data %>%
+      filter(qtile == word_qtile) %>%
+      filter(rating_factor == "NEG") %>%
+      slice_sample(n = num_reviews)
+    
+    # then combine the positive and negative rows.
+    data_for_logit <- bind_rows(data_pos, data_neg) 
+    
+    # get true percentage of positives, so we can look at sample balance
+    pct_true_pos <- data_for_logit %>%
+      summarise(n = sum(rating_factor == "POS") / nrow(.)) %>%
+      unlist()
+    
+    # run the logistic regression on our data
+    # run the logistic regression on our data num_test times, get accuracy each time, then take the mean
+    result <- vector(mode = "numeric", length = num_tests)
+    for (i in 1:num_tests) result[[i]] <- data_for_logit %>% do_logit()
+    result <- mean(result)
+    # result <- data_for_logit %>%
+    #   do_logit()
+    
+    # add our result to our results tibble. this wouldn't be best practice for thousands of rows, but it's fine here.
+    results <- bind_rows(
+      results,
+      tibble(word_qtile = word_qtile,
+             num_qtile = num_qtile,
+             accuracy = result,
+             pct_true_pos = pct_true_pos)
+    )
+  }
+}
+
+results_oldmodel <- results
+```
+
+In the last section we found that prediction accuracy was better with shorter texts and poor with longer texts. To give a fairer analysis of the model and to smooth out any potential for us to get poor results by chance, here I extend the analysis a bit to run the model 30 times for each data subset--randomly resampling a test/train split each time--and computing the average accuracy across all trials. The results are similar to what we found in the last section and are shown below in Figure \@ref(fig:reminder-heatmap). Accuracy ranges from around 79% to around 83%, and it looks like results are worse for longer reviews.
+
+```{r reminder-heatmap, fig.cap = "Overview of results: Heat map of logistic regression prediction accuracy for the micro-balanced Yelp dataset. Each cell shows average accuracy for 30 tests on random samples.", cache=TRUE}
+results_oldmodel %>%
+  ggplot() +
+  geom_tile(aes(x=word_qtile, y=num_qtile, fill=accuracy)) +
+  scale_x_continuous(breaks = 1:num_qtiles, 
+                     labels = paste0("Q",1:num_qtiles,": ",qtiles, "-",lead(qtiles)) %>% head(-1)) +
+  scale_y_continuous(breaks = 1:num_qtiles,
+                     labels = (2*round(1:num_qtiles * minn/num_qtiles))) +
+  labs(x = "Review Word Length by Quantile",
+       y = "Number of Reviews",
+       fill = "Accuracy")
+
+
+```
+
+This trend is clear in Figure \@ref(fig:reminder-boxplot-length) below, where the first three quintiles perform reasonably well, but then accuracy degrades quickly in Q4 and Q5.
+
+```{r reminder-boxplot-length, fig.cap = "Experiment 2: Boxplots of review accuracy by word-length quintile, showing the worst performance with the longest reviews. Each point is an average of model results based on 30 random samples within the subset.", cache=TRUE}
+results_oldmodel %>%
+  ggplot() +
+  geom_boxplot(aes(x=as.factor(word_qtile), y = accuracy)) +
+  theme_minimal() +
+  scale_x_discrete(breaks = 1:num_qtiles, 
+                     labels = paste0("Q",1:num_qtiles,": ",qtiles, "-",lead(qtiles)) %>% head(-1)) +
+  labs(x = "Review Word Length by Quantile",
+       y = "Accuracy")
+```
+
+
+## Finding Misclassified Reviews
+
+We'll modify our logistic regression function so that it returns its prediction for each review, not only the accuracy for the whole set of reviews.
+
+```{r}
+logit_predict <- function (dataset) {
+
+  # for a train/test split: get a random vector as long as our dataset that is 75% TRUE and 25% FALSEe.
+  index <- sample(c(T,F), 
+                  size = nrow(dataset),
+                  replace = T,
+                  prob=c(0.75,0.25))
+  
+  # extract train and test datasets by indexing our dataset using our random index
+  train <- dataset[index,]
+  test <- dataset[!index,]
+  
+  # use `glm()` to run a logistic regression predicting the rating factor based on the AFINN score.
+  logit <- glm(data= train,
+               formula= rating_factor ~ afinn_sent,
+               family="binomial")
+  
+  pred <- predict(logit, 
+                  newdata = test,
+                  type="response")
+  
+  # now predict the outcome based on whichever has the greater probability, find out if each prediction is correct
+  test_results <- test %>%
+    bind_cols(tibble(pred = pred)) %>%
+    mutate(pred = if_else(pred > 0.5, "POS", "NEG")) %>%
+    mutate(correct = if_else (pred == rating_factor, T, F)) 
+  
+  return (test_results)
+}
+```
+
+
+For this analysis, we will look at the largest set of the longest reviews that we considered in the previous section. This code takes the full set of the longest reviews, downsamples it so that there are the same number of positive and negative reviews, and then fits a logistic regression to a training subset and returns predictions for a test subset.
+
+```{r, cache=TRUE}
+set.seed(1234)
+word_qtil <- 5
+minnnum_reviews <- 5 * minn/num_qtiles 
+   # I'm doing this in two steps to keep it simple, since we need to get the same number of positive and negative reviews.
+    # First, filter the positive rows we want: the right number of words, and the right number of reviews
+    data_pos <- yelp_data %>%
+      filter(qtile == word_qtile) %>%
+      filter(rating_factor == "POS") %>%
+      slice_sample(n = num_reviews)
+    
+    # Then filter the negative rows we want:
+    data_neg <- yelp_data %>%
+      filter(qtile == word_qtile) %>%
+      filter(rating_factor == "NEG") %>%
+      slice_sample(n = num_reviews)
+    
+    # then combine the positive and negative rows.
+    data_for_logit <- bind_rows(data_pos, data_neg) 
+    
+    # run the logistic regression on our data
+    predictions <- data_for_logit %>%
+      logit_predict()
+
+```
+
+We'll use this new dataset for the rest of this section.
+
+## Qualitative Analysis of Misclassified Reviews
+
+Let's begin by looking at a few misclassified reviews in detail. Table \@ref(tab:first-misclas) shows a review that was actually positive, but was predicted to be negative. Although it says a lot of positive-valence words like "epic" and "nice," it also uses negative-valence words like "desperate," "chintzy," and "cheesy" that balance out for an overall AFINN score of just 8. A human reader can tell that the reviewer introduces these negative words just to dismiss them (as in "Feels modern and not *too* cheesy"), but AFINN just sees these words and scores them as negative.
+
+```{r first-misclas }
+predictions[7,]$text %>% 
+  knitr::kable(col.names = "Review Text (True Pos, Misclassified)",
+               caption="True positive misclassified as negative. Note the number of negative-valence words like 'cheesy.'")
+```
+
+Table \@ref(tab:second-misclas) shows a true negative review that was misclassified as positive. The reviewer uses many positive-valence words like "quality," and uses few negative-valence words. Again the positive-valence words are negated or muted by modifiers ("*medium*-quality lamb"), but AFINN can't detect this subtlety.
+
+```{r second-misclas }
+set.seed(1234)
+predictions %>%
+  filter(pred=="POS" & correct==FALSE) %>%
+  slice_sample(n=1) %>% 
+  select(text) %>%
+  knitr::kable(col.names = "Review Text (True Neg, Misclassified)",
+               caption="True negative misclassified as positive. Note the number of positive-valence words like 'quality' and 'good,' and the relative absence of negative-valenec words like 'bad' or 'unpleasant.'" )
+
+```
+
+As a final check, let's look at the true-negative review with the highest AFINN score to see where AFINN went most wrong. Table \@ref(tab:mostwrong) shows this review, which received an AFINN score of 113 despite being negative. The author here also uses positive-valence words with negating words (e.g. "I *wasn’t* particularly impressed"), which confuses AFINN and leads to a high score. In addition, the author does just have a lot of nice things to say about the meal, which even I find a bit confusing.
+
+
+
+```{r mostwrong}
+# afinn sent 113
+predictions %>%
+  filter(correct==FALSE) %>%
+  arrange(desc(afinn_sent)) %>%
+  head(1) %>%
+  select(text) %>%
+  knitr::kable(col.names = "Review Text",
+               caption = "This review was a true negative, but had an incredibly high AFINN score of 113.")
+```
+
+In addition, this shows a potential source of error when using raw AFINN scores: there is no weighting for review length. A review that makes 50 lukewarm statements will be rated 50 times more positive than a shorter review that only makes one. As Figure \@ref(fig:afinn-word-length) shows, there does seem to be a positive correlation between a review's word length and its AFINN score. It may therefore be worth looking at *normalizing* AFINN scores, either to word length or number of sentences, to see if we can improve our accuracy.
+
+```{r afinn-word-length, fig.cap="Longer reviews seem to have slightly higher AFINN sentiment scores on average, and it also looks like variance increases with word length.", cache=TRUE}
+
+yelp_data %>%
+  ggplot(aes(x=words, y=afinn_sent)) +
+  geom_point() +
+  geom_smooth(method="lm", formula = y~x) +
+  theme_minimal() +
+  labs(x="Words",
+       y="AFINN Sentiment")
+```
+
+```{r}
+lm_fit <- lm(data = yelp_data, formula = afinn_sent ~ words)
+
+lm_fit %>% broom::tidy() %>%
+  knitr::kable(
+    caption = "Results from a linear regrssion predicting AFINN sentiment from review length in words. Although the $R^2$ is low, the model shows good statistical significance."
+  )
+```
+
+
+
+We can draw two conclusions from this (mostly) qualitative look at misclassified reviews:
+
+* Misclassified reviews often use many opposite-valence words but *negate* them using words like "but" or "not."
+* The most-misclassified review by AFINN score was extremely long, suggesting that normalizing AFINN scores by review length might improve our accuracy.
+
+
+## Negations
+
+Let's investigate the effects of negations/negators in our review texts. It's possible, for example, that misclassified reviews could tend to have more negators like "not" or "but." Since AFINN is a pure bag-of-words approach it can't distinguish between "I am happy this is very good" and "I am *not* happy this is *not* very good." Accounting for negators might therefore give us a way to capture this information and improve our predictions.
+
+### Negations and Prediction Accuracy
+
+Let's look at "but"s and "nots" in the correct vs incorrect predictions.
+
+```{r, cache=TRUE}
+predictions <- predictions %>%
+  mutate(buts = stringr::str_count(text, "but "),
+         nots = stringr::str_count(text, "not "),
+         buts_nots = buts + nots)
+```
+
+The average numbers or buts and nots are different:
+
+```{r, message=FALSE, warning=FALSE, cache=TRUE}
+predictions %>%
+  group_by(correct) %>%
+  summarise(avg_negs = mean(buts_nots)) %>%
+  knitr::kable()
+```
+
+Let's look more closely at the number of negators in correctly and incorrectly predicted reviews. Table \@ref(tab:neg-ttest) below shows the results of three two-sided t-tests comparing the average number of "buts", "nots", and combined "buts & nots" for correct and incorrect predictions. While "buts" and "buts & nots" differ significantly, the difference in the number of "nots" is not statistically significant at the standard level of $p<0.05$. The other two results show strong significance.
+
+```{r neg-ttest, warning=FALSE, cache=TRUE, cache=TRUE}
+pred_bn <- predictions %>%
+  t_test(buts_nots ~ correct) %>%
+  mutate(measure = "buts & nots")
+
+pred_b <- predictions %>%
+  t_test(buts ~ correct) %>%
+  mutate(measure = "buts")
+
+pred_n <- predictions %>%
+  t_test(nots ~ correct) %>%
+  mutate(measure = "nots")
+
+bind_rows(pred_bn,
+          pred_b,
+          pred_n) %>%
+  select(measure, statistic, t_df, p_value, alternative) %>%
+  knitr::kable(caption = "Results for two-sided t-tests for equivalence of means in the numbers of 'nots', 'buts', and 'nots and buts' in correct and incorrect predictions for the subset of longer reviews.")
+```
+
+This suggests that negators might  play a role in lowering our model's accuracy, and that accounting for negators somehow might improve our predictions.
+
+### Negations and Word Length
+
+Let's look at the number of negations vs. word length for the longer reviews. Figure \@ref(fig:neg-word-length) below shows that the number of "buts" and "nots" tends to increase with word length.
+
+```{r neg-word-length, message=FALSE, warning=FALSE, fig.cap="The combined number of 'buts' and 'nots' tends to increase as reviews get longer.", cache=TRUE}
+predictions %>%
+  ggplot(aes(x=words, y=buts_nots)) +
+  geom_point(position = "jitter") +
+  geom_smooth(method = "lm", se = FALSE) +
+  theme_minimal()+
+  labs(x = "# Words",
+       y = "# buts and nots")
+```
+
+A linear regression shows that this association is strongly significant, with both model and coefficient p-values below $2^{-16}$. The $R^2$ is 0.295, which looks reasonable based on the plot.
+
+```{r, cache=TRUE}
+
+lm(data = predictions, formula = buts_nots ~ words) %>%
+  summary()
+```
+
+**We can conclude that "buts" and "nots" are associated with both incorrect predictions and with increasing word lengths.**
+
+## Readability
+
+In this section we'll look at how a review's readability relates to model accuracy. We'll use the **sylcount** package's `readability()` function to calculate Flesch-Kincaid (FK) readability scores and see how they interact with accuracy. FK scores are a common way to measure a text's complexity and will be familiar to anyone who uses Microsoft Word. Without going into details, texts with higher FK scores are assumed to be easier to read.
+
+```{r, cache=TRUE}
+
+predictions_re <- predictions %>%
+  pull(text) %>%
+  sylcount::readability() %>%
+  select(-words) %>%
+  bind_cols(predictions, .)
+```
+
+Figure \@ref(fig:fk-plot) shows FK readability ease vs. word length:
+
+```{r fk-plot, fig.cap="FK reading ease for the original set of long reviews. While most scores are between 0 and 100, there are many outliers as low as -250.", cache=TRUE}
+predictions_re %>%
+  ggplot(aes(x=words, y=re)) +
+  geom_point() +
+  theme_minimal() +
+  labs(x = "# Words",
+       y = "Flesch-Kincaid Reasing Ease Score")
+
+```
+
+We immediately see that the FE index has no theoretical minimum value, and this is a problem. Let's look at the shortest super low one to see what's going on. Looks like these reviewers use " . " instead of "." so the algorithm thinks it's all one sentence.
+
+```{r, cache=TRUE}
+predictions_re %>%
+  filter( re == min(re)) %>%
+  filter(words == min(words)) %>%
+  pull(text) %>%
+  stringr::str_trunc(150)
+
+
+```
+
+So we'll fix this by replacing " ." with "." and try again. Results are shown below in Figure \@ref(fig:fk-plot2).
+
+```{r fk-plot2, fig.cap="FK reading ease for the set of long reviews with non-standard period breaks removed. Note there are still many low outliers.", cache=TRUE}
+predictions_re <- predictions %>%
+  mutate(text = stringr::str_replace_all(text,  " \\.", "\\."))  %>%
+  pull(text) %>%
+  sylcount::readability() %>%
+  select(-words) %>%
+  bind_cols(predictions, .)
+
+predictions_re %>%
+  ggplot(aes(x=words, y=re)) +
+  geom_point() +
+  theme_minimal() +
+  labs(x = "# Words",
+       y = "Flesch-Kincaid Reasing Ease Score")
+
+
+```
+
+Since there are still many low outliers, the new shortest least-readable review is presented below in Table \@ref(tab:new-shortest). We can see two things: first, it's honestly full of run-on sentences; and second, it looks like the reviewer is using carriage returns as sentence markers. We can fix the second item by replacing carriage returns with periods.
+
+```{r new-shortest, cache=TRUE}
+predictions_re %>%
+  filter(re == min(re)) %>%
+         filter(words == min(words)) %>%
+  pull(text) %>%
+  stringr::str_trunc(500) %>%
+  knitr::kable(col.names = "Shortest Least-Readable Review",
+               caption = "Statistics for two-sided t-tests comparing the number of correct and incorrect predictions based on the number of nots, buts, and nots & buts they contain.")
+
+
+```
+
+As can be seen in Figure \@ref(fig:fk-plot3), there are still very low readability scores after fixing these "errors" in the dataset. This suggests that many reviews have inherent features, like run-on sentences, that result in genuinely low FK scores.
+
+```{r fk-plot3, fig.cap= "FK reading ease for the set of long reviews with non-standard period breaks and carriage returns removed. Outliers persist.", cache=TRUE}
+predictions_re <- predictions %>%
+  mutate(text = stringr::str_replace_all(text,  " \\.", "\\."),
+         text = stringr::str_replace_all(text, "\\s*\\n\\s*", ". "))  %>%
+  pull(text) %>%
+  sylcount::readability() %>%
+  select(-words) %>%
+  bind_cols(predictions, .)
+
+predictions_re %>%
+  ggplot(aes(x=words, y=re)) +
+  geom_point() + 
+  theme_minimal() +
+  labs(x = "# Words",
+       y = "Flesch-Kincaid Reasing Ease Score")
+```
+
+Note that we have one value that has -Inf readability! This review, included as Table \@ref(tab:ros) below, has a lot of text but no sentence-ending punctuation so it breaks the readability algorithms. We will filter this entry out in the rest of this section.
+
+```{r ros}
+predictions_re %>%
+  filter(re == -Inf) %>%
+  pull(text) %>%
+  stringr::str_trunc(300) %>%
+  knitr::kable(col.names = "Infinitely Unreadable Review")
+```
+
+So let's again now look at readability and prediction accuracy. The boxplots for the distributions look quite similar, as can be seen below in Figure \@ref(fig:boxplot-fk).
+
+```{r boxplot-fk, fig.cap="Distributions of FK reading ease scores for reviews with correct and incorrect predictions. The boxplots are very similar.", cache=TRUE}
+predictions_re %>%
+  filter(re > -Inf) %>%
+  ggplot() +
+  geom_boxplot(aes(x=as.factor(correct), y=re)) +
+  theme_minimal() +
+  labs(x = "Prediction Accuracy",
+       y = "Flesch-Kincaid Reasing Ease Score")
+  
+
+```
+
+Looking at the sample means, they're not so different (after removing the one value of -Inf!)
+
+```{r, message=FALSE, warning=FALSE, cache=TRUE}
+predictions_re %>%
+  group_by(correct) %>%
+  filter(re > -Inf) %>%
+  summarise(avg_re = mean(re)) %>%
+  knitr::kable()
+```
+
+And a two-sided t-test does not show statistical evidence that the distribution means are different. 
+
+```{r warning=FALSE, cache=TRUE}
+predictions_re %>%
+  filter(re > -Inf) %>%
+  t_test(re ~ correct) %>%
+  knitr::kable()
+```
+
+To sum up, I found two problems with using readability measures on this data. First, many texts use either non-standard sentence breaks (e.g. " . " or carriage returns) which confuses the algorithms. But even after fixing these data issues, many texts have little or no punctuation at all. Readability algorithms rely on sentence counts, so they won't work on informal texts without conventional punctuation.
+
+**So readability is not associated with prediction accuracy in this sample of longer reviews.** 
+
+## Summing Up So Far
+
+Let's do a quick recap on what we've learned so far in this section:
+
+* Misclassified reviews often use many opposite-valence words but *negate* them using words like "but" or "not."
+* The most-misclassified review by AFINN score was extremely long, suggesting that normalizing AFINN scores by review length might improve our accuracy.
+* Negators like "buts" and "nots" are associated with both incorrect predictions and with increasing word lengths.
+* Readability is not associated with prediction accuracy in this sample of longer reviews.
+
+## Logistic Regression on AFINN + negators
+
+Based on our findings, let's create a second model where we add negators to our logistic regression. This next code chunk defines Model 2, and the main difference is that now our logistic regression formula is `rating_factor ~ afinn_sent + buts_nots`.
+
+```{r}
+logit_predict_v2 <- function (dataset) {
+
+  # for a train/test split: get a random vector as long as our dataset that is 75% TRUE and 25% FALSEe.
+  index <- sample(c(T,F), 
+                  size = nrow(dataset),
+                  replace = T,
+                  prob=c(0.75,0.25))
+  
+  # extract train and test datasets by indexing our dataset using our random index
+  train <- dataset[index,]
+  test <- dataset[!index,]
+  
+  # use `glm()` to run a logistic regression predicting the rating factor based on the AFINN score.
+  logit <- glm(data= train,
+               formula= rating_factor ~ afinn_sent + buts_nots,
+               family="binomial")
+  
+  pred <- predict(logit, 
+                  newdata = test,
+                  type="response")
+  
+  # now predict the outcome based on whichever has the greater probability, find out if each prediction is correct
+  test_results <- test %>%
+    bind_cols(tibble(pred = pred)) %>%
+    mutate(pred = if_else(pred > 0.5, "POS", "NEG")) %>%
+    mutate(correct = if_else (pred == rating_factor, T, F)) 
+  
+  return (test_results)
+}
+```
+
+Let's run the predictive algorithm again using Model 2:
+
+```{r, cache=TRUE}
+data_for_logit <- data_for_logit %>%
+  mutate(buts = stringr::str_count(text, "but "),
+         nots = stringr::str_count(text, "not "),
+         buts_nots = buts + nots) 
+
+predictions_v2 <- data_for_logit %>%
+  logit_predict_v2()
+  
+pred_v1 <- predictions %>%
+  summarise(v1_accuracy = sum(correct)/ n())
+
+pred_v2 <- predictions_v2 %>%
+  summarise(v2_accuracy = sum(correct)/ n())
+
+bind_cols(pred_v1, pred_v2) %>%
+  knitr::kable()
+```
+
+It's about 1.5% more accurate. Not a lot, but a bit.
+
+
+## Logistic Regression on Mean AFINN + negators
+
+Above, we found qualitative reasons to think that longer reviews might have more variable AFINN scores and some quantitative evidence that AFINN scores for longer reviews tended to be slightly more positive. Here we'll try using a review's *mean* AFINN score, instead of the sum of all its word-level AFINN scores, as a predictor along with the number of negators.
+
+First we'll calculate the mean AFINN score for each review.
+
+```{r, message=FALSE, warning=FALSE, cache=TRUE}
+
+afinn_mean <- data_for_logit %>%
+  select(text) %>%
+  rowid_to_column() %>%
+  tidytext::unnest_tokens(word, text) %>%
+  left_join(afinn) %>%
+  group_by(rowid) %>%
+  summarise(afinn_mean = mean(value, na.rm = T)) %>%
+  mutate(afinn_mean = if_else(is.na(afinn_mean) | is.nan(afinn_mean), 0, afinn_mean))
+
+data_for_logit <- data_for_logit %>%
+  bind_cols(afinn_mean) %>%
+  select(-rowid)
+  
+```
+
+
+```{r}
+logit_predict_v3 <- function (dataset) {
+
+  # for a train/test split: get a random vector as long as our dataset that is 75% TRUE and 25% FALSEe.
+  index <- sample(c(T,F), 
+                  size = nrow(dataset),
+                  replace = T,
+                  prob=c(0.75,0.25))
+  
+  # extract train and test datasets by indexing our dataset using our random index
+  train <- dataset[index,]
+  test <- dataset[!index,]
+  
+  # use `glm()` to run a logistic regression predicting the rating factor based on the AFINN score.
+  logit <- glm(data= train,
+               formula= rating_factor ~ afinn_mean + buts_nots,
+               family="binomial")
+  
+  pred <- predict(logit, 
+                  newdata = test,
+                  type="response")
+  
+  # now predict the outcome based on whichever has the greater probability, find out if each prediction is correct
+  test_results <- test %>%
+    bind_cols(tibble(pred = pred)) %>%
+    mutate(pred = if_else(pred > 0.5, "POS", "NEG")) %>%
+    mutate(correct = if_else (pred == rating_factor, T, F)) 
+  
+  return (test_results)
+}
+```
+
+And let's run the predictive algorithm again using normalized AFINN score and buts and nots:
+
+```{r, cache=TRUE}
+predictions_v3 <- data_for_logit %>%
+  logit_predict_v3()
+  
+pred_v1 <- predictions %>%
+  summarise(v1_accuracy = sum(correct)/ n())
+
+pred_v2 <- predictions_v2 %>%
+  summarise(v2_accuracy = sum(correct)/ n())
+
+pred_v3 <- predictions_v3 %>%
+  summarise(v3_accuracy = sum(correct)/ n())
+
+bind_cols(pred_v1, pred_v2, pred_v3) %>%
+  knitr::kable()
+```
+
+It looks like these results are a little bit worse. But these are just results from one trial, so the next step would be to do a number of trials to see how results vary.
+
+## Comparing Models: Multiple Trials
+
+To get a better idea of how each model performs, we can effectively do our own cross-fold validation by re-running our trial to see how the results change as we take different test/train samples. *Note* that we'll be sampling with replacement, as opposed to setting up mutually exclusive folds. Could we call this bootstrapping, of a sort?
+
+```{r boostrap-models, fig.cap = "Distribution of results for 100 trials of each model. Model 3, Mean AFINN + Negators, outperforms the other models on average.", cache=TRUE}
+set.seed(1234)
+# logit on just afinn
+reps <- 100
+results_1 <- results_2 <- results_3 <- tibble()
+
+for (i in 1:reps) results_1 <- data_for_logit %>% logit_predict() %>% summarise(v1_accuracy = sum(correct)/ n()) %>% bind_rows(results_1)
+
+for (i in 1:reps) results_2 <- data_for_logit %>% logit_predict_v2() %>% summarise(v2_accuracy = sum(correct)/ n()) %>% bind_rows(results_2)
+
+for (i in 1:reps) results_3 <- data_for_logit %>% logit_predict_v3() %>% summarise(v3_accuracy = sum(correct)/ n()) %>% bind_rows(results_3)
+
+results <- bind_cols(results_1, results_2, results_3) %>%
+  pivot_longer(cols = everything(),
+               names_to = "model", 
+               values_to = "accuracy")
+
+results %>%
+  ggplot(aes(x=as.factor(model), y=accuracy)) +
+  geom_boxplot() +
+  labs(x="Model",
+       y="Accuracy") +
+  scale_x_discrete(labels = c("M1: Sum AFINN", "M2: Sum AFINN + Negators", "M3: Mean AFINN+ Negators")) +
+  theme_minimal()
+```
+
+Figure \@ref(fig:boostrap-models) shows the results from 100 trials each of the three models we've developed, logistic regressions based on AFINN sum, AFINN sum plus negators, and mean AFINN plus negators. Model 3, mean AFINN plus negators, clearly outperforms the other models on average for this dataset of longer reviews.
+
+We can run the full 5x5 analysis again to get a heat map and box plots and see if it helped.
+
+## Re-Running the Big Analysis
+
+Here we'll re-run the big analysis using Model 3, mean AFINN plus negators.
+
+First we'll calculate the mean AFINN score for each review in our full dataset.
+
+```{r, cache=TRUE}
+
+
+afinn_mean <- yelp_data %>%
+  select(text) %>%
+  rowid_to_column() %>%
+  tidytext::unnest_tokens(word, text) %>%
+  left_join(afinn) %>%
+  group_by(rowid) %>%
+  summarise(afinn_mean = mean(value, na.rm = T)) %>%
+  mutate(afinn_mean = if_else(is.na(afinn_mean) | is.nan(afinn_mean), 0, afinn_mean))
+
+yelp_data <- yelp_data %>%
+  bind_cols(afinn_mean) %>%
+  select(-rowid)
+  
+yelp_data <- yelp_data %>%
+  mutate(buts = stringr::str_count(text, "but "),
+         nots = stringr::str_count(text, "not "),
+         buts_nots = buts + nots) %>%
+  mutate(afinn_mean = if_else (is.na(afinn_mean), 0, afinn_mean))
+```
+
+
+```{r logit_setup_beyond_mvp_v3, echo=FALSE}
+do_logit_v3 <- function (dataset) {
+
+  # for a train/test split: get a random vector as long as our dataset that is 75% TRUE and 25% FALSEe.
+  index <- sample(c(T,F), 
+                  size = nrow(dataset),
+                  replace = T,
+                  prob=c(0.75,0.25))
+  
+  # extract train and test datasets by indexing our dataset using our random index
+  train <- dataset[index,]
+  test <- dataset[!index,]
+  
+  # use `glm()` to run a logistic regression predicting the rating factor based on the AFINN score.
+  logit <- glm(data= train,
+               formula= rating_factor ~ afinn_mean + buts_nots,
+               family="binomial")
+  
+  pred <- predict(logit, 
+                  newdata = test,
+                  type="response")
+  
+  # now predict the outcome based on whichever has the greater probability, find out if each prediction is correct, and compute the accuracy
+  test_results <- test %>%
+    bind_cols(tibble(pred = pred)) %>%
+    mutate(pred = if_else(pred > 0.5, "POS", "NEG")) %>%
+    mutate(correct = if_else (pred == rating_factor, T, F)) %>%
+    summarise(accuracy = sum(correct) / nrow(.)) %>%
+    unlist()
+  
+  return (test_results)
+}
+
+```
+
+```{r big_code_model_3, warning=FALSE, message=FALSE, echo=FALSE, cache=TRUE}
+# for reproducibility, set the random number generator seed
+set.seed(1234)
+
+# how many times to run each test?
+num_tests <- 30
+
+# how many quantiles?
+num_qtiles <- 5
+
+# get the limits of the word-quantiles for display purposes
+qtiles <- quantile(yelp_data$words, probs = seq(0, 1, (1/num_qtiles)))
+
+# find the word-quantile for each review using the fabricatr::split_quantile() function
+yelp_data <- yelp_data %>%
+  mutate(qtile = fabricatr::split_quantile(words, 
+                                           type=num_qtiles))
+
+# get the number of reviews in the smallest subset of BOTH rating and length quintile.
+# we're going to use this to compare groups of the same/similar size.
+minn <- yelp_data %>%
+  group_by(qtile, rating_factor) %>%
+  summarise(n = n()) %>%
+  ungroup() %>%
+  summarise(minn = min(n)) %>%
+  unlist()
+
+# set up an empty results tibble.
+results_model3 <- tibble()
+
+# boolean flag: will we print updates to the console?
+# I used this for testing but it should be disabled in the final knit
+verbose <- FALSE
+
+
+# Consider each quantile of review word lengths one at a time
+for (word_qtile in 1:num_qtiles){
+  # within each quantile of reviews broken down by length, consider several different numbers of reviews
+  for (num_qtile in 1:num_qtiles){
+    
+    # number of reviews we will consider in this iteration.
+    num_reviews <- num_qtile * minn/num_qtiles
+    
+    # message for me to keep track
+    if (verbose == TRUE) {
+      message (paste0("Considering ", num_reviews*2, " reviews with word length in the range (",qtiles[[word_qtile]],",",qtiles[[word_qtile+1]],")"))
+    }
+    
+    # I'm doing this in two steps to keep it simple, since we need to get the same number of positive and negative reviews.
+    # First, filter the positive rows we want: the right number of words, and the right number of reviews
+    data_pos <- yelp_data %>%
+      filter(qtile == word_qtile) %>%
+      filter(rating_factor == "POS") %>%
+      slice_sample(n = num_reviews)
+    
+    # Then filter the negative rows we want:
+    data_neg <- yelp_data %>%
+      filter(qtile == word_qtile) %>%
+      filter(rating_factor == "NEG") %>%
+      slice_sample(n = num_reviews)
+    
+    # then combine the positive and negative rows.
+    data_for_logit <- bind_rows(data_pos, data_neg) 
+    
+    # get true percentage of positives, so we can look at sample balance
+    pct_true_pos <- data_for_logit %>%
+      summarise(n = sum(rating_factor == "POS") / nrow(.)) %>%
+      unlist()
+    
+    # run the logistic regression on our data num_test times, get accuracy each time, then take the mean
+    result <- vector(mode = "numeric", length = num_tests)
+    for (i in 1:num_tests) result[[i]] <- data_for_logit %>% do_logit_v3()
+    result <- mean(result)
+    # result <- data_for_logit %>%
+    #   do_logit_v3()
+    
+    # add our result to our results tibble. this wouldn't be best practice for thousands of rows, but it's fine here.
+    results_model3 <- bind_rows(
+      results_model3,
+      tibble(word_qtile = word_qtile,
+             num_qtile = num_qtile,
+             accuracy = result,
+             pct_true_pos = pct_true_pos)
+    )
+  }
+}
+
+```
+
+Our results, shown below in Figure \@ref(fig:newmodel-heatmap), are promising. Accuracy seems to be higher across the board, and while there are some darker patches in the centre, there doesn't seem to be a drop-off as word length increases.
+
+```{r newmodel-heatmap, fig.cap = "Heat map of average accuracy for Model 3. Each cell shows average accuracy for 30 trials on random data subsets.", cache=TRUE}
+results_model3 %>%
+  ggplot() +
+  geom_tile(aes(x=word_qtile, y=num_qtile, fill=accuracy)) +
+  scale_x_continuous(breaks = 1:num_qtiles, 
+                     labels = paste0("Q",1:num_qtiles,": ",qtiles, "-",lead(qtiles)) %>% head(-1)) +
+  scale_y_continuous(breaks = 1:num_qtiles,
+                     labels = (2*round(1:num_qtiles * minn/num_qtiles))) +
+  labs(x = "Review Word Length by Quantile",
+       y = "Number of Reviews",
+       fill = "Accuracy")
+
+
+```
+
+The results are even more promising when we compare them to those from Model 1. Figure \@ref(fig:boxplot-length-model3) shows Model 1 and Model 3's results side by side, and the difference is dramatic: Model 3 gives better mean predictions across all subsets, and the differences are dramatically positive for longer reviews.
+
+```{r boxplot-length-model3, message=FALSE, warning=FALSE, fig.cap = "Comparing average accuracy rates for Model 1 and Model 3. Model 3 gives better on-average predictions for reviews of all word lengths, and some improvements are dramatic.", cache=TRUE}
+
+results_comp <- results_oldmodel %>%
+  left_join(results_model3 %>% rename(accuracy_m3 = accuracy)) %>%
+  mutate(diff = accuracy_m3 - accuracy) %>%
+  select(-pct_true_pos)
+
+results_comp %>%
+  pivot_longer(cols = c("accuracy", "accuracy_m3"), values_to = "accuracy", names_to = "model") %>%
+  ggplot() +
+  geom_boxplot(aes(x=as.factor(word_qtile), y = accuracy, fill = model)) +
+  theme_minimal() +
+  scale_x_discrete(breaks = 1:num_qtiles, 
+                     labels = paste0("Q",1:num_qtiles,": ",qtiles, "-",lead(qtiles)) %>% head(-1)) +
+  labs(x = "Review Word Length by Quantile",
+       y = "Accuracy",
+       fill = "Model") +
+  scale_fill_discrete(labels = c("M1: Sum AFINN", "M3: Mean AFINN + Negators")) +
+  theme(legend.position = "bottom")
+```
+
+Moving Model 3 to use mean AFINN and the number of negators seems to be a Pareto-improvement over Model 1. Model 3 works about as well for all review lengths, and long reviews are about as easy to predict as short ones. As with Model 1, Figure \@ref(fig:newmodel-heatmap) shows that Model 3 seems to work about as well for smaller groups as it does for larger groups.
+
+
+## Conclusion
+
+In this section we looked into last section's strange finding that longer Yelp reviews led to worse predictions using Model 1,  a logistic regression on AFINN sentiment. After a qualitative review of some misclassified long reviews, we looked into two hypotheses for what might be confusing AFINN: that longer reviews might use more negations, and that longer reviews might have lower readability scores. We didn't find any strong connection with readability scores, but we did find that longer reviews use more negations like "but" and "not." This led us to suspect that including the number of negations in our regression might improve the model. We also found that longer reviews tend to have slightly higher scores and that score variance seems to increase with length. This suggested that a normalized AFINN score based on a review's length might be more reliable.
+
+We built and tested two new models. Model 3 performed the best, and improved on Model 1 across all data subsets and did especially well on longer reviews (see Figure \@ref(fig:boxplot-length-model3)). Model 3used a logistic regression based on a review's mean AFINN score and its number of "buts" and "nots." We also improved our model evaluation by using a process similar to cross-fold evaluation, running it 30 times on each data subset using random test/train splits and taking the average accuracy across all trials.
+
+We've shown that you can build a model that is roughly 82.5% accurate at predicting Yelp ratings using fast and simple models (AFINN sentiment, logistic regression) with insights from qualitative analysis of the data (counting negators, switching to mean AFINN). The models take only a few lines of code, run in seconds, and are completely supervisable and interpretable.
+
+We've also shown two things about using Yelp review text as input data. First, ceterus paribus, review length is not a significant issue when predicting Yelp ratings. Second, our models' accuracy didn't change meaningfully based on the number of reviews we used as inputs. Our models were robust across the entire range we considered, from around 6,000 input reviews to around 31,000.
+
+## SessionInfo
+
+```{r sessinfo-beyond-mvp}
+sessionInfo()
+```

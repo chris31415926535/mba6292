@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Chapter 8 Beyond the MVP: Looking at Longer Reviews | Telfer 2020 Directed Reading: Natural Language Processing</title>
+  <meta name="description" content="This is Christopher Belanger’s work product for the Telfer School of Management course MBA6292, Directed Readings in Natural Language Processing." />
+  <meta name="generator" content="bookdown 0.20 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="Chapter 8 Beyond the MVP: Looking at Longer Reviews | Telfer 2020 Directed Reading: Natural Language Processing" />
+  <meta property="og:type" content="book" />
+  
+  
+  <meta property="og:description" content="This is Christopher Belanger’s work product for the Telfer School of Management course MBA6292, Directed Readings in Natural Language Processing." />
+  <meta name="github-repo" content="rstudio/bookdown-demo" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Chapter 8 Beyond the MVP: Looking at Longer Reviews | Telfer 2020 Directed Reading: Natural Language Processing" />
+  
+  <meta name="twitter:description" content="This is Christopher Belanger’s work product for the Telfer School of Management course MBA6292, Directed Readings in Natural Language Processing." />
+  
+
+<meta name="author" content="Christopher Belanger" />
+
+
+<meta name="date" content="2020-11-27" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="the-mvp-classification-accuracy-as-a-function-of-review-length-and-volume.html"/>
+<link rel="next" href="references.html"/>
+<script src="libs/jquery-2.2.3/jquery.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+<script src="libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
+
+
+<style type="text/css">
+code.sourceCode > span { display: inline-block; line-height: 1.25; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li><a href="./">MBA6292: Directed Readings in NLP</a></li>
+
+<li class="divider"></li>
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Preface</a></li>
+<li class="chapter" data-level="2" data-path="intro.html"><a href="intro.html"><i class="fa fa-check"></i><b>2</b> Introduction</a></li>
+<li class="chapter" data-level="3" data-path="web-scraping-our-data.html"><a href="web-scraping-our-data.html"><i class="fa fa-check"></i><b>3</b> Web Scraping Our Data</a><ul>
+<li class="chapter" data-level="3.1" data-path="web-scraping-our-data.html"><a href="web-scraping-our-data.html#yelp-embedded-json"><i class="fa fa-check"></i><b>3.1</b> Yelp: Embedded JSON</a></li>
+<li class="chapter" data-level="3.2" data-path="web-scraping-our-data.html"><a href="web-scraping-our-data.html#goodreads-css-selectors"><i class="fa fa-check"></i><b>3.2</b> Goodreads: CSS Selectors</a></li>
+<li class="chapter" data-level="3.3" data-path="web-scraping-our-data.html"><a href="web-scraping-our-data.html#mec-reverse-engineering-client-side-api-calls"><i class="fa fa-check"></i><b>3.3</b> MEC: Reverse-Engineering Client-Side API Calls</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html"><i class="fa fa-check"></i><b>4</b> Data Summary, EDA, &amp; Initial Model Attempts</a><ul>
+<li class="chapter" data-level="4.1" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#introduction"><i class="fa fa-check"></i><b>4.1</b> Introduction</a></li>
+<li class="chapter" data-level="4.2" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#goodreads"><i class="fa fa-check"></i><b>4.2</b> Goodreads</a><ul>
+<li class="chapter" data-level="4.2.1" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#star-ratings"><i class="fa fa-check"></i><b>4.2.1</b> Star Ratings</a></li>
+<li class="chapter" data-level="4.2.2" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#word-count"><i class="fa fa-check"></i><b>4.2.2</b> Word Count</a></li>
+<li class="chapter" data-level="4.2.3" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#reviewers"><i class="fa fa-check"></i><b>4.2.3</b> Reviewers</a></li>
+</ul></li>
+<li class="chapter" data-level="4.3" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#yelp"><i class="fa fa-check"></i><b>4.3</b> Yelp</a><ul>
+<li class="chapter" data-level="4.3.1" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#star-ratings-1"><i class="fa fa-check"></i><b>4.3.1</b> Star Ratings</a></li>
+<li class="chapter" data-level="4.3.2" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#word-count-1"><i class="fa fa-check"></i><b>4.3.2</b> Word Count</a></li>
+<li class="chapter" data-level="4.3.3" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#reviewers-1"><i class="fa fa-check"></i><b>4.3.3</b> Reviewers</a></li>
+</ul></li>
+<li class="chapter" data-level="4.4" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#mountain-equipment-co-op-mec"><i class="fa fa-check"></i><b>4.4</b> Mountain Equipment Co-op (MEC)</a><ul>
+<li class="chapter" data-level="4.4.1" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#star-ratings-2"><i class="fa fa-check"></i><b>4.4.1</b> Star Ratings</a></li>
+<li class="chapter" data-level="4.4.2" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#word-counts"><i class="fa fa-check"></i><b>4.4.2</b> Word Counts</a></li>
+<li class="chapter" data-level="4.4.3" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#reviewers-2"><i class="fa fa-check"></i><b>4.4.3</b> Reviewers</a></li>
+</ul></li>
+<li class="chapter" data-level="4.5" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#comparing-goodreads-mec-and-yelp"><i class="fa fa-check"></i><b>4.5</b> Comparing Goodreads, MEC, and Yelp</a><ul>
+<li class="chapter" data-level="4.5.1" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#star-ratings-3"><i class="fa fa-check"></i><b>4.5.1</b> Star Ratings</a></li>
+<li class="chapter" data-level="4.5.2" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#word-counts-1"><i class="fa fa-check"></i><b>4.5.2</b> Word Counts</a></li>
+</ul></li>
+<li class="chapter" data-level="4.6" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#reviews-over-time"><i class="fa fa-check"></i><b>4.6</b> Reviews Over Time</a><ul>
+<li class="chapter" data-level="4.6.1" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#goodreads-1"><i class="fa fa-check"></i><b>4.6.1</b> Goodreads</a></li>
+<li class="chapter" data-level="4.6.2" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#yelp-1"><i class="fa fa-check"></i><b>4.6.2</b> Yelp</a></li>
+<li class="chapter" data-level="4.6.3" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#mec"><i class="fa fa-check"></i><b>4.6.3</b> MEC</a></li>
+</ul></li>
+<li class="chapter" data-level="4.7" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#proposed-next-steps"><i class="fa fa-check"></i><b>4.7</b> Proposed Next Steps</a></li>
+<li class="chapter" data-level="4.8" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#sessioninfo"><i class="fa fa-check"></i><b>4.8</b> SessionInfo</a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="a-first-lasso-attempt.html"><a href="a-first-lasso-attempt.html"><i class="fa fa-check"></i><b>5</b> A First LASSO Attempt</a><ul>
+<li class="chapter" data-level="5.1" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#introduction"><i class="fa fa-check"></i><b>5.1</b> Introduction</a></li>
+<li class="chapter" data-level="5.2" data-path="a-first-lasso-attempt.html"><a href="a-first-lasso-attempt.html#a-first-regression-yelp-data"><i class="fa fa-check"></i><b>5.2</b> A First Regression: Yelp Data</a><ul>
+<li class="chapter" data-level="5.2.1" data-path="a-first-lasso-attempt.html"><a href="a-first-lasso-attempt.html#splitting-the-data"><i class="fa fa-check"></i><b>5.2.1</b> Splitting the data</a></li>
+<li class="chapter" data-level="5.2.2" data-path="a-first-lasso-attempt.html"><a href="a-first-lasso-attempt.html#evaluating-the-first-model"><i class="fa fa-check"></i><b>5.2.2</b> Evaluating the first model</a></li>
+<li class="chapter" data-level="5.2.3" data-path="a-first-lasso-attempt.html"><a href="a-first-lasso-attempt.html#tuning-model-parameters"><i class="fa fa-check"></i><b>5.2.3</b> Tuning model parameters</a></li>
+</ul></li>
+<li class="chapter" data-level="5.3" data-path="a-first-lasso-attempt.html"><a href="a-first-lasso-attempt.html#trying-lasso-again"><i class="fa fa-check"></i><b>5.3</b> Trying lasso again</a><ul>
+<li class="chapter" data-level="5.3.1" data-path="a-first-lasso-attempt.html"><a href="a-first-lasso-attempt.html#with-1000-tokens"><i class="fa fa-check"></i><b>5.3.1</b> With 1000 tokens</a></li>
+<li class="chapter" data-level="5.3.2" data-path="a-first-lasso-attempt.html"><a href="a-first-lasso-attempt.html#short-reviews-only-125-words"><i class="fa fa-check"></i><b>5.3.2</b> Short reviews only: &lt;125 words</a></li>
+<li class="chapter" data-level="5.3.3" data-path="a-first-lasso-attempt.html"><a href="a-first-lasso-attempt.html#longer-reviews-125-words"><i class="fa fa-check"></i><b>5.3.3</b> Longer reviews &gt; 125 words</a></li>
+</ul></li>
+<li class="chapter" data-level="5.4" data-path="a-first-lasso-attempt.html"><a href="a-first-lasso-attempt.html#removing-stop-words"><i class="fa fa-check"></i><b>5.4</b> Removing stop words</a></li>
+<li class="chapter" data-level="5.5" data-path="a-first-lasso-attempt.html"><a href="a-first-lasso-attempt.html#adjusting-n-grams"><i class="fa fa-check"></i><b>5.5</b> Adjusting n-grams</a></li>
+<li class="chapter" data-level="5.6" data-path="a-first-lasso-attempt.html"><a href="a-first-lasso-attempt.html#full-final-regression"><i class="fa fa-check"></i><b>5.6</b> Full final regression</a></li>
+<li class="chapter" data-level="5.7" data-path="a-first-lasso-attempt.html"><a href="a-first-lasso-attempt.html#conclusion"><i class="fa fa-check"></i><b>5.7</b> Conclusion</a></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="yelp-classification-and-sentiment-test.html"><a href="yelp-classification-and-sentiment-test.html"><i class="fa fa-check"></i><b>6</b> Yelp Classification and Sentiment Test</a><ul>
+<li class="chapter" data-level="6.1" data-path="yelp-classification-and-sentiment-test.html"><a href="yelp-classification-and-sentiment-test.html#yelp-dataset"><i class="fa fa-check"></i><b>6.1</b> Yelp Dataset</a><ul>
+<li class="chapter" data-level="6.1.1" data-path="yelp-classification-and-sentiment-test.html"><a href="yelp-classification-and-sentiment-test.html#afinn"><i class="fa fa-check"></i><b>6.1.1</b> AFINN</a></li>
+<li class="chapter" data-level="6.1.2" data-path="yelp-classification-and-sentiment-test.html"><a href="yelp-classification-and-sentiment-test.html#classification-naive-bayes-classifier"><i class="fa fa-check"></i><b>6.1.2</b> Classification: Naive Bayes Classifier</a></li>
+</ul></li>
+<li class="chapter" data-level="6.2" data-path="yelp-classification-and-sentiment-test.html"><a href="yelp-classification-and-sentiment-test.html#kaggle-yelp-dataset"><i class="fa fa-check"></i><b>6.2</b> Kaggle Yelp dataset</a><ul>
+<li class="chapter" data-level="6.2.1" data-path="yelp-classification-and-sentiment-test.html"><a href="yelp-classification-and-sentiment-test.html#naive-bayes-classifier"><i class="fa fa-check"></i><b>6.2.1</b> Naive Bayes Classifier</a></li>
+<li class="chapter" data-level="6.2.2" data-path="yelp-classification-and-sentiment-test.html"><a href="yelp-classification-and-sentiment-test.html#logistic-regression"><i class="fa fa-check"></i><b>6.2.2</b> Logistic Regression</a></li>
+</ul></li>
+<li class="chapter" data-level="6.3" data-path="yelp-classification-and-sentiment-test.html"><a href="yelp-classification-and-sentiment-test.html#next-steps"><i class="fa fa-check"></i><b>6.3</b> NEXT STEPS</a></li>
+<li class="chapter" data-level="6.4" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#sessioninfo"><i class="fa fa-check"></i><b>6.4</b> SessionInfo</a></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="the-mvp-classification-accuracy-as-a-function-of-review-length-and-volume.html"><a href="the-mvp-classification-accuracy-as-a-function-of-review-length-and-volume.html"><i class="fa fa-check"></i><b>7</b> The MVP: Classification Accuracy as a Function of Review Length and Volume</a><ul>
+<li class="chapter" data-level="7.1" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#introduction"><i class="fa fa-check"></i><b>7.1</b> Introduction</a></li>
+<li class="chapter" data-level="7.2" data-path="the-mvp-classification-accuracy-as-a-function-of-review-length-and-volume.html"><a href="the-mvp-classification-accuracy-as-a-function-of-review-length-and-volume.html#preparing-the-data"><i class="fa fa-check"></i><b>7.2</b> Preparing the Data</a></li>
+<li class="chapter" data-level="7.3" data-path="the-mvp-classification-accuracy-as-a-function-of-review-length-and-volume.html"><a href="the-mvp-classification-accuracy-as-a-function-of-review-length-and-volume.html#experiment-1-logistic-regression-on-globally-balanced-data"><i class="fa fa-check"></i><b>7.3</b> Experiment 1: Logistic Regression on Globally Balanced Data</a></li>
+<li class="chapter" data-level="7.4" data-path="the-mvp-classification-accuracy-as-a-function-of-review-length-and-volume.html"><a href="the-mvp-classification-accuracy-as-a-function-of-review-length-and-volume.html#experiment-2-logistic-regression-on-micro-balanced-data"><i class="fa fa-check"></i><b>7.4</b> Experiment 2: Logistic Regression on Micro-Balanced Data</a></li>
+<li class="chapter" data-level="7.5" data-path="the-mvp-classification-accuracy-as-a-function-of-review-length-and-volume.html"><a href="the-mvp-classification-accuracy-as-a-function-of-review-length-and-volume.html#conclusions"><i class="fa fa-check"></i><b>7.5</b> Conclusions</a></li>
+<li class="chapter" data-level="7.6" data-path="yelp-classification-and-sentiment-test.html"><a href="yelp-classification-and-sentiment-test.html#next-steps"><i class="fa fa-check"></i><b>7.6</b> Next Steps</a></li>
+<li class="chapter" data-level="7.7" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#sessioninfo"><i class="fa fa-check"></i><b>7.7</b> SessionInfo</a></li>
+<li class="chapter" data-level="7.8" data-path="the-mvp-classification-accuracy-as-a-function-of-review-length-and-volume.html"><a href="the-mvp-classification-accuracy-as-a-function-of-review-length-and-volume.html#references"><i class="fa fa-check"></i><b>7.8</b> References</a></li>
+</ul></li>
+<li class="chapter" data-level="8" data-path="beyond-the-mvp-looking-at-longer-reviews.html"><a href="beyond-the-mvp-looking-at-longer-reviews.html"><i class="fa fa-check"></i><b>8</b> Beyond the MVP: Looking at Longer Reviews</a><ul>
+<li class="chapter" data-level="8.1" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#introduction"><i class="fa fa-check"></i><b>8.1</b> Introduction</a></li>
+<li class="chapter" data-level="8.2" data-path="beyond-the-mvp-looking-at-longer-reviews.html"><a href="beyond-the-mvp-looking-at-longer-reviews.html#results-from-the-previous-section"><i class="fa fa-check"></i><b>8.2</b> Results from the Previous Section</a></li>
+<li class="chapter" data-level="8.3" data-path="beyond-the-mvp-looking-at-longer-reviews.html"><a href="beyond-the-mvp-looking-at-longer-reviews.html#finding-misclassified-reviews"><i class="fa fa-check"></i><b>8.3</b> Finding Misclassified Reviews</a></li>
+<li class="chapter" data-level="8.4" data-path="beyond-the-mvp-looking-at-longer-reviews.html"><a href="beyond-the-mvp-looking-at-longer-reviews.html#qualitative-analysis-of-misclassified-reviews"><i class="fa fa-check"></i><b>8.4</b> Qualitative Analysis of Misclassified Reviews</a></li>
+<li class="chapter" data-level="8.5" data-path="beyond-the-mvp-looking-at-longer-reviews.html"><a href="beyond-the-mvp-looking-at-longer-reviews.html#negations"><i class="fa fa-check"></i><b>8.5</b> Negations</a><ul>
+<li class="chapter" data-level="8.5.1" data-path="beyond-the-mvp-looking-at-longer-reviews.html"><a href="beyond-the-mvp-looking-at-longer-reviews.html#negations-and-prediction-accuracy"><i class="fa fa-check"></i><b>8.5.1</b> Negations and Prediction Accuracy</a></li>
+<li class="chapter" data-level="8.5.2" data-path="beyond-the-mvp-looking-at-longer-reviews.html"><a href="beyond-the-mvp-looking-at-longer-reviews.html#negations-and-word-length"><i class="fa fa-check"></i><b>8.5.2</b> Negations and Word Length</a></li>
+</ul></li>
+<li class="chapter" data-level="8.6" data-path="beyond-the-mvp-looking-at-longer-reviews.html"><a href="beyond-the-mvp-looking-at-longer-reviews.html#readability"><i class="fa fa-check"></i><b>8.6</b> Readability</a></li>
+<li class="chapter" data-level="8.7" data-path="beyond-the-mvp-looking-at-longer-reviews.html"><a href="beyond-the-mvp-looking-at-longer-reviews.html#summing-up-so-far"><i class="fa fa-check"></i><b>8.7</b> Summing Up So Far</a></li>
+<li class="chapter" data-level="8.8" data-path="beyond-the-mvp-looking-at-longer-reviews.html"><a href="beyond-the-mvp-looking-at-longer-reviews.html#logistic-regression-on-afinn-negators"><i class="fa fa-check"></i><b>8.8</b> Logistic Regression on AFINN + negators</a></li>
+<li class="chapter" data-level="8.9" data-path="beyond-the-mvp-looking-at-longer-reviews.html"><a href="beyond-the-mvp-looking-at-longer-reviews.html#logistic-regression-on-mean-afinn-negators"><i class="fa fa-check"></i><b>8.9</b> Logistic Regression on Mean AFINN + negators</a></li>
+<li class="chapter" data-level="8.10" data-path="beyond-the-mvp-looking-at-longer-reviews.html"><a href="beyond-the-mvp-looking-at-longer-reviews.html#comparing-models-multiple-trials"><i class="fa fa-check"></i><b>8.10</b> Comparing Models: Multiple Trials</a></li>
+<li class="chapter" data-level="8.11" data-path="beyond-the-mvp-looking-at-longer-reviews.html"><a href="beyond-the-mvp-looking-at-longer-reviews.html#re-running-the-big-analysis"><i class="fa fa-check"></i><b>8.11</b> Re-Running the Big Analysis</a></li>
+<li class="chapter" data-level="8.12" data-path="a-first-lasso-attempt.html"><a href="a-first-lasso-attempt.html#conclusion"><i class="fa fa-check"></i><b>8.12</b> Conclusion</a></li>
+<li class="chapter" data-level="8.13" data-path="data-summary-eda-initial-model-attempts.html"><a href="data-summary-eda-initial-model-attempts.html#sessioninfo"><i class="fa fa-check"></i><b>8.13</b> SessionInfo</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="the-mvp-classification-accuracy-as-a-function-of-review-length-and-volume.html"><a href="the-mvp-classification-accuracy-as-a-function-of-review-length-and-volume.html#references"><i class="fa fa-check"></i>References</a></li>
+<li class="divider"></li>
+<li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
+
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Telfer 2020 Directed Reading: Natural Language Processing</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="beyond-the-mvp-looking-at-longer-reviews" class="section level1">
+<h1><span class="header-section-number">Chapter 8</span> Beyond the MVP: Looking at Longer Reviews</h1>
+<div id="introduction" class="section level2">
+<h2><span class="header-section-number">8.1</span> Introduction</h2>
+<p>In this notebook I’ll dig deeper into the last section’s strange finding that <em>longer</em> reviews generated <em>worse</em> predictions. Recall that we used a logistic regression to create a <em>classification model</em> to predict Yelp reviews’ star ratings based on their sentiment as measured by AFINN. After evaluating 25 models using data subsets with review lengths and volumes, the two main results were:</p>
+<ul>
+<li><strong>A1:</strong> Review accuracy was better with shorter reviews, and the longest reviews were the least effective.</li>
+<li><strong>A2:</strong> Review accuracy was not correlated with the number of reviews used as inputs, provided the number of reviews is on the order of 10,000.</li>
+</ul>
+<p>Here I’ll test two hypotheses:</p>
+<ul>
+<li><strong>H1:</strong> The presence of <em>negators</em> like “but” and “not” are associated with both incorrect predictions and with increasing review length.</li>
+<li><strong>H2:</strong> Decreasing <em>readability scores</em> are associated with both incorrect predictions and with increasing review length.</li>
+</ul>
+<p>The intuition is twofold: first, that AFINN’s simple “bag-of-words” approach can’t capture complex sentence structures; and second, that the number of complex sentence structures will tend to increase as the length of a review increases. As a result, we would expect more complex reviews to have worse predictions using a simple model based on AFINN scores.</p>
+</div>
+<div id="results-from-the-previous-section" class="section level2">
+<h2><span class="header-section-number">8.2</span> Results from the Previous Section</h2>
+<p>I will again work with the large Yelp dataset available <a href="https://www.kaggle.com/yelp-dataset/yelp-dataset">at this link</a>. For brevity I’m omitting the code here (see the previous section or .Rmd source file), but the code:</p>
+<ul>
+<li>Loads the first 500k reviews;</li>
+<li>Converts integer star ratings to NEG and POS factors;</li>
+<li>Balances the NEG and POS reviews using random downsampling;</li>
+<li>Calculates each review’s AFINN sentiment score; and</li>
+<li>Calculates each review’s word length.</li>
+</ul>
+<p>In the last section we found that prediction accuracy was better with shorter texts and poor with longer texts. To give a fairer analysis of the model and to smooth out any potential for us to get poor results by chance, here I extend the analysis a bit to run the model 30 times for each data subset–randomly resampling a test/train split each time–and computing the average accuracy across all trials. The results are similar to what we found in the last section and are shown below in Figure <a href="beyond-the-mvp-looking-at-longer-reviews.html#fig:reminder-heatmap">8.1</a>. Accuracy ranges from around 79% to around 83%, and it looks like results are worse for longer reviews.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb1-1"></a>results_oldmodel <span class="op">%&gt;%</span></span>
+<span id="cb1-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb1-2"></a><span class="st">  </span><span class="kw">ggplot</span>() <span class="op">+</span></span>
+<span id="cb1-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb1-3"></a><span class="st">  </span><span class="kw">geom_tile</span>(<span class="kw">aes</span>(<span class="dt">x=</span>word_qtile, <span class="dt">y=</span>num_qtile, <span class="dt">fill=</span>accuracy)) <span class="op">+</span></span>
+<span id="cb1-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb1-4"></a><span class="st">  </span><span class="kw">scale_x_continuous</span>(<span class="dt">breaks =</span> <span class="dv">1</span><span class="op">:</span>num_qtiles, </span>
+<span id="cb1-5"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb1-5"></a>                     <span class="dt">labels =</span> <span class="kw">paste0</span>(<span class="st">&quot;Q&quot;</span>,<span class="dv">1</span><span class="op">:</span>num_qtiles,<span class="st">&quot;: &quot;</span>,qtiles, <span class="st">&quot;-&quot;</span>,<span class="kw">lead</span>(qtiles)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">head</span>(<span class="op">-</span><span class="dv">1</span>)) <span class="op">+</span></span>
+<span id="cb1-6"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb1-6"></a><span class="st">  </span><span class="kw">scale_y_continuous</span>(<span class="dt">breaks =</span> <span class="dv">1</span><span class="op">:</span>num_qtiles,</span>
+<span id="cb1-7"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb1-7"></a>                     <span class="dt">labels =</span> (<span class="dv">2</span><span class="op">*</span><span class="kw">round</span>(<span class="dv">1</span><span class="op">:</span>num_qtiles <span class="op">*</span><span class="st"> </span>minn<span class="op">/</span>num_qtiles))) <span class="op">+</span></span>
+<span id="cb1-8"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb1-8"></a><span class="st">  </span><span class="kw">labs</span>(<span class="dt">x =</span> <span class="st">&quot;Review Word Length by Quantile&quot;</span>,</span>
+<span id="cb1-9"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb1-9"></a>       <span class="dt">y =</span> <span class="st">&quot;Number of Reviews&quot;</span>,</span>
+<span id="cb1-10"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb1-10"></a>       <span class="dt">fill =</span> <span class="st">&quot;Accuracy&quot;</span>)</span></code></pre></div>
+<div class="figure"><span id="fig:reminder-heatmap"></span>
+<img src="telfer-mba-nlp_files/figure-html/reminder-heatmap-1.png" alt="Overview of results: Heat map of logistic regression prediction accuracy for the micro-balanced Yelp dataset. Each cell shows average accuracy for 30 tests on random samples." width="672" />
+<p class="caption">
+Figure 8.1: Overview of results: Heat map of logistic regression prediction accuracy for the micro-balanced Yelp dataset. Each cell shows average accuracy for 30 tests on random samples.
+</p>
+</div>
+<p>This trend is clear in Figure <a href="beyond-the-mvp-looking-at-longer-reviews.html#fig:reminder-boxplot-length">8.2</a> below, where the first three quintiles perform reasonably well, but then accuracy degrades quickly in Q4 and Q5.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb2-1"></a>results_oldmodel <span class="op">%&gt;%</span></span>
+<span id="cb2-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb2-2"></a><span class="st">  </span><span class="kw">ggplot</span>() <span class="op">+</span></span>
+<span id="cb2-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb2-3"></a><span class="st">  </span><span class="kw">geom_boxplot</span>(<span class="kw">aes</span>(<span class="dt">x=</span><span class="kw">as.factor</span>(word_qtile), <span class="dt">y =</span> accuracy)) <span class="op">+</span></span>
+<span id="cb2-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb2-4"></a><span class="st">  </span><span class="kw">theme_minimal</span>() <span class="op">+</span></span>
+<span id="cb2-5"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb2-5"></a><span class="st">  </span><span class="kw">scale_x_discrete</span>(<span class="dt">breaks =</span> <span class="dv">1</span><span class="op">:</span>num_qtiles, </span>
+<span id="cb2-6"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb2-6"></a>                     <span class="dt">labels =</span> <span class="kw">paste0</span>(<span class="st">&quot;Q&quot;</span>,<span class="dv">1</span><span class="op">:</span>num_qtiles,<span class="st">&quot;: &quot;</span>,qtiles, <span class="st">&quot;-&quot;</span>,<span class="kw">lead</span>(qtiles)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">head</span>(<span class="op">-</span><span class="dv">1</span>)) <span class="op">+</span></span>
+<span id="cb2-7"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb2-7"></a><span class="st">  </span><span class="kw">labs</span>(<span class="dt">x =</span> <span class="st">&quot;Review Word Length by Quantile&quot;</span>,</span>
+<span id="cb2-8"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb2-8"></a>       <span class="dt">y =</span> <span class="st">&quot;Accuracy&quot;</span>)</span></code></pre></div>
+<div class="figure"><span id="fig:reminder-boxplot-length"></span>
+<img src="telfer-mba-nlp_files/figure-html/reminder-boxplot-length-1.png" alt="Experiment 2: Boxplots of review accuracy by word-length quintile, showing the worst performance with the longest reviews. Each point is an average of model results based on 30 random samples within the subset." width="672" />
+<p class="caption">
+Figure 8.2: Experiment 2: Boxplots of review accuracy by word-length quintile, showing the worst performance with the longest reviews. Each point is an average of model results based on 30 random samples within the subset.
+</p>
+</div>
+</div>
+<div id="finding-misclassified-reviews" class="section level2">
+<h2><span class="header-section-number">8.3</span> Finding Misclassified Reviews</h2>
+<p>We’ll modify our logistic regression function so that it returns its prediction for each review, not only the accuracy for the whole set of reviews.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb3-1"></a>logit_predict &lt;-<span class="st"> </span><span class="cf">function</span> (dataset) {</span>
+<span id="cb3-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb3-2"></a></span>
+<span id="cb3-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb3-3"></a>  <span class="co"># for a train/test split: get a random vector as long as our dataset that is 75% TRUE and 25% FALSEe.</span></span>
+<span id="cb3-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb3-4"></a>  index &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="kw">c</span>(T,F), </span>
+<span id="cb3-5"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb3-5"></a>                  <span class="dt">size =</span> <span class="kw">nrow</span>(dataset),</span>
+<span id="cb3-6"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb3-6"></a>                  <span class="dt">replace =</span> T,</span>
+<span id="cb3-7"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb3-7"></a>                  <span class="dt">prob=</span><span class="kw">c</span>(<span class="fl">0.75</span>,<span class="fl">0.25</span>))</span>
+<span id="cb3-8"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb3-8"></a>  </span>
+<span id="cb3-9"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb3-9"></a>  <span class="co"># extract train and test datasets by indexing our dataset using our random index</span></span>
+<span id="cb3-10"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb3-10"></a>  train &lt;-<span class="st"> </span>dataset[index,]</span>
+<span id="cb3-11"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb3-11"></a>  test &lt;-<span class="st"> </span>dataset[<span class="op">!</span>index,]</span>
+<span id="cb3-12"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb3-12"></a>  </span>
+<span id="cb3-13"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb3-13"></a>  <span class="co"># use `glm()` to run a logistic regression predicting the rating factor based on the AFINN score.</span></span>
+<span id="cb3-14"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb3-14"></a>  logit &lt;-<span class="st"> </span><span class="kw">glm</span>(<span class="dt">data=</span> train,</span>
+<span id="cb3-15"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb3-15"></a>               <span class="dt">formula=</span> rating_factor <span class="op">~</span><span class="st"> </span>afinn_sent,</span>
+<span id="cb3-16"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb3-16"></a>               <span class="dt">family=</span><span class="st">&quot;binomial&quot;</span>)</span>
+<span id="cb3-17"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb3-17"></a>  </span>
+<span id="cb3-18"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb3-18"></a>  pred &lt;-<span class="st"> </span><span class="kw">predict</span>(logit, </span>
+<span id="cb3-19"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb3-19"></a>                  <span class="dt">newdata =</span> test,</span>
+<span id="cb3-20"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb3-20"></a>                  <span class="dt">type=</span><span class="st">&quot;response&quot;</span>)</span>
+<span id="cb3-21"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb3-21"></a>  </span>
+<span id="cb3-22"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb3-22"></a>  <span class="co"># now predict the outcome based on whichever has the greater probability, find out if each prediction is correct</span></span>
+<span id="cb3-23"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb3-23"></a>  test_results &lt;-<span class="st"> </span>test <span class="op">%&gt;%</span></span>
+<span id="cb3-24"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb3-24"></a><span class="st">    </span><span class="kw">bind_cols</span>(<span class="kw">tibble</span>(<span class="dt">pred =</span> pred)) <span class="op">%&gt;%</span></span>
+<span id="cb3-25"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb3-25"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">pred =</span> <span class="kw">if_else</span>(pred <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.5</span>, <span class="st">&quot;POS&quot;</span>, <span class="st">&quot;NEG&quot;</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb3-26"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb3-26"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">correct =</span> <span class="kw">if_else</span> (pred <span class="op">==</span><span class="st"> </span>rating_factor, T, F)) </span>
+<span id="cb3-27"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb3-27"></a>  </span>
+<span id="cb3-28"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb3-28"></a>  <span class="kw">return</span> (test_results)</span>
+<span id="cb3-29"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb3-29"></a>}</span></code></pre></div>
+<p>For this analysis, we will look at the largest set of the longest reviews that we considered in the previous section. This code takes the full set of the longest reviews, downsamples it so that there are the same number of positive and negative reviews, and then fits a logistic regression to a training subset and returns predictions for a test subset.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb4-1"></a><span class="kw">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb4-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb4-2"></a>word_qtil &lt;-<span class="st"> </span><span class="dv">5</span></span>
+<span id="cb4-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb4-3"></a>minnnum_reviews &lt;-<span class="st"> </span><span class="dv">5</span> <span class="op">*</span><span class="st"> </span>minn<span class="op">/</span>num_qtiles </span>
+<span id="cb4-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb4-4"></a>   <span class="co"># I&#39;m doing this in two steps to keep it simple, since we need to get the same number of positive and negative reviews.</span></span>
+<span id="cb4-5"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb4-5"></a>    <span class="co"># First, filter the positive rows we want: the right number of words, and the right number of reviews</span></span>
+<span id="cb4-6"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb4-6"></a>    data_pos &lt;-<span class="st"> </span>yelp_data <span class="op">%&gt;%</span></span>
+<span id="cb4-7"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb4-7"></a><span class="st">      </span><span class="kw">filter</span>(qtile <span class="op">==</span><span class="st"> </span>word_qtile) <span class="op">%&gt;%</span></span>
+<span id="cb4-8"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb4-8"></a><span class="st">      </span><span class="kw">filter</span>(rating_factor <span class="op">==</span><span class="st"> &quot;POS&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-9"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb4-9"></a><span class="st">      </span><span class="kw">slice_sample</span>(<span class="dt">n =</span> num_reviews)</span>
+<span id="cb4-10"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb4-10"></a>    </span>
+<span id="cb4-11"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb4-11"></a>    <span class="co"># Then filter the negative rows we want:</span></span>
+<span id="cb4-12"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb4-12"></a>    data_neg &lt;-<span class="st"> </span>yelp_data <span class="op">%&gt;%</span></span>
+<span id="cb4-13"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb4-13"></a><span class="st">      </span><span class="kw">filter</span>(qtile <span class="op">==</span><span class="st"> </span>word_qtile) <span class="op">%&gt;%</span></span>
+<span id="cb4-14"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb4-14"></a><span class="st">      </span><span class="kw">filter</span>(rating_factor <span class="op">==</span><span class="st"> &quot;NEG&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-15"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb4-15"></a><span class="st">      </span><span class="kw">slice_sample</span>(<span class="dt">n =</span> num_reviews)</span>
+<span id="cb4-16"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb4-16"></a>    </span>
+<span id="cb4-17"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb4-17"></a>    <span class="co"># then combine the positive and negative rows.</span></span>
+<span id="cb4-18"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb4-18"></a>    data_for_logit &lt;-<span class="st"> </span><span class="kw">bind_rows</span>(data_pos, data_neg) </span>
+<span id="cb4-19"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb4-19"></a>    </span>
+<span id="cb4-20"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb4-20"></a>    <span class="co"># run the logistic regression on our data</span></span>
+<span id="cb4-21"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb4-21"></a>    predictions &lt;-<span class="st"> </span>data_for_logit <span class="op">%&gt;%</span></span>
+<span id="cb4-22"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb4-22"></a><span class="st">      </span><span class="kw">logit_predict</span>()</span></code></pre></div>
+<p>We’ll use this new dataset for the rest of this section.</p>
+</div>
+<div id="qualitative-analysis-of-misclassified-reviews" class="section level2">
+<h2><span class="header-section-number">8.4</span> Qualitative Analysis of Misclassified Reviews</h2>
+<p>Let’s begin by looking at a few misclassified reviews in detail. Table <a href="beyond-the-mvp-looking-at-longer-reviews.html#tab:first-misclas">8.1</a> shows a review that was actually positive, but was predicted to be negative. Although it says a lot of positive-valence words like “epic” and “nice,” it also uses negative-valence words like “desperate,” “chintzy,” and “cheesy” that balance out for an overall AFINN score of just 8. A human reader can tell that the reviewer introduces these negative words just to dismiss them (as in “Feels modern and not <em>too</em> cheesy”), but AFINN just sees these words and scores them as negative.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb5-1"></a>predictions[<span class="dv">7</span>,]<span class="op">$</span>text <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb5-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb5-2"></a><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(<span class="dt">col.names =</span> <span class="st">&quot;Review Text (True Pos, Misclassified)&quot;</span>,</span>
+<span id="cb5-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb5-3"></a>               <span class="dt">caption=</span><span class="st">&quot;True positive misclassified as negative. Note the number of negative-valence words like &#39;cheesy.&#39;&quot;</span>)</span></code></pre></div>
+<table>
+<caption><span id="tab:first-misclas">Table 8.1: </span>True positive misclassified as negative. Note the number of negative-valence words like ‘cheesy.’</caption>
+<colgroup>
+<col width="100%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Review Text (True Pos, Misclassified)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">First and foremost, I want to say that the people watching here is EPIC. Beyond that, it’s pretty nice for a casino. Feels modern and not <em>too</em> cheesy although it’s kind of hard to have a casino and NOT have some chintzy decor. Also, this casino doesn’t quite have that “desperate” feeling that a lot of other, older, established casinos seem to have. I’m not a gambler so I won’t speak to the gaming aspect of things but I think this casino does a good job of drawing people in who aren’t looking to lose money at the slots and would prefer to drop their hard-earned cash at a bar. The bar areas here are loungy and well laid out and it doesn’t feel like everyone who works at the casino is giving you the stinkeye bc you want to sit down somewhere that isn’t connected to a machine or at a table. I could totally see myself coming in here to grab a drink or two before venturing on to some other bar.</td>
+</tr>
+</tbody>
+</table>
+<p>Table <a href="beyond-the-mvp-looking-at-longer-reviews.html#tab:second-misclas">8.2</a> shows a true negative review that was misclassified as positive. The reviewer uses many positive-valence words like “quality,” and uses few negative-valence words. Again the positive-valence words are negated or muted by modifiers (“<em>medium</em>-quality lamb”), but AFINN can’t detect this subtlety.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb6-1"></a><span class="kw">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb6-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb6-2"></a>predictions <span class="op">%&gt;%</span></span>
+<span id="cb6-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb6-3"></a><span class="st">  </span><span class="kw">filter</span>(pred<span class="op">==</span><span class="st">&quot;POS&quot;</span> <span class="op">&amp;</span><span class="st"> </span>correct<span class="op">==</span><span class="ot">FALSE</span>) <span class="op">%&gt;%</span></span>
+<span id="cb6-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb6-4"></a><span class="st">  </span><span class="kw">slice_sample</span>(<span class="dt">n=</span><span class="dv">1</span>) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb6-5"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb6-5"></a><span class="st">  </span><span class="kw">select</span>(text) <span class="op">%&gt;%</span></span>
+<span id="cb6-6"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb6-6"></a><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(<span class="dt">col.names =</span> <span class="st">&quot;Review Text (True Neg, Misclassified)&quot;</span>,</span>
+<span id="cb6-7"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb6-7"></a>               <span class="dt">caption=</span><span class="st">&quot;True negative misclassified as positive. Note the number of positive-valence words like &#39;quality&#39; and &#39;good,&#39; and the relative absence of negative-valenec words like &#39;bad&#39; or &#39;unpleasant.&#39;&quot;</span> )</span></code></pre></div>
+<table>
+<caption><span id="tab:second-misclas">Table 8.2: </span>True negative misclassified as positive. Note the number of positive-valence words like ‘quality’ and ‘good,’ and the relative absence of negative-valenec words like ‘bad’ or ‘unpleasant.’</caption>
+<colgroup>
+<col width="100%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Review Text (True Neg, Misclassified)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">We visited at 8:30 p.m. on Friday, me and wife and 10 month old. I always give the place an “out” if something’s not right. My wife and I got seated at a 2 top on the wall and the high chair placed between our table on the side. When the old lady and guy paid their bill to the left of us were 28 open seats, all 4 and 2 tops. To the right of us a 4 top and the dimwit hostess sat a 4 top there between us and another 4 top and I internally was pissed because we were so crowded the VERY friendly waitress was putting food on the table next to us. The reuben was DYNAMITE, HVAC was not. The front was open so we were “pitted-out” from fetid air. The 4 top next to us was pissed they were sandwiched between us and another table and they didn’t move they left. The VERY friendly waitress waiting that table agreed with me the hostesses must be brain-damaged…OK, she said one is “new.” $5.50 french fries (straight fries) were a tad old, not crispy. They did great on the reuben. Maybe I’d give 3 stars if when I walked out 4 hostesses and waitresses and one guy weren’t impeding our exit and didn’t thank us and were talking about slamming shots. I don’t care about the 50 bucks, I care about the experience and a beer glass that was not cold, it was slightly warm. We should have waited the 35 minutes for SanTan (this place was 30% full.) I suspect this place is 5 stars to get hammered, but they miss some basics I learned as a waiter / bartender. I cleaned crumbs off my seat - &amp; 5 people yapping outside.</td>
+</tr>
+</tbody>
+</table>
+<p>As a final check, let’s look at the true-negative review with the highest AFINN score to see where AFINN went most wrong. Table <a href="beyond-the-mvp-looking-at-longer-reviews.html#tab:mostwrong">8.3</a> shows this review, which received an AFINN score of 113 despite being negative. The author here also uses positive-valence words with negating words (e.g. “I <em>wasn’t</em> particularly impressed”), which confuses AFINN and leads to a high score. In addition, the author does just have a lot of nice things to say about the meal, which even I find a bit confusing.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb7-1"></a><span class="co"># afinn sent 113</span></span>
+<span id="cb7-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb7-2"></a>predictions <span class="op">%&gt;%</span></span>
+<span id="cb7-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb7-3"></a><span class="st">  </span><span class="kw">filter</span>(correct<span class="op">==</span><span class="ot">FALSE</span>) <span class="op">%&gt;%</span></span>
+<span id="cb7-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb7-4"></a><span class="st">  </span><span class="kw">arrange</span>(<span class="kw">desc</span>(afinn_sent)) <span class="op">%&gt;%</span></span>
+<span id="cb7-5"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb7-5"></a><span class="st">  </span><span class="kw">head</span>(<span class="dv">1</span>) <span class="op">%&gt;%</span></span>
+<span id="cb7-6"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb7-6"></a><span class="st">  </span><span class="kw">select</span>(text) <span class="op">%&gt;%</span></span>
+<span id="cb7-7"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb7-7"></a><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(<span class="dt">col.names =</span> <span class="st">&quot;Review Text&quot;</span>,</span>
+<span id="cb7-8"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb7-8"></a>               <span class="dt">caption =</span> <span class="st">&quot;This review was a true negative, but had an incredibly high AFINN score of 113.&quot;</span>)</span></code></pre></div>
+<table>
+<caption><span id="tab:mostwrong">Table 8.3: </span>This review was a true negative, but had an incredibly high AFINN score of 113.</caption>
+<colgroup>
+<col width="100%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Review Text</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Tastefully decorated with wine bottles, glasses, and interesting lighting fixtures, the interior feels open and bright thanks to floor-to-ceiling windows. A fantastic outdoor back patio includes an outdoor bar and lounge areas.</td>
+</tr>
+</tbody>
+</table>
+<p>The service was pleasant and patient - We were given a bread basket with crispy flat bread seasoned with tarragon and a few slices of white bread. It was accompanied with a rather plain marinara sauce, which foreshadowed the upcoming meal.</p>
+<p>Baby Red Romaine &amp; Escarole Salad
+Cara Cara orange, fennel, shaved Parmigiano-Reggiano and old wine vinaigrette
+A light start of fresh lettuce, a slightly tart vinaigrette, ripe Cara Cara orange, and cheese. While the orange and the dressing was enjoyable, something was left to be desired…perhaps it’s because of my unrefined wine and cheese palette, but I wasn’t particularly impressed. Memorable Summerlicious starter salads include the butterleaf truffle salad at Truffles at the Four Seasons (which has since closed) and Tutti Matti’s carpaccio salads.</p>
+<p>Bigeye Tuna Tartare &amp; Spicy Sopressata
+Cracked olives, garlic grissini, arugula, lemon and Sicilian organic extra virgin olive oil
+Fresh tuna tartare on a bed of salami was a welcome dish, especially since I’ve never tried sopressata before. The saltyness of the cured ham paired with the freshnesses of the tuna created an interesting balance between bites. The olives were typical, and the bread sticks brought a crunch but no flavour to the plate. Perhaps if they were toasted a bit more or rolled in sesame, it would’ve been a nice compliment to the dish.</p>
+<p>Wild &amp; Tame Mushroom Soup
+Six kinds of mushrooms (no butter or cream)
+Thick, warm, and hearty - this had the rich texture of a comforting soup despite the lack of cream or butter. I was impressed with the consistency and I love the taste of mushrooms so I thoroughly enjoyed this soup. As with the salad, there was something lacking - the “wow” factor that I always hope for at ’licious restaurants. The best mushroom soup that I’ve tasted was Wild Mushroom Soup from Tutti Matti - unfortunately not on their current menu.</p>
+<p>Grilled Top Sirloin Fettina
+Charred onion, heirloom tomato and rocket salad with crumbled Gorgonzola
+The vegetables were nice and warm, and the sauce surrounding the steak sweet however the steak wasn’t particularly interesting or great. Tender and nicely cooked, it was a good, simple cut of sirloin but didn’t blow me away or leave a lasting impression on my palette.</p>
+<p>Grilled Jail Island Salmon
+Pickled summer beets, heirloom carrots, watercress salad and horseradish crème fraîche
+Despite my half-success with the fish at Biff’s Bistro, I decided that it was worth another go. While tasty, I’m quickly getting bored with this Summerlicious lunch. The beets were nice, warm, and soft and the horseradish crème fraîche had great flavour. However the salmon was…just salmon.</p>
+<p>Roasted Portobello Mushroom &amp; Brie Quesadilla
+Caramelized onions, pico de gallo, chipotle crema, plantain tortilla chips and cilantro cress
+My personal favourite of the entrées, the chipotle cream had a tangy flavour that tasted great with the pico de gallo and quesadilla. The pico de gallo (salsa) was ripe and simple. Always a fan of portobello, these quesadillas had great flavour. While an interesting visual, the tortilla chips were lacking the flavour I usually enjoy from plantains. As a plantain chip lover, they were a disappointment. I’d rather crack open a bag of the Samai Plantain chips that I got addicted to Barbados.</p>
+<p>Chocolate Toffee Crunch Cheesecake
+Dulce de leche cream
+Thick cheesecake that was more toffee-like than chocolate. The caramel was pleasant with the dense cake. I wasn’t a fan of the bit of toffee that accompanied the cake but overall I’d say that this was the best dessert out of the three.</p>
+<p>Bavarian Vanilla Cream
+Ontario strawberry compote and dark cherry balsamic
+Nice and warm with a smooth texture, the vanilla cream dessert sat on one of the better compotes that I’ve tried. I found myself scooping this dessert up more for the compote than the cream.</p>
+<p>Coconut Rum Baba
+Tropical fruit salad and banana cream
+This spongy cake was covered with coconut shavings over pineapple, mango, and lychee. A sweet, generous drizzle of rum syrup soaked into the cake quite nicely. While I wasn’t the biggest fan of this dessert initially, over time as I enjoyed my company it grew on me. It wasn’t too rich or filling.</p>
+<p>Wonderfully designed and decorated, Jump Café &amp; Bar creates a vibrant, young, and upscale environment quite well. I would return for a drink at the bar, and the service was fantastic. However, I thought it was missing that the “oomph” factor that would make me wholeheartedly recommend this restaurant for future Summerlicious romps. This is a good spot to take someone who wants a very simple no-frills meal. |</p>
+<p>In addition, this shows a potential source of error when using raw AFINN scores: there is no weighting for review length. A review that makes 50 lukewarm statements will be rated 50 times more positive than a shorter review that only makes one. As Figure <a href="beyond-the-mvp-looking-at-longer-reviews.html#fig:afinn-word-length">8.3</a> shows, there does seem to be a positive correlation between a review’s word length and its AFINN score. It may therefore be worth looking at <em>normalizing</em> AFINN scores, either to word length or number of sentences, to see if we can improve our accuracy.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb8-1"></a>yelp_data <span class="op">%&gt;%</span></span>
+<span id="cb8-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb8-2"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x=</span>words, <span class="dt">y=</span>afinn_sent)) <span class="op">+</span></span>
+<span id="cb8-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb8-3"></a><span class="st">  </span><span class="kw">geom_point</span>() <span class="op">+</span></span>
+<span id="cb8-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb8-4"></a><span class="st">  </span><span class="kw">geom_smooth</span>(<span class="dt">method=</span><span class="st">&quot;lm&quot;</span>, <span class="dt">formula =</span> y<span class="op">~</span>x) <span class="op">+</span></span>
+<span id="cb8-5"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb8-5"></a><span class="st">  </span><span class="kw">theme_minimal</span>() <span class="op">+</span></span>
+<span id="cb8-6"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb8-6"></a><span class="st">  </span><span class="kw">labs</span>(<span class="dt">x=</span><span class="st">&quot;Words&quot;</span>,</span>
+<span id="cb8-7"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb8-7"></a>       <span class="dt">y=</span><span class="st">&quot;AFINN Sentiment&quot;</span>)</span></code></pre></div>
+<div class="figure"><span id="fig:afinn-word-length"></span>
+<img src="telfer-mba-nlp_files/figure-html/afinn-word-length-1.png" alt="Longer reviews seem to have slightly higher AFINN sentiment scores on average, and it also looks like variance increases with word length." width="672" />
+<p class="caption">
+Figure 8.3: Longer reviews seem to have slightly higher AFINN sentiment scores on average, and it also looks like variance increases with word length.
+</p>
+</div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb9-1"></a>lm_fit &lt;-<span class="st"> </span><span class="kw">lm</span>(<span class="dt">data =</span> yelp_data, <span class="dt">formula =</span> afinn_sent <span class="op">~</span><span class="st"> </span>words)</span>
+<span id="cb9-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb9-2"></a></span>
+<span id="cb9-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb9-3"></a>lm_fit <span class="op">%&gt;%</span><span class="st"> </span>broom<span class="op">::</span><span class="kw">tidy</span>() <span class="op">%&gt;%</span></span>
+<span id="cb9-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb9-4"></a><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(</span>
+<span id="cb9-5"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb9-5"></a>    <span class="dt">caption =</span> <span class="st">&quot;Results from a linear regrssion predicting AFINN sentiment from review length in words. Although the $R^2$ is low, the model shows good statistical significance.&quot;</span></span>
+<span id="cb9-6"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb9-6"></a>  )</span></code></pre></div>
+<table>
+<caption><span id="tab:unnamed-chunk-4">Table 8.4: </span>Results from a linear regrssion predicting AFINN sentiment from review length in words. Although the <span class="math inline">\(R^2\)</span> is low, the model shows good statistical significance.</caption>
+<thead>
+<tr class="header">
+<th align="left">term</th>
+<th align="right">estimate</th>
+<th align="right">std.error</th>
+<th align="right">statistic</th>
+<th align="right">p.value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">(Intercept)</td>
+<td align="right">4.5909815</td>
+<td align="right">0.0322987</td>
+<td align="right">142.14137</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">words</td>
+<td align="right">0.0190131</td>
+<td align="right">0.0002022</td>
+<td align="right">94.02087</td>
+<td align="right">0</td>
+</tr>
+</tbody>
+</table>
+<p>We can draw two conclusions from this (mostly) qualitative look at misclassified reviews:</p>
+<ul>
+<li>Misclassified reviews often use many opposite-valence words but <em>negate</em> them using words like “but” or “not.”</li>
+<li>The most-misclassified review by AFINN score was extremely long, suggesting that normalizing AFINN scores by review length might improve our accuracy.</li>
+</ul>
+</div>
+<div id="negations" class="section level2">
+<h2><span class="header-section-number">8.5</span> Negations</h2>
+<p>Let’s investigate the effects of negations/negators in our review texts. It’s possible, for example, that misclassified reviews could tend to have more negators like “not” or “but.” Since AFINN is a pure bag-of-words approach it can’t distinguish between “I am happy this is very good” and “I am <em>not</em> happy this is <em>not</em> very good.” Accounting for negators might therefore give us a way to capture this information and improve our predictions.</p>
+<div id="negations-and-prediction-accuracy" class="section level3">
+<h3><span class="header-section-number">8.5.1</span> Negations and Prediction Accuracy</h3>
+<p>Let’s look at “but”s and “nots” in the correct vs incorrect predictions.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb10-1"></a>predictions &lt;-<span class="st"> </span>predictions <span class="op">%&gt;%</span></span>
+<span id="cb10-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb10-2"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">buts =</span> stringr<span class="op">::</span><span class="kw">str_count</span>(text, <span class="st">&quot;but &quot;</span>),</span>
+<span id="cb10-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb10-3"></a>         <span class="dt">nots =</span> stringr<span class="op">::</span><span class="kw">str_count</span>(text, <span class="st">&quot;not &quot;</span>),</span>
+<span id="cb10-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb10-4"></a>         <span class="dt">buts_nots =</span> buts <span class="op">+</span><span class="st"> </span>nots)</span></code></pre></div>
+<p>The average numbers or buts and nots are different:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb11-1"></a>predictions <span class="op">%&gt;%</span></span>
+<span id="cb11-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb11-2"></a><span class="st">  </span><span class="kw">group_by</span>(correct) <span class="op">%&gt;%</span></span>
+<span id="cb11-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb11-3"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">avg_negs =</span> <span class="kw">mean</span>(buts_nots)) <span class="op">%&gt;%</span></span>
+<span id="cb11-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb11-4"></a><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>()</span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="left">correct</th>
+<th align="right">avg_negs</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">FALSE</td>
+<td align="right">3.703857</td>
+</tr>
+<tr class="even">
+<td align="left">TRUE</td>
+<td align="right">3.370872</td>
+</tr>
+</tbody>
+</table>
+<p>Let’s look more closely at the number of negators in correctly and incorrectly predicted reviews. Table <a href="beyond-the-mvp-looking-at-longer-reviews.html#tab:neg-ttest">8.5</a> below shows the results of three two-sided t-tests comparing the average number of “buts”, “nots”, and combined “buts &amp; nots” for correct and incorrect predictions. While “buts” and “buts &amp; nots” differ significantly, the difference in the number of “nots” is not statistically significant at the standard level of <span class="math inline">\(p&lt;0.05\)</span>. The other two results show strong significance.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb12-1"></a>pred_bn &lt;-<span class="st"> </span>predictions <span class="op">%&gt;%</span></span>
+<span id="cb12-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb12-2"></a><span class="st">  </span><span class="kw">t_test</span>(buts_nots <span class="op">~</span><span class="st"> </span>correct) <span class="op">%&gt;%</span></span>
+<span id="cb12-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb12-3"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">measure =</span> <span class="st">&quot;buts &amp; nots&quot;</span>)</span>
+<span id="cb12-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb12-4"></a></span>
+<span id="cb12-5"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb12-5"></a>pred_b &lt;-<span class="st"> </span>predictions <span class="op">%&gt;%</span></span>
+<span id="cb12-6"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb12-6"></a><span class="st">  </span><span class="kw">t_test</span>(buts <span class="op">~</span><span class="st"> </span>correct) <span class="op">%&gt;%</span></span>
+<span id="cb12-7"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb12-7"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">measure =</span> <span class="st">&quot;buts&quot;</span>)</span>
+<span id="cb12-8"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb12-8"></a></span>
+<span id="cb12-9"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb12-9"></a>pred_n &lt;-<span class="st"> </span>predictions <span class="op">%&gt;%</span></span>
+<span id="cb12-10"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb12-10"></a><span class="st">  </span><span class="kw">t_test</span>(nots <span class="op">~</span><span class="st"> </span>correct) <span class="op">%&gt;%</span></span>
+<span id="cb12-11"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb12-11"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">measure =</span> <span class="st">&quot;nots&quot;</span>)</span>
+<span id="cb12-12"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb12-12"></a></span>
+<span id="cb12-13"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb12-13"></a><span class="kw">bind_rows</span>(pred_bn,</span>
+<span id="cb12-14"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb12-14"></a>          pred_b,</span>
+<span id="cb12-15"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb12-15"></a>          pred_n) <span class="op">%&gt;%</span></span>
+<span id="cb12-16"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb12-16"></a><span class="st">  </span><span class="kw">select</span>(measure, statistic, t_df, p_value, alternative) <span class="op">%&gt;%</span></span>
+<span id="cb12-17"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb12-17"></a><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(<span class="dt">caption =</span> <span class="st">&quot;Results for two-sided t-tests for equivalence of means in the numbers of &#39;nots&#39;, &#39;buts&#39;, and &#39;nots and buts&#39; in correct and incorrect predictions for the subset of longer reviews.&quot;</span>)</span></code></pre></div>
+<table>
+<caption><span id="tab:neg-ttest">Table 8.5: </span>Results for two-sided t-tests for equivalence of means in the numbers of ‘nots’, ‘buts’, and ‘nots and buts’ in correct and incorrect predictions for the subset of longer reviews.</caption>
+<thead>
+<tr class="header">
+<th align="left">measure</th>
+<th align="right">statistic</th>
+<th align="right">t_df</th>
+<th align="right">p_value</th>
+<th align="left">alternative</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">buts &amp; nots</td>
+<td align="right">3.934286</td>
+<td align="right">2026.129</td>
+<td align="right">0.0000863</td>
+<td align="left">two.sided</td>
+</tr>
+<tr class="even">
+<td align="left">buts</td>
+<td align="right">4.564349</td>
+<td align="right">2092.784</td>
+<td align="right">0.0000053</td>
+<td align="left">two.sided</td>
+</tr>
+<tr class="odd">
+<td align="left">nots</td>
+<td align="right">1.875926</td>
+<td align="right">2024.922</td>
+<td align="right">0.0608092</td>
+<td align="left">two.sided</td>
+</tr>
+</tbody>
+</table>
+<p>This suggests that negators might play a role in lowering our model’s accuracy, and that accounting for negators somehow might improve our predictions.</p>
+</div>
+<div id="negations-and-word-length" class="section level3">
+<h3><span class="header-section-number">8.5.2</span> Negations and Word Length</h3>
+<p>Let’s look at the number of negations vs. word length for the longer reviews. Figure <a href="beyond-the-mvp-looking-at-longer-reviews.html#fig:neg-word-length">8.4</a> below shows that the number of “buts” and “nots” tends to increase with word length.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb13-1"></a>predictions <span class="op">%&gt;%</span></span>
+<span id="cb13-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb13-2"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x=</span>words, <span class="dt">y=</span>buts_nots)) <span class="op">+</span></span>
+<span id="cb13-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb13-3"></a><span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">position =</span> <span class="st">&quot;jitter&quot;</span>) <span class="op">+</span></span>
+<span id="cb13-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb13-4"></a><span class="st">  </span><span class="kw">geom_smooth</span>(<span class="dt">method =</span> <span class="st">&quot;lm&quot;</span>, <span class="dt">se =</span> <span class="ot">FALSE</span>) <span class="op">+</span></span>
+<span id="cb13-5"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb13-5"></a><span class="st">  </span><span class="kw">theme_minimal</span>()<span class="op">+</span></span>
+<span id="cb13-6"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb13-6"></a><span class="st">  </span><span class="kw">labs</span>(<span class="dt">x =</span> <span class="st">&quot;# Words&quot;</span>,</span>
+<span id="cb13-7"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb13-7"></a>       <span class="dt">y =</span> <span class="st">&quot;# buts and nots&quot;</span>)</span></code></pre></div>
+<div class="figure"><span id="fig:neg-word-length"></span>
+<img src="telfer-mba-nlp_files/figure-html/neg-word-length-1.png" alt="The combined number of 'buts' and 'nots' tends to increase as reviews get longer." width="672" />
+<p class="caption">
+Figure 8.4: The combined number of ‘buts’ and ‘nots’ tends to increase as reviews get longer.
+</p>
+</div>
+<p>A linear regression shows that this association is strongly significant, with both model and coefficient p-values below <span class="math inline">\(2^{-16}\)</span>. The <span class="math inline">\(R^2\)</span> is 0.295, which looks reasonable based on the plot.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb14-1"></a><span class="kw">lm</span>(<span class="dt">data =</span> predictions, <span class="dt">formula =</span> buts_nots <span class="op">~</span><span class="st"> </span>words) <span class="op">%&gt;%</span></span>
+<span id="cb14-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb14-2"></a><span class="st">  </span><span class="kw">summary</span>()</span></code></pre></div>
+<pre><code>## 
+## Call:
+## lm(formula = buts_nots ~ words, data = predictions)
+## 
+## Residuals:
+##    Min     1Q Median     3Q    Max 
+## -9.403 -1.546 -0.288  1.263 15.672 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 0.0563061  0.0648218   0.869    0.385    
+## words       0.0119693  0.0002105  56.867   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 2.283 on 7719 degrees of freedom
+## Multiple R-squared:  0.2953,	Adjusted R-squared:  0.2952 
+## F-statistic:  3234 on 1 and 7719 DF,  p-value: &lt; 2.2e-16</code></pre>
+<p><strong>We can conclude that “buts” and “nots” are associated with both incorrect predictions and with increasing word lengths.</strong></p>
+</div>
+</div>
+<div id="readability" class="section level2">
+<h2><span class="header-section-number">8.6</span> Readability</h2>
+<p>In this section we’ll look at how a review’s readability relates to model accuracy. We’ll use the <strong>sylcount</strong> package’s <code>readability()</code> function to calculate Flesch-Kincaid (FK) readability scores and see how they interact with accuracy. FK scores are a common way to measure a text’s complexity and will be familiar to anyone who uses Microsoft Word. Without going into details, texts with higher FK scores are assumed to be easier to read.</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb16-1"></a>predictions_re &lt;-<span class="st"> </span>predictions <span class="op">%&gt;%</span></span>
+<span id="cb16-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb16-2"></a><span class="st">  </span><span class="kw">pull</span>(text) <span class="op">%&gt;%</span></span>
+<span id="cb16-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb16-3"></a><span class="st">  </span>sylcount<span class="op">::</span><span class="kw">readability</span>() <span class="op">%&gt;%</span></span>
+<span id="cb16-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb16-4"></a><span class="st">  </span><span class="kw">select</span>(<span class="op">-</span>words) <span class="op">%&gt;%</span></span>
+<span id="cb16-5"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb16-5"></a><span class="st">  </span><span class="kw">bind_cols</span>(predictions, .)</span></code></pre></div>
+<p>Figure <a href="beyond-the-mvp-looking-at-longer-reviews.html#fig:fk-plot">8.5</a> shows FK readability ease vs. word length:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb17-1"></a>predictions_re <span class="op">%&gt;%</span></span>
+<span id="cb17-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb17-2"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x=</span>words, <span class="dt">y=</span>re)) <span class="op">+</span></span>
+<span id="cb17-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb17-3"></a><span class="st">  </span><span class="kw">geom_point</span>() <span class="op">+</span></span>
+<span id="cb17-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb17-4"></a><span class="st">  </span><span class="kw">theme_minimal</span>() <span class="op">+</span></span>
+<span id="cb17-5"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb17-5"></a><span class="st">  </span><span class="kw">labs</span>(<span class="dt">x =</span> <span class="st">&quot;# Words&quot;</span>,</span>
+<span id="cb17-6"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb17-6"></a>       <span class="dt">y =</span> <span class="st">&quot;Flesch-Kincaid Reasing Ease Score&quot;</span>)</span></code></pre></div>
+<div class="figure"><span id="fig:fk-plot"></span>
+<img src="telfer-mba-nlp_files/figure-html/fk-plot-1.png" alt="FK reading ease for the original set of long reviews. While most scores are between 0 and 100, there are many outliers as low as -250." width="672" />
+<p class="caption">
+Figure 8.5: FK reading ease for the original set of long reviews. While most scores are between 0 and 100, there are many outliers as low as -250.
+</p>
+</div>
+<p>We immediately see that the FE index has no theoretical minimum value, and this is a problem. Let’s look at the shortest super low one to see what’s going on. Looks like these reviewers use " . " instead of “.” so the algorithm thinks it’s all one sentence.</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb18-1"></a>predictions_re <span class="op">%&gt;%</span></span>
+<span id="cb18-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb18-2"></a><span class="st">  </span><span class="kw">filter</span>( re <span class="op">==</span><span class="st"> </span><span class="kw">min</span>(re)) <span class="op">%&gt;%</span></span>
+<span id="cb18-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb18-3"></a><span class="st">  </span><span class="kw">filter</span>(words <span class="op">==</span><span class="st"> </span><span class="kw">min</span>(words)) <span class="op">%&gt;%</span></span>
+<span id="cb18-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb18-4"></a><span class="st">  </span><span class="kw">pull</span>(text) <span class="op">%&gt;%</span></span>
+<span id="cb18-5"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb18-5"></a><span class="st">  </span>stringr<span class="op">::</span><span class="kw">str_trunc</span>(<span class="dv">150</span>)</span></code></pre></div>
+<pre><code>## [1] &quot;Leaving it 2 stars the food was bland the Greek fries were a little dry nothing special about the gyro but not uneatable . Also a bit over priced 1...&quot;</code></pre>
+<p>So we’ll fix this by replacing " ." with “.” and try again. Results are shown below in Figure <a href="beyond-the-mvp-looking-at-longer-reviews.html#fig:fk-plot2">8.6</a>.</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb20-1"></a>predictions_re &lt;-<span class="st"> </span>predictions <span class="op">%&gt;%</span></span>
+<span id="cb20-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb20-2"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">text =</span> stringr<span class="op">::</span><span class="kw">str_replace_all</span>(text,  <span class="st">&quot; </span><span class="ch">\\</span><span class="st">.&quot;</span>, <span class="st">&quot;</span><span class="ch">\\</span><span class="st">.&quot;</span>))  <span class="op">%&gt;%</span></span>
+<span id="cb20-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb20-3"></a><span class="st">  </span><span class="kw">pull</span>(text) <span class="op">%&gt;%</span></span>
+<span id="cb20-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb20-4"></a><span class="st">  </span>sylcount<span class="op">::</span><span class="kw">readability</span>() <span class="op">%&gt;%</span></span>
+<span id="cb20-5"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb20-5"></a><span class="st">  </span><span class="kw">select</span>(<span class="op">-</span>words) <span class="op">%&gt;%</span></span>
+<span id="cb20-6"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb20-6"></a><span class="st">  </span><span class="kw">bind_cols</span>(predictions, .)</span>
+<span id="cb20-7"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb20-7"></a></span>
+<span id="cb20-8"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb20-8"></a>predictions_re <span class="op">%&gt;%</span></span>
+<span id="cb20-9"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb20-9"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x=</span>words, <span class="dt">y=</span>re)) <span class="op">+</span></span>
+<span id="cb20-10"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb20-10"></a><span class="st">  </span><span class="kw">geom_point</span>() <span class="op">+</span></span>
+<span id="cb20-11"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb20-11"></a><span class="st">  </span><span class="kw">theme_minimal</span>() <span class="op">+</span></span>
+<span id="cb20-12"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb20-12"></a><span class="st">  </span><span class="kw">labs</span>(<span class="dt">x =</span> <span class="st">&quot;# Words&quot;</span>,</span>
+<span id="cb20-13"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb20-13"></a>       <span class="dt">y =</span> <span class="st">&quot;Flesch-Kincaid Reasing Ease Score&quot;</span>)</span></code></pre></div>
+<div class="figure"><span id="fig:fk-plot2"></span>
+<img src="telfer-mba-nlp_files/figure-html/fk-plot2-1.png" alt="FK reading ease for the set of long reviews with non-standard period breaks removed. Note there are still many low outliers." width="672" />
+<p class="caption">
+Figure 8.6: FK reading ease for the set of long reviews with non-standard period breaks removed. Note there are still many low outliers.
+</p>
+</div>
+<p>Since there are still many low outliers, the new shortest least-readable review is presented below in Table <a href="beyond-the-mvp-looking-at-longer-reviews.html#tab:new-shortest">8.6</a>. We can see two things: first, it’s honestly full of run-on sentences; and second, it looks like the reviewer is using carriage returns as sentence markers. We can fix the second item by replacing carriage returns with periods.</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb21-1"></a>predictions_re <span class="op">%&gt;%</span></span>
+<span id="cb21-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb21-2"></a><span class="st">  </span><span class="kw">filter</span>(re <span class="op">==</span><span class="st"> </span><span class="kw">min</span>(re)) <span class="op">%&gt;%</span></span>
+<span id="cb21-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb21-3"></a><span class="st">         </span><span class="kw">filter</span>(words <span class="op">==</span><span class="st"> </span><span class="kw">min</span>(words)) <span class="op">%&gt;%</span></span>
+<span id="cb21-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb21-4"></a><span class="st">  </span><span class="kw">pull</span>(text) <span class="op">%&gt;%</span></span>
+<span id="cb21-5"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb21-5"></a><span class="st">  </span>stringr<span class="op">::</span><span class="kw">str_trunc</span>(<span class="dv">500</span>) <span class="op">%&gt;%</span></span>
+<span id="cb21-6"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb21-6"></a><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(<span class="dt">col.names =</span> <span class="st">&quot;Shortest Least-Readable Review&quot;</span>,</span>
+<span id="cb21-7"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb21-7"></a>               <span class="dt">caption =</span> <span class="st">&quot;Statistics for two-sided t-tests comparing the number of correct and incorrect predictions based on the number of nots, buts, and nots &amp; buts they contain.&quot;</span>)</span></code></pre></div>
+<table>
+<caption><span id="tab:new-shortest">Table 8.6: </span>Statistics for two-sided t-tests comparing the number of correct and incorrect predictions based on the number of nots, buts, and nots &amp; buts they contain.</caption>
+<colgroup>
+<col width="100%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Shortest Least-Readable Review</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">My review not to criticise people personally but the business when we booked they said that they will pick us 6:15 am from our hotel so we waited almost half an hours extra outside the hotel till the picked us up</td>
+</tr>
+</tbody>
+</table>
+<p>Then we spend more time till they distribute us to another busses and kept asking if we would like to upgrade the seat or the bus for extra money we waste one and a half hours until we hit the road
+the busses was not so good very old no USB to charge phone because we where thinking… |</p>
+<p>As can be seen in Figure <a href="beyond-the-mvp-looking-at-longer-reviews.html#fig:fk-plot3">8.7</a>, there are still very low readability scores after fixing these “errors” in the dataset. This suggests that many reviews have inherent features, like run-on sentences, that result in genuinely low FK scores.</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb22-1"></a>predictions_re &lt;-<span class="st"> </span>predictions <span class="op">%&gt;%</span></span>
+<span id="cb22-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb22-2"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">text =</span> stringr<span class="op">::</span><span class="kw">str_replace_all</span>(text,  <span class="st">&quot; </span><span class="ch">\\</span><span class="st">.&quot;</span>, <span class="st">&quot;</span><span class="ch">\\</span><span class="st">.&quot;</span>),</span>
+<span id="cb22-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb22-3"></a>         <span class="dt">text =</span> stringr<span class="op">::</span><span class="kw">str_replace_all</span>(text, <span class="st">&quot;</span><span class="ch">\\</span><span class="st">s*</span><span class="ch">\\</span><span class="st">n</span><span class="ch">\\</span><span class="st">s*&quot;</span>, <span class="st">&quot;. &quot;</span>))  <span class="op">%&gt;%</span></span>
+<span id="cb22-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb22-4"></a><span class="st">  </span><span class="kw">pull</span>(text) <span class="op">%&gt;%</span></span>
+<span id="cb22-5"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb22-5"></a><span class="st">  </span>sylcount<span class="op">::</span><span class="kw">readability</span>() <span class="op">%&gt;%</span></span>
+<span id="cb22-6"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb22-6"></a><span class="st">  </span><span class="kw">select</span>(<span class="op">-</span>words) <span class="op">%&gt;%</span></span>
+<span id="cb22-7"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb22-7"></a><span class="st">  </span><span class="kw">bind_cols</span>(predictions, .)</span>
+<span id="cb22-8"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb22-8"></a></span>
+<span id="cb22-9"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb22-9"></a>predictions_re <span class="op">%&gt;%</span></span>
+<span id="cb22-10"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb22-10"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x=</span>words, <span class="dt">y=</span>re)) <span class="op">+</span></span>
+<span id="cb22-11"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb22-11"></a><span class="st">  </span><span class="kw">geom_point</span>() <span class="op">+</span><span class="st"> </span></span>
+<span id="cb22-12"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb22-12"></a><span class="st">  </span><span class="kw">theme_minimal</span>() <span class="op">+</span></span>
+<span id="cb22-13"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb22-13"></a><span class="st">  </span><span class="kw">labs</span>(<span class="dt">x =</span> <span class="st">&quot;# Words&quot;</span>,</span>
+<span id="cb22-14"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb22-14"></a>       <span class="dt">y =</span> <span class="st">&quot;Flesch-Kincaid Reasing Ease Score&quot;</span>)</span></code></pre></div>
+<div class="figure"><span id="fig:fk-plot3"></span>
+<img src="telfer-mba-nlp_files/figure-html/fk-plot3-1.png" alt="FK reading ease for the set of long reviews with non-standard period breaks and carriage returns removed. Outliers persist." width="672" />
+<p class="caption">
+Figure 8.7: FK reading ease for the set of long reviews with non-standard period breaks and carriage returns removed. Outliers persist.
+</p>
+</div>
+<p>Note that we have one value that has -Inf readability! This review, included as Table <a href="#tab:ros"><strong>??</strong></a> below, has a lot of text but no sentence-ending punctuation so it breaks the readability algorithms. We will filter this entry out in the rest of this section.</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb23-1"></a>predictions_re <span class="op">%&gt;%</span></span>
+<span id="cb23-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb23-2"></a><span class="st">  </span><span class="kw">filter</span>(re <span class="op">==</span><span class="st"> </span><span class="op">-</span><span class="ot">Inf</span>) <span class="op">%&gt;%</span></span>
+<span id="cb23-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb23-3"></a><span class="st">  </span><span class="kw">pull</span>(text) <span class="op">%&gt;%</span></span>
+<span id="cb23-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb23-4"></a><span class="st">  </span>stringr<span class="op">::</span><span class="kw">str_trunc</span>(<span class="dv">300</span>) <span class="op">%&gt;%</span></span>
+<span id="cb23-5"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb23-5"></a><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(<span class="dt">col.names =</span> <span class="st">&quot;Infinitely Unreadable Review&quot;</span>)</span></code></pre></div>
+<table>
+<colgroup>
+<col width="100%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Infinitely Unreadable Review</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Well not a good experience so got approved for credit threw Conns and was happy for that they delivered the furniture day just like they,said so I get back home and see they didn’t set the tv up ok so I call my brother over we set the tv up on the stand and the tv doesn’t work what a surprise …</td>
+</tr>
+</tbody>
+</table>
+<p>So let’s again now look at readability and prediction accuracy. The boxplots for the distributions look quite similar, as can be seen below in Figure <a href="beyond-the-mvp-looking-at-longer-reviews.html#fig:boxplot-fk">8.8</a>.</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb24-1"></a>predictions_re <span class="op">%&gt;%</span></span>
+<span id="cb24-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb24-2"></a><span class="st">  </span><span class="kw">filter</span>(re <span class="op">&gt;</span><span class="st"> </span><span class="op">-</span><span class="ot">Inf</span>) <span class="op">%&gt;%</span></span>
+<span id="cb24-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb24-3"></a><span class="st">  </span><span class="kw">ggplot</span>() <span class="op">+</span></span>
+<span id="cb24-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb24-4"></a><span class="st">  </span><span class="kw">geom_boxplot</span>(<span class="kw">aes</span>(<span class="dt">x=</span><span class="kw">as.factor</span>(correct), <span class="dt">y=</span>re)) <span class="op">+</span></span>
+<span id="cb24-5"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb24-5"></a><span class="st">  </span><span class="kw">theme_minimal</span>() <span class="op">+</span></span>
+<span id="cb24-6"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb24-6"></a><span class="st">  </span><span class="kw">labs</span>(<span class="dt">x =</span> <span class="st">&quot;Prediction Accuracy&quot;</span>,</span>
+<span id="cb24-7"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb24-7"></a>       <span class="dt">y =</span> <span class="st">&quot;Flesch-Kincaid Reasing Ease Score&quot;</span>)</span></code></pre></div>
+<div class="figure"><span id="fig:boxplot-fk"></span>
+<img src="telfer-mba-nlp_files/figure-html/boxplot-fk-1.png" alt="Distributions of FK reading ease scores for reviews with correct and incorrect predictions. The boxplots are very similar." width="672" />
+<p class="caption">
+Figure 8.8: Distributions of FK reading ease scores for reviews with correct and incorrect predictions. The boxplots are very similar.
+</p>
+</div>
+<p>Looking at the sample means, they’re not so different (after removing the one value of -Inf!)</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb25-1"></a>predictions_re <span class="op">%&gt;%</span></span>
+<span id="cb25-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb25-2"></a><span class="st">  </span><span class="kw">group_by</span>(correct) <span class="op">%&gt;%</span></span>
+<span id="cb25-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb25-3"></a><span class="st">  </span><span class="kw">filter</span>(re <span class="op">&gt;</span><span class="st"> </span><span class="op">-</span><span class="ot">Inf</span>) <span class="op">%&gt;%</span></span>
+<span id="cb25-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb25-4"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">avg_re =</span> <span class="kw">mean</span>(re)) <span class="op">%&gt;%</span></span>
+<span id="cb25-5"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb25-5"></a><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>()</span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="left">correct</th>
+<th align="right">avg_re</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">FALSE</td>
+<td align="right">81.77320</td>
+</tr>
+<tr class="even">
+<td align="left">TRUE</td>
+<td align="right">81.85309</td>
+</tr>
+</tbody>
+</table>
+<p>And a two-sided t-test does not show statistical evidence that the distribution means are different.</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb26-1"></a>predictions_re <span class="op">%&gt;%</span></span>
+<span id="cb26-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb26-2"></a><span class="st">  </span><span class="kw">filter</span>(re <span class="op">&gt;</span><span class="st"> </span><span class="op">-</span><span class="ot">Inf</span>) <span class="op">%&gt;%</span></span>
+<span id="cb26-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb26-3"></a><span class="st">  </span><span class="kw">t_test</span>(re <span class="op">~</span><span class="st"> </span>correct) <span class="op">%&gt;%</span></span>
+<span id="cb26-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb26-4"></a><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>()</span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="right">statistic</th>
+<th align="right">t_df</th>
+<th align="right">p_value</th>
+<th align="left">alternative</th>
+<th align="right">lower_ci</th>
+<th align="right">upper_ci</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">-0.2975279</td>
+<td align="right">2157.305</td>
+<td align="right">0.7660922</td>
+<td align="left">two.sided</td>
+<td align="right">-0.6064841</td>
+<td align="right">0.4466979</td>
+</tr>
+</tbody>
+</table>
+<p>To sum up, I found two problems with using readability measures on this data. First, many texts use either non-standard sentence breaks (e.g. " . " or carriage returns) which confuses the algorithms. But even after fixing these data issues, many texts have little or no punctuation at all. Readability algorithms rely on sentence counts, so they won’t work on informal texts without conventional punctuation.</p>
+<p><strong>So readability is not associated with prediction accuracy in this sample of longer reviews.</strong></p>
+</div>
+<div id="summing-up-so-far" class="section level2">
+<h2><span class="header-section-number">8.7</span> Summing Up So Far</h2>
+<p>Let’s do a quick recap on what we’ve learned so far in this section:</p>
+<ul>
+<li>Misclassified reviews often use many opposite-valence words but <em>negate</em> them using words like “but” or “not.”</li>
+<li>The most-misclassified review by AFINN score was extremely long, suggesting that normalizing AFINN scores by review length might improve our accuracy.</li>
+<li>Negators like “buts” and “nots” are associated with both incorrect predictions and with increasing word lengths.</li>
+<li>Readability is not associated with prediction accuracy in this sample of longer reviews.</li>
+</ul>
+</div>
+<div id="logistic-regression-on-afinn-negators" class="section level2">
+<h2><span class="header-section-number">8.8</span> Logistic Regression on AFINN + negators</h2>
+<p>Based on our findings, let’s create a second model where we add negators to our logistic regression. This next code chunk defines Model 2, and the main difference is that now our logistic regression formula is <code>rating_factor ~ afinn_sent + buts_nots</code>.</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-1"></a>logit_predict_v2 &lt;-<span class="st"> </span><span class="cf">function</span> (dataset) {</span>
+<span id="cb27-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-2"></a></span>
+<span id="cb27-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-3"></a>  <span class="co"># for a train/test split: get a random vector as long as our dataset that is 75% TRUE and 25% FALSEe.</span></span>
+<span id="cb27-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-4"></a>  index &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="kw">c</span>(T,F), </span>
+<span id="cb27-5"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-5"></a>                  <span class="dt">size =</span> <span class="kw">nrow</span>(dataset),</span>
+<span id="cb27-6"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-6"></a>                  <span class="dt">replace =</span> T,</span>
+<span id="cb27-7"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-7"></a>                  <span class="dt">prob=</span><span class="kw">c</span>(<span class="fl">0.75</span>,<span class="fl">0.25</span>))</span>
+<span id="cb27-8"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-8"></a>  </span>
+<span id="cb27-9"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-9"></a>  <span class="co"># extract train and test datasets by indexing our dataset using our random index</span></span>
+<span id="cb27-10"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-10"></a>  train &lt;-<span class="st"> </span>dataset[index,]</span>
+<span id="cb27-11"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-11"></a>  test &lt;-<span class="st"> </span>dataset[<span class="op">!</span>index,]</span>
+<span id="cb27-12"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-12"></a>  </span>
+<span id="cb27-13"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-13"></a>  <span class="co"># use `glm()` to run a logistic regression predicting the rating factor based on the AFINN score.</span></span>
+<span id="cb27-14"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-14"></a>  logit &lt;-<span class="st"> </span><span class="kw">glm</span>(<span class="dt">data=</span> train,</span>
+<span id="cb27-15"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-15"></a>               <span class="dt">formula=</span> rating_factor <span class="op">~</span><span class="st"> </span>afinn_sent <span class="op">+</span><span class="st"> </span>buts_nots,</span>
+<span id="cb27-16"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-16"></a>               <span class="dt">family=</span><span class="st">&quot;binomial&quot;</span>)</span>
+<span id="cb27-17"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-17"></a>  </span>
+<span id="cb27-18"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-18"></a>  pred &lt;-<span class="st"> </span><span class="kw">predict</span>(logit, </span>
+<span id="cb27-19"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-19"></a>                  <span class="dt">newdata =</span> test,</span>
+<span id="cb27-20"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-20"></a>                  <span class="dt">type=</span><span class="st">&quot;response&quot;</span>)</span>
+<span id="cb27-21"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-21"></a>  </span>
+<span id="cb27-22"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-22"></a>  <span class="co"># now predict the outcome based on whichever has the greater probability, find out if each prediction is correct</span></span>
+<span id="cb27-23"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-23"></a>  test_results &lt;-<span class="st"> </span>test <span class="op">%&gt;%</span></span>
+<span id="cb27-24"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-24"></a><span class="st">    </span><span class="kw">bind_cols</span>(<span class="kw">tibble</span>(<span class="dt">pred =</span> pred)) <span class="op">%&gt;%</span></span>
+<span id="cb27-25"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-25"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">pred =</span> <span class="kw">if_else</span>(pred <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.5</span>, <span class="st">&quot;POS&quot;</span>, <span class="st">&quot;NEG&quot;</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb27-26"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-26"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">correct =</span> <span class="kw">if_else</span> (pred <span class="op">==</span><span class="st"> </span>rating_factor, T, F)) </span>
+<span id="cb27-27"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-27"></a>  </span>
+<span id="cb27-28"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-28"></a>  <span class="kw">return</span> (test_results)</span>
+<span id="cb27-29"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb27-29"></a>}</span></code></pre></div>
+<p>Let’s run the predictive algorithm again using Model 2:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb28-1"></a>data_for_logit &lt;-<span class="st"> </span>data_for_logit <span class="op">%&gt;%</span></span>
+<span id="cb28-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb28-2"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">buts =</span> stringr<span class="op">::</span><span class="kw">str_count</span>(text, <span class="st">&quot;but &quot;</span>),</span>
+<span id="cb28-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb28-3"></a>         <span class="dt">nots =</span> stringr<span class="op">::</span><span class="kw">str_count</span>(text, <span class="st">&quot;not &quot;</span>),</span>
+<span id="cb28-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb28-4"></a>         <span class="dt">buts_nots =</span> buts <span class="op">+</span><span class="st"> </span>nots) </span>
+<span id="cb28-5"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb28-5"></a></span>
+<span id="cb28-6"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb28-6"></a>predictions_v2 &lt;-<span class="st"> </span>data_for_logit <span class="op">%&gt;%</span></span>
+<span id="cb28-7"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb28-7"></a><span class="st">  </span><span class="kw">logit_predict_v2</span>()</span>
+<span id="cb28-8"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb28-8"></a>  </span>
+<span id="cb28-9"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb28-9"></a>pred_v1 &lt;-<span class="st"> </span>predictions <span class="op">%&gt;%</span></span>
+<span id="cb28-10"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb28-10"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">v1_accuracy =</span> <span class="kw">sum</span>(correct)<span class="op">/</span><span class="st"> </span><span class="kw">n</span>())</span>
+<span id="cb28-11"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb28-11"></a></span>
+<span id="cb28-12"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb28-12"></a>pred_v2 &lt;-<span class="st"> </span>predictions_v2 <span class="op">%&gt;%</span></span>
+<span id="cb28-13"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb28-13"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">v2_accuracy =</span> <span class="kw">sum</span>(correct)<span class="op">/</span><span class="st"> </span><span class="kw">n</span>())</span>
+<span id="cb28-14"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb28-14"></a></span>
+<span id="cb28-15"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb28-15"></a><span class="kw">bind_cols</span>(pred_v1, pred_v2) <span class="op">%&gt;%</span></span>
+<span id="cb28-16"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb28-16"></a><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>()</span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="right">v1_accuracy</th>
+<th align="right">v2_accuracy</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">0.8119415</td>
+<td align="right">0.8341827</td>
+</tr>
+</tbody>
+</table>
+<p>It’s about 1.5% more accurate. Not a lot, but a bit.</p>
+</div>
+<div id="logistic-regression-on-mean-afinn-negators" class="section level2">
+<h2><span class="header-section-number">8.9</span> Logistic Regression on Mean AFINN + negators</h2>
+<p>Above, we found qualitative reasons to think that longer reviews might have more variable AFINN scores and some quantitative evidence that AFINN scores for longer reviews tended to be slightly more positive. Here we’ll try using a review’s <em>mean</em> AFINN score, instead of the sum of all its word-level AFINN scores, as a predictor along with the number of negators.</p>
+<p>First we’ll calculate the mean AFINN score for each review.</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb29-1"></a>afinn_mean &lt;-<span class="st"> </span>data_for_logit <span class="op">%&gt;%</span></span>
+<span id="cb29-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb29-2"></a><span class="st">  </span><span class="kw">select</span>(text) <span class="op">%&gt;%</span></span>
+<span id="cb29-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb29-3"></a><span class="st">  </span><span class="kw">rowid_to_column</span>() <span class="op">%&gt;%</span></span>
+<span id="cb29-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb29-4"></a><span class="st">  </span>tidytext<span class="op">::</span><span class="kw">unnest_tokens</span>(word, text) <span class="op">%&gt;%</span></span>
+<span id="cb29-5"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb29-5"></a><span class="st">  </span><span class="kw">left_join</span>(afinn) <span class="op">%&gt;%</span></span>
+<span id="cb29-6"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb29-6"></a><span class="st">  </span><span class="kw">group_by</span>(rowid) <span class="op">%&gt;%</span></span>
+<span id="cb29-7"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb29-7"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">afinn_mean =</span> <span class="kw">mean</span>(value, <span class="dt">na.rm =</span> T)) <span class="op">%&gt;%</span></span>
+<span id="cb29-8"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb29-8"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">afinn_mean =</span> <span class="kw">if_else</span>(<span class="kw">is.na</span>(afinn_mean) <span class="op">|</span><span class="st"> </span><span class="kw">is.nan</span>(afinn_mean), <span class="dv">0</span>, afinn_mean))</span>
+<span id="cb29-9"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb29-9"></a></span>
+<span id="cb29-10"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb29-10"></a>data_for_logit &lt;-<span class="st"> </span>data_for_logit <span class="op">%&gt;%</span></span>
+<span id="cb29-11"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb29-11"></a><span class="st">  </span><span class="kw">bind_cols</span>(afinn_mean) <span class="op">%&gt;%</span></span>
+<span id="cb29-12"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb29-12"></a><span class="st">  </span><span class="kw">select</span>(<span class="op">-</span>rowid)</span></code></pre></div>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-1"></a>logit_predict_v3 &lt;-<span class="st"> </span><span class="cf">function</span> (dataset) {</span>
+<span id="cb30-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-2"></a></span>
+<span id="cb30-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-3"></a>  <span class="co"># for a train/test split: get a random vector as long as our dataset that is 75% TRUE and 25% FALSEe.</span></span>
+<span id="cb30-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-4"></a>  index &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="kw">c</span>(T,F), </span>
+<span id="cb30-5"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-5"></a>                  <span class="dt">size =</span> <span class="kw">nrow</span>(dataset),</span>
+<span id="cb30-6"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-6"></a>                  <span class="dt">replace =</span> T,</span>
+<span id="cb30-7"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-7"></a>                  <span class="dt">prob=</span><span class="kw">c</span>(<span class="fl">0.75</span>,<span class="fl">0.25</span>))</span>
+<span id="cb30-8"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-8"></a>  </span>
+<span id="cb30-9"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-9"></a>  <span class="co"># extract train and test datasets by indexing our dataset using our random index</span></span>
+<span id="cb30-10"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-10"></a>  train &lt;-<span class="st"> </span>dataset[index,]</span>
+<span id="cb30-11"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-11"></a>  test &lt;-<span class="st"> </span>dataset[<span class="op">!</span>index,]</span>
+<span id="cb30-12"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-12"></a>  </span>
+<span id="cb30-13"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-13"></a>  <span class="co"># use `glm()` to run a logistic regression predicting the rating factor based on the AFINN score.</span></span>
+<span id="cb30-14"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-14"></a>  logit &lt;-<span class="st"> </span><span class="kw">glm</span>(<span class="dt">data=</span> train,</span>
+<span id="cb30-15"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-15"></a>               <span class="dt">formula=</span> rating_factor <span class="op">~</span><span class="st"> </span>afinn_mean <span class="op">+</span><span class="st"> </span>buts_nots,</span>
+<span id="cb30-16"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-16"></a>               <span class="dt">family=</span><span class="st">&quot;binomial&quot;</span>)</span>
+<span id="cb30-17"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-17"></a>  </span>
+<span id="cb30-18"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-18"></a>  pred &lt;-<span class="st"> </span><span class="kw">predict</span>(logit, </span>
+<span id="cb30-19"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-19"></a>                  <span class="dt">newdata =</span> test,</span>
+<span id="cb30-20"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-20"></a>                  <span class="dt">type=</span><span class="st">&quot;response&quot;</span>)</span>
+<span id="cb30-21"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-21"></a>  </span>
+<span id="cb30-22"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-22"></a>  <span class="co"># now predict the outcome based on whichever has the greater probability, find out if each prediction is correct</span></span>
+<span id="cb30-23"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-23"></a>  test_results &lt;-<span class="st"> </span>test <span class="op">%&gt;%</span></span>
+<span id="cb30-24"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-24"></a><span class="st">    </span><span class="kw">bind_cols</span>(<span class="kw">tibble</span>(<span class="dt">pred =</span> pred)) <span class="op">%&gt;%</span></span>
+<span id="cb30-25"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-25"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">pred =</span> <span class="kw">if_else</span>(pred <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.5</span>, <span class="st">&quot;POS&quot;</span>, <span class="st">&quot;NEG&quot;</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb30-26"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-26"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">correct =</span> <span class="kw">if_else</span> (pred <span class="op">==</span><span class="st"> </span>rating_factor, T, F)) </span>
+<span id="cb30-27"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-27"></a>  </span>
+<span id="cb30-28"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-28"></a>  <span class="kw">return</span> (test_results)</span>
+<span id="cb30-29"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb30-29"></a>}</span></code></pre></div>
+<p>And let’s run the predictive algorithm again using normalized AFINN score and buts and nots:</p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb31-1"></a>predictions_v3 &lt;-<span class="st"> </span>data_for_logit <span class="op">%&gt;%</span></span>
+<span id="cb31-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb31-2"></a><span class="st">  </span><span class="kw">logit_predict_v3</span>()</span>
+<span id="cb31-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb31-3"></a>  </span>
+<span id="cb31-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb31-4"></a>pred_v1 &lt;-<span class="st"> </span>predictions <span class="op">%&gt;%</span></span>
+<span id="cb31-5"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb31-5"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">v1_accuracy =</span> <span class="kw">sum</span>(correct)<span class="op">/</span><span class="st"> </span><span class="kw">n</span>())</span>
+<span id="cb31-6"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb31-6"></a></span>
+<span id="cb31-7"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb31-7"></a>pred_v2 &lt;-<span class="st"> </span>predictions_v2 <span class="op">%&gt;%</span></span>
+<span id="cb31-8"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb31-8"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">v2_accuracy =</span> <span class="kw">sum</span>(correct)<span class="op">/</span><span class="st"> </span><span class="kw">n</span>())</span>
+<span id="cb31-9"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb31-9"></a></span>
+<span id="cb31-10"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb31-10"></a>pred_v3 &lt;-<span class="st"> </span>predictions_v3 <span class="op">%&gt;%</span></span>
+<span id="cb31-11"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb31-11"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">v3_accuracy =</span> <span class="kw">sum</span>(correct)<span class="op">/</span><span class="st"> </span><span class="kw">n</span>())</span>
+<span id="cb31-12"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb31-12"></a></span>
+<span id="cb31-13"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb31-13"></a><span class="kw">bind_cols</span>(pred_v1, pred_v2, pred_v3) <span class="op">%&gt;%</span></span>
+<span id="cb31-14"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb31-14"></a><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>()</span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="right">v1_accuracy</th>
+<th align="right">v2_accuracy</th>
+<th align="right">v3_accuracy</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">0.8119415</td>
+<td align="right">0.8341827</td>
+<td align="right">0.8280197</td>
+</tr>
+</tbody>
+</table>
+<p>It looks like these results are a little bit worse. But these are just results from one trial, so the next step would be to do a number of trials to see how results vary.</p>
+</div>
+<div id="comparing-models-multiple-trials" class="section level2">
+<h2><span class="header-section-number">8.10</span> Comparing Models: Multiple Trials</h2>
+<p>To get a better idea of how each model performs, we can effectively do our own cross-fold validation by re-running our trial to see how the results change as we take different test/train samples. <em>Note</em> that we’ll be sampling with replacement, as opposed to setting up mutually exclusive folds. Could we call this bootstrapping, of a sort?</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb32-1"></a><span class="kw">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb32-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb32-2"></a><span class="co"># logit on just afinn</span></span>
+<span id="cb32-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb32-3"></a>reps &lt;-<span class="st"> </span><span class="dv">100</span></span>
+<span id="cb32-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb32-4"></a>results_<span class="dv">1</span> &lt;-<span class="st"> </span>results_<span class="dv">2</span> &lt;-<span class="st"> </span>results_<span class="dv">3</span> &lt;-<span class="st"> </span><span class="kw">tibble</span>()</span>
+<span id="cb32-5"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb32-5"></a></span>
+<span id="cb32-6"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb32-6"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>reps) results_<span class="dv">1</span> &lt;-<span class="st"> </span>data_for_logit <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">logit_predict</span>() <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">summarise</span>(<span class="dt">v1_accuracy =</span> <span class="kw">sum</span>(correct)<span class="op">/</span><span class="st"> </span><span class="kw">n</span>()) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">bind_rows</span>(results_<span class="dv">1</span>)</span>
+<span id="cb32-7"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb32-7"></a></span>
+<span id="cb32-8"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb32-8"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>reps) results_<span class="dv">2</span> &lt;-<span class="st"> </span>data_for_logit <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">logit_predict_v2</span>() <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">summarise</span>(<span class="dt">v2_accuracy =</span> <span class="kw">sum</span>(correct)<span class="op">/</span><span class="st"> </span><span class="kw">n</span>()) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">bind_rows</span>(results_<span class="dv">2</span>)</span>
+<span id="cb32-9"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb32-9"></a></span>
+<span id="cb32-10"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb32-10"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>reps) results_<span class="dv">3</span> &lt;-<span class="st"> </span>data_for_logit <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">logit_predict_v3</span>() <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">summarise</span>(<span class="dt">v3_accuracy =</span> <span class="kw">sum</span>(correct)<span class="op">/</span><span class="st"> </span><span class="kw">n</span>()) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">bind_rows</span>(results_<span class="dv">3</span>)</span>
+<span id="cb32-11"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb32-11"></a></span>
+<span id="cb32-12"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb32-12"></a>results &lt;-<span class="st"> </span><span class="kw">bind_cols</span>(results_<span class="dv">1</span>, results_<span class="dv">2</span>, results_<span class="dv">3</span>) <span class="op">%&gt;%</span></span>
+<span id="cb32-13"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb32-13"></a><span class="st">  </span><span class="kw">pivot_longer</span>(<span class="dt">cols =</span> <span class="kw">everything</span>(),</span>
+<span id="cb32-14"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb32-14"></a>               <span class="dt">names_to =</span> <span class="st">&quot;model&quot;</span>, </span>
+<span id="cb32-15"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb32-15"></a>               <span class="dt">values_to =</span> <span class="st">&quot;accuracy&quot;</span>)</span>
+<span id="cb32-16"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb32-16"></a></span>
+<span id="cb32-17"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb32-17"></a>results <span class="op">%&gt;%</span></span>
+<span id="cb32-18"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb32-18"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x=</span><span class="kw">as.factor</span>(model), <span class="dt">y=</span>accuracy)) <span class="op">+</span></span>
+<span id="cb32-19"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb32-19"></a><span class="st">  </span><span class="kw">geom_boxplot</span>() <span class="op">+</span></span>
+<span id="cb32-20"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb32-20"></a><span class="st">  </span><span class="kw">labs</span>(<span class="dt">x=</span><span class="st">&quot;Model&quot;</span>,</span>
+<span id="cb32-21"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb32-21"></a>       <span class="dt">y=</span><span class="st">&quot;Accuracy&quot;</span>) <span class="op">+</span></span>
+<span id="cb32-22"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb32-22"></a><span class="st">  </span><span class="kw">scale_x_discrete</span>(<span class="dt">labels =</span> <span class="kw">c</span>(<span class="st">&quot;M1: Sum AFINN&quot;</span>, <span class="st">&quot;M2: Sum AFINN + Negators&quot;</span>, <span class="st">&quot;M3: Mean AFINN+ Negators&quot;</span>)) <span class="op">+</span></span>
+<span id="cb32-23"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb32-23"></a><span class="st">  </span><span class="kw">theme_minimal</span>()</span></code></pre></div>
+<div class="figure"><span id="fig:boostrap-models"></span>
+<img src="telfer-mba-nlp_files/figure-html/boostrap-models-1.png" alt="Distribution of results for 100 trials of each model. Model 3, Mean AFINN + Negators, outperforms the other models on average." width="672" />
+<p class="caption">
+Figure 8.9: Distribution of results for 100 trials of each model. Model 3, Mean AFINN + Negators, outperforms the other models on average.
+</p>
+</div>
+<p>Figure <a href="beyond-the-mvp-looking-at-longer-reviews.html#fig:boostrap-models">8.9</a> shows the results from 100 trials each of the three models we’ve developed, logistic regressions based on AFINN sum, AFINN sum plus negators, and mean AFINN plus negators. Model 3, mean AFINN plus negators, clearly outperforms the other models on average for this dataset of longer reviews.</p>
+<p>We can run the full 5x5 analysis again to get a heat map and box plots and see if it helped.</p>
+</div>
+<div id="re-running-the-big-analysis" class="section level2">
+<h2><span class="header-section-number">8.11</span> Re-Running the Big Analysis</h2>
+<p>Here we’ll re-run the big analysis using Model 3, mean AFINN plus negators.</p>
+<p>First we’ll calculate the mean AFINN score for each review in our full dataset.</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb33-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb33-1"></a>afinn_mean &lt;-<span class="st"> </span>yelp_data <span class="op">%&gt;%</span></span>
+<span id="cb33-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb33-2"></a><span class="st">  </span><span class="kw">select</span>(text) <span class="op">%&gt;%</span></span>
+<span id="cb33-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb33-3"></a><span class="st">  </span><span class="kw">rowid_to_column</span>() <span class="op">%&gt;%</span></span>
+<span id="cb33-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb33-4"></a><span class="st">  </span>tidytext<span class="op">::</span><span class="kw">unnest_tokens</span>(word, text) <span class="op">%&gt;%</span></span>
+<span id="cb33-5"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb33-5"></a><span class="st">  </span><span class="kw">left_join</span>(afinn) <span class="op">%&gt;%</span></span>
+<span id="cb33-6"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb33-6"></a><span class="st">  </span><span class="kw">group_by</span>(rowid) <span class="op">%&gt;%</span></span>
+<span id="cb33-7"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb33-7"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">afinn_mean =</span> <span class="kw">mean</span>(value, <span class="dt">na.rm =</span> T)) <span class="op">%&gt;%</span></span>
+<span id="cb33-8"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb33-8"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">afinn_mean =</span> <span class="kw">if_else</span>(<span class="kw">is.na</span>(afinn_mean) <span class="op">|</span><span class="st"> </span><span class="kw">is.nan</span>(afinn_mean), <span class="dv">0</span>, afinn_mean))</span></code></pre></div>
+<pre><code>## Joining, by = &quot;word&quot;</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb36-1"></a>yelp_data &lt;-<span class="st"> </span>yelp_data <span class="op">%&gt;%</span></span>
+<span id="cb36-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb36-2"></a><span class="st">  </span><span class="kw">bind_cols</span>(afinn_mean) <span class="op">%&gt;%</span></span>
+<span id="cb36-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb36-3"></a><span class="st">  </span><span class="kw">select</span>(<span class="op">-</span>rowid)</span>
+<span id="cb36-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb36-4"></a>  </span>
+<span id="cb36-5"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb36-5"></a>yelp_data &lt;-<span class="st"> </span>yelp_data <span class="op">%&gt;%</span></span>
+<span id="cb36-6"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb36-6"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">buts =</span> stringr<span class="op">::</span><span class="kw">str_count</span>(text, <span class="st">&quot;but &quot;</span>),</span>
+<span id="cb36-7"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb36-7"></a>         <span class="dt">nots =</span> stringr<span class="op">::</span><span class="kw">str_count</span>(text, <span class="st">&quot;not &quot;</span>),</span>
+<span id="cb36-8"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb36-8"></a>         <span class="dt">buts_nots =</span> buts <span class="op">+</span><span class="st"> </span>nots) <span class="op">%&gt;%</span></span>
+<span id="cb36-9"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb36-9"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">afinn_mean =</span> <span class="kw">if_else</span> (<span class="kw">is.na</span>(afinn_mean), <span class="dv">0</span>, afinn_mean))</span></code></pre></div>
+<p>Our results, shown below in Figure <a href="beyond-the-mvp-looking-at-longer-reviews.html#fig:newmodel-heatmap">8.10</a>, are promising. Accuracy seems to be higher across the board, and while there are some darker patches in the centre, there doesn’t seem to be a drop-off as word length increases.</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb37-1"></a>results_model3 <span class="op">%&gt;%</span></span>
+<span id="cb37-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb37-2"></a><span class="st">  </span><span class="kw">ggplot</span>() <span class="op">+</span></span>
+<span id="cb37-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb37-3"></a><span class="st">  </span><span class="kw">geom_tile</span>(<span class="kw">aes</span>(<span class="dt">x=</span>word_qtile, <span class="dt">y=</span>num_qtile, <span class="dt">fill=</span>accuracy)) <span class="op">+</span></span>
+<span id="cb37-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb37-4"></a><span class="st">  </span><span class="kw">scale_x_continuous</span>(<span class="dt">breaks =</span> <span class="dv">1</span><span class="op">:</span>num_qtiles, </span>
+<span id="cb37-5"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb37-5"></a>                     <span class="dt">labels =</span> <span class="kw">paste0</span>(<span class="st">&quot;Q&quot;</span>,<span class="dv">1</span><span class="op">:</span>num_qtiles,<span class="st">&quot;: &quot;</span>,qtiles, <span class="st">&quot;-&quot;</span>,<span class="kw">lead</span>(qtiles)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">head</span>(<span class="op">-</span><span class="dv">1</span>)) <span class="op">+</span></span>
+<span id="cb37-6"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb37-6"></a><span class="st">  </span><span class="kw">scale_y_continuous</span>(<span class="dt">breaks =</span> <span class="dv">1</span><span class="op">:</span>num_qtiles,</span>
+<span id="cb37-7"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb37-7"></a>                     <span class="dt">labels =</span> (<span class="dv">2</span><span class="op">*</span><span class="kw">round</span>(<span class="dv">1</span><span class="op">:</span>num_qtiles <span class="op">*</span><span class="st"> </span>minn<span class="op">/</span>num_qtiles))) <span class="op">+</span></span>
+<span id="cb37-8"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb37-8"></a><span class="st">  </span><span class="kw">labs</span>(<span class="dt">x =</span> <span class="st">&quot;Review Word Length by Quantile&quot;</span>,</span>
+<span id="cb37-9"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb37-9"></a>       <span class="dt">y =</span> <span class="st">&quot;Number of Reviews&quot;</span>,</span>
+<span id="cb37-10"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb37-10"></a>       <span class="dt">fill =</span> <span class="st">&quot;Accuracy&quot;</span>)</span></code></pre></div>
+<div class="figure"><span id="fig:newmodel-heatmap"></span>
+<img src="telfer-mba-nlp_files/figure-html/newmodel-heatmap-1.png" alt="Heat map of average accuracy for Model 3. Each cell shows average accuracy for 30 trials on random data subsets." width="672" />
+<p class="caption">
+Figure 8.10: Heat map of average accuracy for Model 3. Each cell shows average accuracy for 30 trials on random data subsets.
+</p>
+</div>
+<p>The results are even more promising when we compare them to those from Model 1. Figure <a href="beyond-the-mvp-looking-at-longer-reviews.html#fig:boxplot-length-model3">8.11</a> shows Model 1 and Model 3’s results side by side, and the difference is dramatic: Model 3 gives better mean predictions across all subsets, and the differences are dramatically positive for longer reviews.</p>
+<div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb38-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb38-1"></a>results_comp &lt;-<span class="st"> </span>results_oldmodel <span class="op">%&gt;%</span></span>
+<span id="cb38-2"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb38-2"></a><span class="st">  </span><span class="kw">left_join</span>(results_model3 <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">rename</span>(<span class="dt">accuracy_m3 =</span> accuracy)) <span class="op">%&gt;%</span></span>
+<span id="cb38-3"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb38-3"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">diff =</span> accuracy_m3 <span class="op">-</span><span class="st"> </span>accuracy) <span class="op">%&gt;%</span></span>
+<span id="cb38-4"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb38-4"></a><span class="st">  </span><span class="kw">select</span>(<span class="op">-</span>pct_true_pos)</span>
+<span id="cb38-5"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb38-5"></a></span>
+<span id="cb38-6"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb38-6"></a>results_comp <span class="op">%&gt;%</span></span>
+<span id="cb38-7"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb38-7"></a><span class="st">  </span><span class="kw">pivot_longer</span>(<span class="dt">cols =</span> <span class="kw">c</span>(<span class="st">&quot;accuracy&quot;</span>, <span class="st">&quot;accuracy_m3&quot;</span>), <span class="dt">values_to =</span> <span class="st">&quot;accuracy&quot;</span>, <span class="dt">names_to =</span> <span class="st">&quot;model&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb38-8"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb38-8"></a><span class="st">  </span><span class="kw">ggplot</span>() <span class="op">+</span></span>
+<span id="cb38-9"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb38-9"></a><span class="st">  </span><span class="kw">geom_boxplot</span>(<span class="kw">aes</span>(<span class="dt">x=</span><span class="kw">as.factor</span>(word_qtile), <span class="dt">y =</span> accuracy, <span class="dt">fill =</span> model)) <span class="op">+</span></span>
+<span id="cb38-10"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb38-10"></a><span class="st">  </span><span class="kw">theme_minimal</span>() <span class="op">+</span></span>
+<span id="cb38-11"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb38-11"></a><span class="st">  </span><span class="kw">scale_x_discrete</span>(<span class="dt">breaks =</span> <span class="dv">1</span><span class="op">:</span>num_qtiles, </span>
+<span id="cb38-12"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb38-12"></a>                     <span class="dt">labels =</span> <span class="kw">paste0</span>(<span class="st">&quot;Q&quot;</span>,<span class="dv">1</span><span class="op">:</span>num_qtiles,<span class="st">&quot;: &quot;</span>,qtiles, <span class="st">&quot;-&quot;</span>,<span class="kw">lead</span>(qtiles)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">head</span>(<span class="op">-</span><span class="dv">1</span>)) <span class="op">+</span></span>
+<span id="cb38-13"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb38-13"></a><span class="st">  </span><span class="kw">labs</span>(<span class="dt">x =</span> <span class="st">&quot;Review Word Length by Quantile&quot;</span>,</span>
+<span id="cb38-14"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb38-14"></a>       <span class="dt">y =</span> <span class="st">&quot;Accuracy&quot;</span>,</span>
+<span id="cb38-15"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb38-15"></a>       <span class="dt">fill =</span> <span class="st">&quot;Model&quot;</span>) <span class="op">+</span></span>
+<span id="cb38-16"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb38-16"></a><span class="st">  </span><span class="kw">scale_fill_discrete</span>(<span class="dt">labels =</span> <span class="kw">c</span>(<span class="st">&quot;M1: Sum AFINN&quot;</span>, <span class="st">&quot;M3: Mean AFINN + Negators&quot;</span>)) <span class="op">+</span></span>
+<span id="cb38-17"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb38-17"></a><span class="st">  </span><span class="kw">theme</span>(<span class="dt">legend.position =</span> <span class="st">&quot;bottom&quot;</span>)</span></code></pre></div>
+<div class="figure"><span id="fig:boxplot-length-model3"></span>
+<img src="telfer-mba-nlp_files/figure-html/boxplot-length-model3-1.png" alt="Comparing average accuracy rates for Model 1 and Model 3. Model 3 gives better on-average predictions for reviews of all word lengths, and some improvements are dramatic." width="672" />
+<p class="caption">
+Figure 8.11: Comparing average accuracy rates for Model 1 and Model 3. Model 3 gives better on-average predictions for reviews of all word lengths, and some improvements are dramatic.
+</p>
+</div>
+<p>Moving Model 3 to use mean AFINN and the number of negators seems to be a Pareto-improvement over Model 1. Model 3 works about as well for all review lengths, and long reviews are about as easy to predict as short ones. As with Model 1, Figure <a href="beyond-the-mvp-looking-at-longer-reviews.html#fig:newmodel-heatmap">8.10</a> shows that Model 3 seems to work about as well for smaller groups as it does for larger groups.</p>
+</div>
+<div id="conclusion" class="section level2">
+<h2><span class="header-section-number">8.12</span> Conclusion</h2>
+<p>In this section we looked into last section’s strange finding that longer Yelp reviews led to worse predictions using Model 1, a logistic regression on AFINN sentiment. After a qualitative review of some misclassified long reviews, we looked into two hypotheses for what might be confusing AFINN: that longer reviews might use more negations, and that longer reviews might have lower readability scores. We didn’t find any strong connection with readability scores, but we did find that longer reviews use more negations like “but” and “not.” This led us to suspect that including the number of negations in our regression might improve the model. We also found that longer reviews tend to have slightly higher scores and that score variance seems to increase with length. This suggested that a normalized AFINN score based on a review’s length might be more reliable.</p>
+<p>We built and tested two new models. Model 3 performed the best, and improved on Model 1 across all data subsets and did especially well on longer reviews (see Figure <a href="beyond-the-mvp-looking-at-longer-reviews.html#fig:boxplot-length-model3">8.11</a>). Model 3used a logistic regression based on a review’s mean AFINN score and its number of “buts” and “nots.” We also improved our model evaluation by using a process similar to cross-fold evaluation, running it 30 times on each data subset using random test/train splits and taking the average accuracy across all trials.</p>
+<p>We’ve shown that you can build a model that is roughly 82.5% accurate at predicting Yelp ratings using fast and simple models (AFINN sentiment, logistic regression) with insights from qualitative analysis of the data (counting negators, switching to mean AFINN). The models take only a few lines of code, run in seconds, and are completely supervisable and interpretable.</p>
+<p>We’ve also shown two things about using Yelp review text as input data. First, ceterus paribus, review length is not a significant issue when predicting Yelp ratings. Second, our models’ accuracy didn’t change meaningfully based on the number of reviews we used as inputs. Our models were robust across the entire range we considered, from around 6,000 input reviews to around 31,000.</p>
+</div>
+<div id="sessioninfo" class="section level2">
+<h2><span class="header-section-number">8.13</span> SessionInfo</h2>
+<div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb39-1"><a href="beyond-the-mvp-looking-at-longer-reviews.html#cb39-1"></a><span class="kw">sessionInfo</span>()</span></code></pre></div>
+<pre><code>## R version 4.0.2 (2020-06-22)
+## Platform: x86_64-w64-mingw32/x64 (64-bit)
+## Running under: Windows 10 x64 (build 18363)
+## 
+## Matrix products: default
+## 
+## locale:
+## [1] LC_COLLATE=English_Canada.1252  LC_CTYPE=English_Canada.1252   
+## [3] LC_MONETARY=English_Canada.1252 LC_NUMERIC=C                   
+## [5] LC_TIME=English_Canada.1252    
+## 
+## attached base packages:
+## [1] stats     graphics  grDevices utils     datasets  methods   base     
+## 
+## other attached packages:
+##  [1] beepr_1.3         sylcount_0.2-2    ggridges_0.5.2    vip_0.2.2        
+##  [5] glmnet_4.0-2      Matrix_1.2-18     lubridate_1.7.9   tictoc_1.0       
+##  [9] discrim_0.1.1     yardstick_0.0.7   workflows_0.2.0   tune_0.1.1       
+## [13] rsample_0.0.8     parsnip_0.1.4     modeldata_0.0.2   infer_0.5.3      
+## [17] dials_0.0.9       scales_1.1.1      broom_0.7.0       tidymodels_0.1.1 
+## [21] textrecipes_0.3.0 recipes_0.1.13    tidytext_0.2.5    forcats_0.5.0    
+## [25] stringr_1.4.0     dplyr_1.0.2       purrr_0.3.4       readr_1.3.1      
+## [29] tidyr_1.1.1       tibble_3.0.3      ggplot2_3.3.2     tidyverse_1.3.0  
+## 
+## loaded via a namespace (and not attached):
+##  [1] colorspace_1.4-1   ellipsis_0.3.1     class_7.3-17       fs_1.5.0          
+##  [5] rstudioapi_0.11    farver_2.0.3       listenv_0.8.0      furrr_0.1.0       
+##  [9] audio_0.1-7        SnowballC_0.7.0    prodlim_2019.11.13 fansi_0.4.1       
+## [13] xml2_1.3.2         codetools_0.2-16   splines_4.0.2      knitr_1.29        
+## [17] jsonlite_1.7.0     pROC_1.16.2        dbplyr_1.4.4       compiler_4.0.2    
+## [21] httr_1.4.2         backports_1.1.7    assertthat_0.2.1   cli_2.0.2         
+## [25] htmltools_0.5.0    tools_4.0.2        gtable_0.3.0       glue_1.4.1        
+## [29] Rcpp_1.0.5         cellranger_1.1.0   DiceDesign_1.8-1   vctrs_0.3.2       
+## [33] nlme_3.1-148       iterators_1.0.12   timeDate_3043.102  gower_0.2.2       
+## [37] xfun_0.16          globals_0.13.0     rvest_0.3.6        lifecycle_0.2.0   
+## [41] future_1.19.1      MASS_7.3-51.6      ipred_0.9-9        hms_0.5.3         
+## [45] parallel_4.0.2     yaml_2.2.1         gridExtra_2.3      rpart_4.1-15      
+## [49] stringi_1.4.6      highr_0.8          tokenizers_0.2.1   foreach_1.5.0     
+## [53] lhs_1.0.2          lava_1.6.8         shape_1.4.5        rlang_0.4.7       
+## [57] pkgconfig_2.0.3    evaluate_0.14      lattice_0.20-41    labeling_0.3      
+## [61] tidyselect_1.1.0   fabricatr_0.10.0   plyr_1.8.6         magrittr_1.5      
+## [65] bookdown_0.20      R6_2.4.1           generics_0.0.2     DBI_1.1.0         
+## [69] mgcv_1.8-31        pillar_1.4.6       haven_2.3.1        withr_2.2.0       
+## [73] survival_3.1-12    nnet_7.3-14        janeaustenr_0.1.5  modelr_0.1.8      
+## [77] crayon_1.3.4       rmarkdown_2.3      grid_4.0.2         readxl_1.3.1      
+## [81] blob_1.2.1         reprex_0.3.0       digest_0.6.25      munsell_0.5.0     
+## [85] GPfit_1.0-8</code></pre>
+
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="the-mvp-classification-accuracy-as-a-function-of-review-length-and-volume.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="references.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": "https://github.com/rstudio/bookdown-demo/edit/master/07-MVP-plus.Rmd",
+"text": "Edit"
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": ["telfer-mba-nlp.pdf", "telfer-mba-nlp.epub"],
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>
