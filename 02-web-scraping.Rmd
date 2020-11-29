@@ -1,9 +1,592 @@
 # Web Scraping Our Data
 
-This section will describe the three different approaches I used to scrape the datasets from Yelp, Goodreads, and MEC.
+This section will describe the three different approaches I used to scrape datasets from Yelp, Goodreads, and MEC. 
 
-## Yelp: Embedded JSON
+thing reviewed, reviewer, date, text, and star rating.
+
+## Foreword: Ethics & Legality
+
+Web scraping is ubiquitous. As a rough working definition, let's say that web scraping--which can also be called crawling, trawling, harvesting, or any number of other terms--means automatically visiting websites to collect and store the information there so it can be used for a later purpose. So at one extreme, browsing Facebook at work doesn't count since it's not automatic; on the other extreme, automatically sending billions of requests to a server in an attempt to overload (i.e. a DDoS attack) doesn't count either, since nothing is being done with the information the server sends back.   To take the most obvious example, Google's entire business is based on @google-2020
+
+It's also widespread--it's how Google gets its information,  something like 50% of page visits are for scraping? source this. There are many commercial web-scraping companies, and programming languages like R have web-scraping libraries. 
+
+Lots of worrying about this
+
+@scasa-2018 gives a good overview of the legal situation from a Canadian perspective, although it came out before the Mongohouse case.
+
+[mongodb opinion piece](https://www.canadianlawyermag.com/news/opinion/federal-court-makes-clear-website-scraping-is-illegal/276128)
+
+[Apparently it's legal!](https://www.forbes.com/sites/emmawoollacott/2019/09/10/linkedin-data-scraping-ruled-legal/#56172d721b54)
+
+
+
+To mitigate any ethical concerns, in this project we've made the following choices:
+
+* We're scraping a reasonably small number of pages/reviews;
+* We're being considerate of their servers by spacing out our requests; and,
+* We're collecting and using the data for educational non-commercial purposes.
+
+## The General Idea
+
+Web scraping these sites follows a two-step process:
+
+1. Get a list of urls for pages you want to scrape (generating an *index*).
+  * Usually we'll get these urls by first scraping another page.
+1. Use a loop to scrape the information from each page (loading the *content*).
+
+Since different sites have different structures, we'll need custom code for the index and content pages. Also, by random chance these three sites all use different web-design principles, so we'll also need to use different techniques. 
+
 
 ## Goodreads: CSS Selectors
 
+[Goodreads](www.goodreads.com) describes itself as "the world’s largest site for readers and book recommendations" (@goodreads-2020). Registered users can leave reviews and ratings for books, any anyone can use the site to browse user-submitted reviews and a variety of information about books. 
+
+Goodreads' pages are standard html, so we can use css selectors to isolate the exact parts of the page we're interested in. I used R's **rvest** package, and the package documentation has details about the methods and about css selectors in general [@wickham-package-2020]. To find the css selectors I used [SelectorGadget](https://selectorgadget.com/), a point-and-click Chrome extension.
+
+### Scraping the Index
+
+Goodreads assigns books to genres like "sci-fi" and "romance," and curates lists of each genre's 100 most-read books in the past week. By scraping these pages, we can get links to content pages for hundreds of books across different genres.
+
+Here is a code block to get the links to the 100 most-read books in the "classics" genre. The code could be functionized or run several times for other genres.
+
+```{r, eval=FALSE}
+library(tidyverse)
+library(rvest)
+
+# choose a genre
+genre <- "classics"
+
+url <- paste0("https://www.goodreads.com/genres/most_read/",genre)
+
+# read the page
+page <- read_html(url)
+
+# extract the links to each book's page using css selectors
+book_links <- page %>%
+  html_nodes(".coverWrapper") %>%
+  html_nodes("a") %>%
+  html_attr("href") %>%
+  paste0("https://www.goodreads.com", .)
+
+book_links %>%
+  as_tibble() %>%
+  write_csv(paste0("book_links_",genre,".csv"))
+```
+
+
+### Scraping the Content
+
+The next step is to load each content link and extract the information about the book, its author, and all the reviews. Books can have several pages of reviews, so we need to figure out how mayn pages there are and how to crawl through them. Since not all reviews have both text and star ratings, we also need to be careful to make sure we handle missing data appropriately. 
+
+```{r, eval=FALSE}
+
+#https://www.goodreads.com/genres/most_read/non-fiction
+links <- book_links
+
+# set up empty results tibble
+results <- tibble()
+
+# remove any links we've already seen, if we crashed and are resuming
+links <- links[!links %in% results$url]
+
+for (i in 1:length(links)) {
+  
+  # pause briefly
+  pause()
+  
+  # get the url we're interested in
+  url <- links[[i]]
+  
+  
+  # write an update, since I'm impatient and want to know what's happening
+  message(paste0(i,"/",length(links),": ", url))
+  
+  # choose a random useragent each time we load the page -- anti-anti-scraping measure
+  httr::user_agent(random_useragent()) %>%
+    httr::set_config()
+  # read the url
+  
+  page <- read_html(url)
+  
+  # read the review page's html
+  reviews_html <- page %>%
+    html_nodes(".review")
+  
+  # extract the informaiton we're interested in
+  book_title <- page %>%
+    html_nodes("#bookTitle") %>%
+    html_text() %>%
+    stringr::str_trim()
+  
+  author_name <- page %>%
+    html_nodes(".authorName span") %>%
+    html_text() %>% head(1)
+  
+  review_names <- purrr::map_chr(reviews_html, function(x) { html_nodes(x, ".user") %>% html_text() })
+  review_dates <- purrr::map_chr(reviews_html, function(x) {html_nodes(x, ".reviewDate") %>% html_text()})
+  review_text <- purrr::map_chr(reviews_html, function(x) {html_nodes(x, ".readable span") %>% html_text() %>% paste0(., " ") %>% na_if(y=" ") %>% str_trim() %>% tail(1)})
+  review_rating <- purrr::map_chr(reviews_html, function(x) {html_nodes(x, ".staticStars") %>% html_text() %>% paste0(., " ") %>% na_if(y=" ") %>% str_trim()}) 
+  
+  # how many pages of reviews?
+  # there may be an easier way but this should work
+  num_pages <- page %>%
+    html_text() %>%
+    str_extract_all("(?<=previous).*?(?=next)") %>%
+    unlist() %>% tail(1) %>%
+    stringr::str_trim() %>%
+    stringr::str_split(" ") %>%
+    unlist() %>%
+    map_dbl(as.double) %>%
+    max()
+  
+  # put it all together
+  page_reviews <- tibble(
+    book_title = book_title,
+    author_name = author_name,
+    comment = review_text,
+    names = review_names,
+    rating = review_rating,
+    dates = lubridate::mdy(review_dates),
+    url = url,
+    num_pages = num_pages
+  ) 
+  
+  results <- bind_rows(results, page_reviews)
+}
+
+filename <- paste0("goodreads_",genre,"_reviews.csv")
+results %>%
+  write_csv(path = filename)
+```
+
+
+## Yelp: Embedded JSON
+
+[Yelp](www.yelp.com), according to its website, "connects people with great local businesses" [@yelp-about-2020]. Businesses can upload information like their location, hours, and services, and registered users can can leave reviews with text, star ratings, and pictures. 
+
+Yelp's web design includes structured json data within its html. In other words, each Yelp review page has machine-readable data hidden inside it if you know where to look. We'll exploit this by using a regular expression to extract the json from the html, then parse the json and work with it directly.
+
+### Scraping the Index
+
+First we'll get the urls for each restaurant in Ottawa. We start at the base url for Ottawa restaurants and iterate through all of the pages: we could get the page numbers automatically, but here I just saw that there are 24 and hard-coded that number in. We extract the urls from the json in the page *without* parsing it using a regex. We could have parsed the json and done it using structured data, but since we're only looking for one value type this was faster and worked fine.
+
+```{r, eval=FALSE}
+# the base url for restaurants in Ottawa
+baseurl <- "https://www.yelp.ca/search?cflt=restaurants&find_loc=Ottawa%2C%20Ontario%2C%20CA"
+
+# an empty tibble for our links
+links <- tibble()
+
+# loop through all 24 pages of Ottawa restaurants. (The number 24 was hard-coded to keep things moving.)
+for (pagenum in 1:24){
+  Sys.sleep(1) 
+  
+  # get the url for the page we're loading
+  url <- paste0(baseurl, if(pagenum>1){ paste0("&start=",(pagenum-1)*10) })
+  
+  # load the html for the page and print an update message
+  text <- read_html(url) %>%
+    html_text() 
+  message("**PAGE ",pagenum,": ", url)
+  
+  # extract the urls using a straight regex based on the json value key. we're not parsing any json here.
+  urls <- text %>%
+    str_extract_all('(?<=businessUrl":")(.*?)(?=")') %>%
+    unlist() %>%
+    enframe() %>%
+    select(-name) %>%
+    filter (!str_detect(value, "ad_business_id")) %>%
+    distinct() %>%
+    transmute(url = paste0("http://www.yelp.ca", value))
+  
+  # add to our results
+  links <- bind_rows(links, urls)
+}
+
+links %>%
+  write_csv("yelp_ottawa_links.csv")
+```
+
+
+### Scraping the Content
+
+Scraping the content has two steps. First, now that we have a list of content urls, we can load each in turn and extract the reviews and the links for any additional review pages for this business. In the second step we'll load these new links and get those reviews. 
+
+This function loads a single review page, extracts the machine-readable json using a regex, parses the json, and extracts the information we're interested in. It then returns that information in a tibble.
+
+```{r function_get_review, eval=FALSE}
+get_review <- function(page, url) {
+  
+  # get the html
+  text <- page %>%
+    html_text()
+  
+  # extract the json with the review data
+  json_text <- text %>%
+    str_extract('(?<="reviewFeedQueryProps":)(.*)("query":""\\}\\})')
+  
+  # set our review_page results variable to NA, in case we don't get a results
+  review_page <- NA
+  
+  # make sure we have valid json text before we try to parse it
+  if (!is.na(json_text)){
+    # parse the json
+    json_parse <- json_text %>%
+      jsonlite::fromJSON()
+    
+    # pull out the variables we're interested in
+    review_text <- json_parse$reviews$comment$text
+    review_rating <- json_parse$reviews$rating
+    review_name <- json_parse$reviews$user$markupDisplayName
+    review_date <- json_parse$reviews$localizedDate
+    review_business <- json_parse$reviews$business$name
+    review_url <- rep(url, length(review_text))
+    
+    # put them all into a tibble
+    review_page <- tibble(business = review_business,
+                          name = review_name,
+                          date = review_date,
+                          comment = review_text,
+                          rating = review_rating,
+                          url = review_url)
+  }
+  
+  # return either NA or a results tibble
+  return (review_page)
+}
+
+
+# simple function to pause for a random period of time
+pause <- function(min_wait = 1, max_wait = 3){
+  runif(n=1, min=min_wait, max = max_wait) %>% Sys.sleep()
+}
+
+```
+
+We then proceed with step one, loading the initial list of links, extracting the reviews there, and collecting any more links to more reviews:
+
+
+
+```{r, eval=FALSE}
+# load our set of restaurant page links
+base_links <- read_csv("yelp_ottawa_links.csv")
+
+# set up an empty tibble for our reviews
+reviews <- tibble()
+
+# set up an empty tibble for the links we're going to visit later
+more_links <- tribble(~links)
+
+# now we're going to visit each page, extract the reviews from it, and find out how many *more* pages there are for this restaurant.
+# we'll keep track of those other pages and visit them later in a random order.
+for (i in 1:nrow(base_links)) {
+  # pause briefly
+  pause()
+  
+  # get the url we're interested in
+  url <- links[[i]]
+  
+  # write an update, since I'm impatient and want to know what's happening
+  message(paste0(i,"/",nrow(base_links),": ", url))
+  
+  # read the url
+  page <- read_html(url)
+  
+  # extract the reviews from the page
+  review_page <- get_review(page, url)
+  
+  # add these reviews to our list of reviews
+  reviews <- bind_rows(reviews, review_page)
+  
+  # now find out how many other pages there are for this restaurant
+  # we'll regex to find the second half of "dd of dd", where d is a digit (and it could be either one or two digits--see the regex below)
+  num_pages <- page %>%
+    html_node((".text-align--center__373c0__2n2yQ .text-align--left__373c0__2XGa-")) %>%
+    html_text() %>%
+    str_extract("(?<=of )(\\d\\d?)") %>%
+    as.integer()
+  
+  # make sure we don't get an NA
+  if (is.na(num_pages)) num_pages <- 1
+  
+  # if there's more than one page, construct the links and add them to our list of links to read next
+  if (num_pages > 1) {
+    more_links <- more_links %>% 
+      add_row(links = paste0(url, "?start=",(1:(num_pages-1))*20) )
+  }
+  
+} # end for i in 1:nrow(base_links)
+
+# save our results
+reviews %>%
+  write_csv("data/ottawa-reviews-1.csv")
+
+more_links %>%
+  write_csv("data/ottawa_more_links.csv")
+
+```
+
+In step two, we'll repeat the process for the new links we collected:
+
+
+Now let's do the same thing for the extra links we got:
+note it's stopping me every 136 or so and giving a 503 error, so i'm either rebooting my modem to get a new ip address or tethering to my phone for a bit
+
+```{r, warning=FALSE, eval=FALSE}
+links <- more_links
+
+for (i in 1:length(links)) {
+  # pause briefly for random interval
+  pause()
+  
+  # get the url we're interested in
+  url <- links[[i]]
+  
+  # write an update, since I'm impatient and want to know what's happening
+  message(paste0(i,"/",length(links),": ", url))
+
+  message("  Loading page.")
+  # read the url
+  page <- read_html(url)
+  
+  message("  Parsing review.")
+  # extract the reviews from the page
+  review_page <- get_review(page, url)
+  
+  if (!is.na(review_page)){
+    message ("  Adding to inventory.")
+    # add these reviews to our list of reviews
+    reviews <- bind_rows(reviews, review_page)
+  } else {
+    message ("  No valid json found.")
+  }
+} # end for i in 1:nrow(base_links)
+
+
+reviews %>%
+  write_csv("ottawa-reviews-2.csv")
+
+```
+
 ## MEC: Reverse-Engineering Client-Side API Calls
+
+MEC's website uses a completely different design principle that makes it seem more difficult to extract information. If you inspect the html for one of MEC's product pages, you'll find that the review information simply isn't there! It's quite mysterious.
+
+The secret is that MEC's site uses client-side API calls to download the data which is then displayed locally. To solve this puzzle, I needed to use  Chrome's developer console (opened with *Control-Shift-J*) to see the network activity (under the *Network* tab) happening each time I loaded a new product page. I discovered that my browser was making API calls to a specific server, and by comparing the calls for a few products I found that the main difference was the product ID. This let me reverse-engineer the syntax just enough to be able to call it myself and get reviews for any product based on its ID. I also found that there was one API call for the first page of reviews and a different one for loading more reviews, so I built functions for both of them.
+
+As a result, the index in this case is a list of product IDs rather than urls, and the content is the result of API calls rather than web pages. However, the principles remain the same.
+
+### Scraping the Index
+
+This code block collects product IDs for [mittens and gloves](https://www.mec.ca/en/products/clothing/clothing-accessories/gloves-and-mittens/c/987). Each product category has a different catalogue page, so I modified the code to load a few different kinds of products. We load the first page, use a regex to figure out how many pages there are, then use css selectors to extract the IDs for products with reviews.
+
+```{r, eval=FALSE}
+# enter the base url by hand
+base_url <- "https://www.mec.ca/en/products/clothing/clothing-accessories/gloves-and-mittens/c/987"
+
+# enter the product type by hand
+product_type <- "gloves-and-mittens"
+
+# read the page
+page <- read_html(base_url)
+
+# get the number of items using a CSS selector and a regex
+# we expect to find between one and three digits
+num_items <- page %>%
+  html_nodes(".qa-filter-group__count") %>%
+  html_text() %>%
+  str_extract("(\\d\\d?\\d?)") %>%
+  as.integer()
+
+# there are at most 36 items per page
+num_pages <- (num_items / 36) %>% ceiling()
+
+# first let's do the items on this page
+# find each link to a product, filter out any that don't have reviews yet, extract the product ids
+product_ids <- page %>%
+  html_nodes(".rating__count__link") %>%
+  html_attrs() %>%
+  enframe() %>%
+  unnest_wider(value) %>%
+  filter(!str_detect(title, "No reviews yet")) %>%
+  mutate(product_id = str_extract(href, "\\d\\d\\d\\d-\\d\\d\\d")) %>%
+  select(-name, -class)
+
+# now we load the extra pages, if there are any
+if (num_pages > 1) {
+  # we iterate from 1 to num_pages-1, because MEC calls the first extra page page 1
+  for (i in 1:(num_pages-1)){
+    # send an update to the console
+    message(paste0(i,"/",(num_pages-1)))
+    
+    # wait a little bit
+    patience(min_wait = 3, max_wait = 10)
+    
+    # get the new url for the next page
+    url <- paste0(base_url,"?page=",i)
+    
+    # load the next page
+    page <- read_html(base_url)
+    
+    # find each link to a product, filter out any that don't have reviews yet, extract the product ids
+    new_product_ids <- page %>%
+      html_nodes(".rating__count__link") %>%
+      html_attrs() %>%
+      enframe() %>%
+      unnest_wider(value) %>%
+      filter(!str_detect(title, "No reviews yet")) %>%
+      mutate(product_id = str_extract(href, "\\d\\d\\d\\d-\\d\\d\\d")) %>%
+      select(-name, -class)
+    
+    # add it to our list
+    product_ids <- bind_rows(product_ids, new_product_ids)
+    
+  } # end for (i in 1:(num_pages-1))
+} # end if (num_pages >1)
+
+
+product_ids %>%
+  write_csv(paste0("data/product_ids_",product_type,".csv"))
+
+```
+
+
+### Functions for API Calls  
+
+Next, I defined functions to make the API calls and to process their results. The API calls are quite ugly--I could have spent more time figuring out exactly how they worked and slimmed them down, but this worked.
+
+```{r, eval=FALSE}
+get_first_api_url <- function(product_code){
+  api_url <- paste0("https://api.bazaarvoice.com/data/batch.json?passkey=dm7fc6czngulvbz4o3ju0ld9f&apiversion=5.5&displaycode=9421-en_ca&resource.q0=products&filter.q0=id%3Aeq%3A",product_code,"&stats.q0=questions%2Creviews&filteredstats.q0=questions%2Creviews&filter_questions.q0=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&filter_answers.q0=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&filter_reviews.q0=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&filter_reviewcomments.q0=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&resource.q1=questions&filter.q1=productid%3Aeq%3A",product_code,"&filter.q1=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&sort.q1=totalanswercount%3Adesc&stats.q1=questions&filteredstats.q1=questions&include.q1=authors%2Cproducts%2Canswers&filter_questions.q1=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&filter_answers.q1=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&limit.q1=10&offset.q1=0&limit_answers.q1=10&resource.q2=reviews&filter.q2=isratingsonly%3Aeq%3Afalse&filter.q2=productid%3Aeq%3A",product_code,"&filter.q2=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&sort.q2=helpfulness%3Adesc%2Ctotalpositivefeedbackcount%3Adesc&stats.q2=reviews&filteredstats.q2=reviews&include.q2=authors%2Cproducts%2Ccomments&filter_reviews.q2=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&filter_reviewcomments.q2=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&filter_comments.q2=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&limit.q2=8&offset.q2=0&limit_comments.q2=3&resource.q3=reviews&filter.q3=productid%3Aeq%3A",product_code,"&filter.q3=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&limit.q3=1&resource.q4=reviews&filter.q4=productid%3Aeq%3A",product_code,"&filter.q4=isratingsonly%3Aeq%3Afalse&filter.q4=issyndicated%3Aeq%3Afalse&filter.q4=rating%3Agt%3A3&filter.q4=totalpositivefeedbackcount%3Agte%3A3&filter.q4=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&sort.q4=totalpositivefeedbackcount%3Adesc&include.q4=authors%2Creviews%2Cproducts&filter_reviews.q4=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&limit.q4=1&resource.q5=reviews&filter.q5=productid%3Aeq%3A",product_code,"&filter.q5=isratingsonly%3Aeq%3Afalse&filter.q5=issyndicated%3Aeq%3Afalse&filter.q5=rating%3Alte%3A3&filter.q5=totalpositivefeedbackcount%3Agte%3A3&filter.q5=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&sort.q5=totalpositivefeedbackcount%3Adesc&include.q5=authors%2Creviews%2Cproducts&filter_reviews.q5=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&limit.q5=1&callback=BV._internal.dataHandler0")
+
+    return(api_url)
+}
+
+get_second_api_url <- function(product_code){
+  api_url <- paste0("https://api.bazaarvoice.com/data/batch.json?passkey=dm7fc6czngulvbz4o3ju0ld9f&apiversion=5.5&displaycode=9421-en_ca&resource.q0=reviews&filter.q0=isratingsonly%3Aeq%3Afalse&filter.q0=productid%3Aeq%3A",product_code,"&filter.q0=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&sort.q0=helpfulness%3Adesc%2Ctotalpositivefeedbackcount%3Adesc&stats.q0=reviews&filteredstats.q0=reviews&include.q0=authors%2Cproducts%2Ccomments&filter_reviews.q0=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&filter_reviewcomments.q0=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&filter_comments.q0=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&limit.q0=30&offset.q0=8&limit_comments.q0=3&callback=bv_351_44883")
+  
+  #api_url <- paste0("https://api.bazaarvoice.com/data/batch.json?passkey=dm7fc6czngulvbz4o3ju0ld9f&apiversion=5.5&displaycode=9421-en_ca&resource.q0=reviews&filter.q0=isratingsonly%3Aeq%3Afalse&filter.q0=productid%3Aeq%3A",product_code,"&filter.q0=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&sort.q0=helpfulness%3Adesc%2Ctotalpositivefeedbackcount%3Adesc&stats.q0=reviews&filteredstats.q0=reviews&include.q0=authors%2Cproducts%2Ccomments&filter_reviews.q0=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&filter_reviewcomments.q0=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&filter_comments.q0=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&limit.q0=500&offset.q0=0&limit_comments.q0=3&callback=bv_351_44883")
+  
+  return(api_url)
+}
+
+# function to go through the list and extract meaningful results
+get_review <- function(x){
+  product_id <- ifelse(!is.null(x$ProductId), x$ProductId, "")
+  user_name <- ifelse(!is.null(x$UserNickname), x$UserNickname, "")
+  rating <- ifelse(!is.null(x$Rating), x$Rating, 0)
+  
+  review_date <- ifelse(!is.null(x$SubmissionTime), x$SubmissionTime, "")
+  review_text <- ifelse(!is.null(x$ReviewText), x$ReviewText, "")
+  review_title <- ifelse(!is.null(x$Title), x$Title, "")
+  
+#  message ("sofa sogood")
+  
+  results <- tibble(
+    product_id = product_id,
+    user_name= user_name,
+    rating_num = rating,
+    review_date =review_date,
+    review_text =review_text ,
+    review_title = review_title
+  )
+  return(results)
+}
+
+```
+
+
+
+### Scraping the Content
+
+Now that we have the product ids, we can loop through them and call the API to get the reviews.
+
+```{r}
+# set up our results tibble
+all_reviews <- tibble()
+
+# #20 seems to have no reviews, json_results didn't have SubmissionTime, so added that to conditions
+for (i in 1:nrow(product_ids)){
+  # print an update message and wait nicely
+  product_id <- product_ids$product_id[[i]]
+  message(paste0("Product #",i,"/",nrow(product_ids),": ",product_id))
+  Sys.sleep(2)
+  
+  api_url <-  get_first_api_url(product_id)
+  
+  # call the API
+  text <- GET(api_url) %>%
+    content("text")
+  
+  # parse the returned text into json
+  json_parsed <- text %>%  
+    str_extract("\\{(.*)\\}") %>%
+    #str_extract("(?<=BV._internal.dataHandler0\\()(.*)")#(?=\\))") %>%
+    jsonlite::parse_json()
+  
+  # get the product information
+  product <-  json_parsed$BatchedResults$q0$Results[[1]]
+  product_name <- product$Name
+  product_brand <- product$Brand$Name
+  
+  
+  reviews <- json_parsed$BatchedResults$q2$Results
+  
+  # use purrr::map to apply get_review() to each individual review
+  reviews1 <- tibble(
+    x = purrr::map(reviews, get_review)
+  ) %>%
+    unnest(cols = "x")
+  
+  message ("   First API call done and processed.")
+  
+  ####################################3
+  # SECOND API CALL. Try to load additional reviews:
+  api_url <-  get_second_api_url(product_id)
+  # test <- read_html(api_url)
+  # text <- test %>% html_text() 
+  text <- GET(api_url) %>%
+    content("text")
+  
+  json_parsed <- text %>%
+    str_extract("(?<=\\()(.*)(?=\\))") %>%
+    jsonlite::fromJSON()
+  
+  json_results <- json_parsed$BatchedResults$q0$Results 
+  
+  
+  # set our second set of reviews to NULL in case we don't find any
+  reviews2 <- NULL
+  
+  # if we do find some, set them to that!
+  if (!is.null(json_results) & length(json_results)>0) {
+    if (any(str_detect(names(json_results), "SubmissionTime"))){
+      reviews2 <-   json_results %>%
+        as_tibble() %>%
+        select(review_date = SubmissionTime,
+               user_name = UserNickname,
+               review_title = Title,
+               review_text = ReviewText,
+               rating_num = Rating
+        ) %>%
+        mutate(product_id = product_code)
+    }
+  }
+  
+  message ("    Second API call done and processed.")
+  
+  # put the new reviews together:
+  new_reviews <-  bind_rows(reviews1, reviews2) %>%
+    mutate(product_name = product_name,
+           product_brand= product_brand)
+  
+  all_reviews <- bind_rows(all_reviews, new_reviews)
+} # end (for i)
+
+all_reviews %>%
+  distinct() %>%
+  write_csv(paste0("reviews-",product_type,".csv"))
+```
+
+## Summary
+
