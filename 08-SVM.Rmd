@@ -1,0 +1,375 @@
+```{r setup_svm, include=FALSE}
+rm(list  = ls())
+knitr::opts_chunk$set(echo = TRUE, cache=TRUE)
+
+library(tidyverse)
+library(tidytext)
+library(textrecipes)
+library(tidymodels)
+library(tidytext)
+library(stringr)
+library(discrim)
+library(readr)
+library(tictoc)
+
+afinn <- tidytext::get_sentiments("afinn")
+```
+
+# Beyond the MVP: Support Vector Machine Classification
+
+## Introduction
+
+In this section, I will extend the minimum viable project (MVP) in the last section and build a *support vector machine* (SVM) classifier to predict Yelp reviews' star ratings. This time, instead of just using AFINN sentiment as the model input, I'll predict ratings based on each review's text, its word length, and its AFINN sentiment. I will again be predicting positive ("POS") and negative ("NEG") ratings following @liu_sentiment_2015's recommendation, and use the approaches outlined in @silge_supervised_2020 and @silge_text_2020. In some cases I have used examples or hints from websites like Stack Overflow, and I've noted that where applicable.
+
+Based on some initial experiments, after loading 200,000 Yelp reviews I will use an aggressive train/test split to use 5% of the data for model training and then test its performance on the other 95%. There are two reasons for this. The first reason is pragmatic: I have much more data than processing power, and 5% of the data amounts to 11,106 reviews which already takes nearly 20 minutes to run through an SVM on my machine. The second reason is optimistic: based on some earlier experiments, I have reason to think that roughly 10,000 reviews is enough to train a decent model, so I would like to seize on this huge dataset to do a really robust test.
+
+## SVM Classifiers
+
+A support vector machine (SVM) classifier is a mathematical model that assigns observations to one of two classes. The mathematics are complicated, so here I will present a brief non-technical summary based on @hastie_elements_2009's exposition (pp. 417-438).
+
+Imagine a dataset consisting of $N$ pairs $(x_1,y_1),(x_2,y_2),\ldots,(x_N,y_N)$, where the $x_i\in\mathbb{R}^p$ and the $y_i\in\{-1,1\}$. In other words, our observations are situated somewhere in a $p$-dimensional Euclidean space with coordinates $x_i$, and also belong to one of two classes given by $y_i$. Intuitively, we could set $p=2$ and imagine throwing a handful of pennies onto a tabletop: each penny has some position on the tabletop that we could label $x_i$, and each penny is either heads or tails, which we could label $y_i$.
+
+For our tabletop example, if we're lucky we might be able to draw a straight line separating all the heads and tails. In more general cases we may be able to define a hyperplane that separates all instances of the two classes. We can call these situations "separable," and the general approach here is to find the hyperplane that divides the two classes with the widest margin $M$ possible on both sides.
+
+In other cases, however, there might be some heads mixed in with the tails, so it may be impossible to draw a straight line or hyperplane that cleanly separates the two classes. If so, we can generalize our approach to permit some misclassifications. The problem then is to find the hyperplane that minimizes the number and degree of misclassifications: in other words, to minimize the number of points on the wrong side of the dividing line and to minimize their distance from it. This is the intuition behind a *support vector classifier.*
+
+A *support vector machine* classifier generalizes the support vector classifier to the case where the boundary is non-linear. Roughly, an SVM expands the input feature space (i.e. the $x_i$) using potentially non-linear transformations and then solves the classification problem in this larger space. Linear boundaries in this larger space will generally correspond to non-linear boundaries in the original space, so intuitively this means we are now considering the possibility that we could draw *curved* lines in our original space to separate our two classes. The details, however, are highly technical, and the reader is referred to @hastie_elements_2009 (417-438) for more information.
+
+## Preparing the Data
+
+I will again work with the large Yelp dataset available [at this link](https://www.kaggle.com/yelp-dataset/yelp-dataset), this time loading the first 500k reviews.
+
+This code block does the following:
+
+* Load our data;
+* Factor it into POS (4-5 stars) and NEG (1-2 stars);
+* Balance POS and NEG by random downsampling;
+* Get each review's AFINN sentiment score; and
+* Get each review's word count.
+
+
+```{r yelp_svm_load, message=FALSE, warning=FALSE, cache=TRUE, eval=FALSE}
+set.seed(1234)
+
+# figure out how to do it reading between the lines of this stackoverflow:
+# https://stackoverflow.com/questions/53277351/read-first-1000-lines-from-very-big-json-lines-file-r
+
+yelp_big_factor <- readLines("../tests/data/yelp_academic_dataset_review.json", n = 500000) %>%
+  textConnection() %>%
+  jsonlite::stream_in(verbose=FALSE) %>%
+  select(stars, text) %>%
+  mutate(rating_factor = case_when(
+    stars < 3 ~ "NEG",
+    stars > 3 ~ "POS") %>%
+      as.factor()
+  ) %>%
+  select(-stars) %>%
+  drop_na() 
+
+# random downsampling to balance POS and NEG in the dataset
+yelp_balanced <- yelp_big_factor %>%
+  filter(rating_factor == "NEG") %>%
+  bind_rows(yelp_big_factor%>%
+              filter(rating_factor == "POS") %>%
+              slice_sample(n=yelp_big_factor %>% filter(rating_factor == "NEG") %>% nrow() ))
+
+# get AFINN scores for each review
+tic()
+afinn_yelp_big <- yelp_balanced %>%
+  rowid_to_column() %>%
+  tidytext::unnest_tokens(word, text) %>%
+  left_join(afinn) %>%
+  group_by(rowid) %>%
+  summarise(afinn_sent = sum(value, na.rm = T))
+toc()
+
+# add the AFINN scores to the original tibble
+yelp_big_bal_afinn <- afinn_yelp_big %>%
+  left_join(yelp_balanced %>% rowid_to_column()) %>%
+  select(-rowid)
+
+# get wordcounts
+wordcounts_yp <- yelp_big_bal_afinn %>%
+  select(text) %>%
+  rowid_to_column() %>%
+  tidytext::unnest_tokens(word, text) %>%
+  group_by(rowid) %>%
+  summarise(n = n()) %>%
+  arrange(n)  %>%
+  mutate(id = 1,
+         cumdist = cumsum(id)) 
+
+# add wordcounts to create final dataset
+yelp_data <- bind_cols(
+  yelp_big_bal_afinn,
+  wordcounts_yp %>% 
+    arrange(rowid) %>%
+    select(words = n))
+
+# remove transient datasets, keep only the final one
+
+rm (yelp_big, yelp_big_factor, yelp_balanced, afinn_yelp_big, yelp_big_bal_afinn, wordcounts_yp)
+```
+
+```{r secret_load_yelp_data, include=FALSE}
+# don't include this in the final version, but save the yelp data if we have it and load the yelp data if we don't have it.
+#if (exists("yelp_data")) save(list="yelp_data", file="data/yelp_data.Rdata")
+
+#if (!exists("yelp_data")) 
+load("data/yelp_data.Rdata")
+```
+
+Then we'll create a train/test split on the entire dataset, using 5% for training and 95% for testing.
+
+
+```{r yelp_svm_split, cache=TRUE}
+set.seed(1234)
+
+yelp_split <- initial_split(yelp_data,
+                            strata = rating_factor,
+                            prop = 0.05)
+  
+yelp_train <- training(yelp_split)
+
+yelp_test <- testing(yelp_split)
+
+```
+
+Then we set up ten cross-validation folds that we will use to evaluate the models we build using our training data.
+
+```{r yelp_svm_folds, cache=TRUE}
+yelp_folds <- vfold_cv(yelp_train)
+```
+
+## SVM Classification
+
+First we set up our SVM model, here using the **liquidSVM** package following @silge_supervised_2020. 
+
+```{r, cache=TRUE}
+svm_model <- svm_rbf() %>%
+  set_mode("classification") %>%
+  set_engine("liquidSVM")
+
+svm_model
+```
+
+Next we'll set up an SVM recipe based on entirely on text tokens. A good next step would be to use what I've learned in earlier sections, for example by including negators, word count, and sentiment, but to keep it simple we'll leave them out here. 
+
+We'll process our text using these steps:
+
+* Tokenizing the text into words;
+* Removing stopwords from the default "snowball" dictionary;
+* Filtering out tokens that occur fewer than 50 times;
+* Choosing a maximum number of tokens, which we will tune as a hyperparameter; and,
+* Applying a TFIDF to the text.
+
+We could also consider n-grams (i.e. considering n-word strings of text), which might be useful for catching negators. I've included the code in this block but commented it out. For now we'll stick with individual words.
+
+```{r, cache=TRUE}
+
+yelp_rec <-
+  recipe(rating_factor ~ text, #+ words + afinn_sent,
+         data = yelp_train) %>%
+  step_tokenize(text) %>%
+  step_stopwords(text) %>%
+#    step_ngram(text, min_num_tokens = 1L, num_tokens = 1) %>%
+  step_tokenfilter(text,
+                   max_tokens = tune(),
+                   min_times = 50) %>%
+  step_tfidf(text)
+
+  yelp_rec
+```
+
+Next we set up our workflow:
+
+```{r, cache=TRUE}
+svm_wf <- workflow() %>%
+  add_recipe(yelp_rec) %>%
+  add_model(svm_model)
+
+svm_wf
+```
+
+We have set up our recipe to let us try several different values for the maximum number of tokens, so here we'll set up grid of values to test. Based on some scratch work, I'm going to use three values between 500 and 1250.
+
+```{r, cache=TRUE}
+param_grid <- grid_regular(
+  max_tokens(range = c(500,1250)),
+  levels=3
+)
+```
+
+
+Here we set up tuning grid and tune our model on the cv-folds we've set up. On an initial test run using 20k Yelp reviews (~9k after balancing) this took ~480 seconds (8 min). With 11,106 training inputs and only 1-grams it takes ~1200s (20 min) on my machine. With 11,106 training inputs and 1-, 2-, and 3-grams it takes ~ 2300s (38 min).
+
+```{r, message=FALSE, warning=FALSE, cache=TRUE, eval=FALSE}
+set.seed(1234)
+
+tic()
+tune_rs_svm <- tune_grid(
+  svm_wf,
+  yelp_folds,
+  grid = param_grid,
+  metrics = metric_set(accuracy, sensitivity, specificity),
+  control = control_resamples(save_pred = TRUE)
+)
+toc()
+```
+
+```{r include=FALSE}
+#if (exists("tune_rs")) save(list = "tune_rs", file = "data/tune_rs.Rdata")
+
+#if (!exists("tune_rs")) 
+  load ("data/tune_rs_svm.Rdata")
+```
+
+
+
+Now we can evaluate our modeling by looking at the accuracy across our tuning grid:
+
+```{r, cache=TRUE}
+show_best(tune_rs_svm, metric = "accuracy") %>%
+  knitr::kable()
+```
+
+The accuracy was particularly surprisingly good across for each number of tokens. Since we got the best results using 1250 tokens, we'll use 1250 for the rest of our experiment.
+
+Then we finalize our workflow using the results of our model tuning.
+
+```{r finalize_workflow_svm_not_run, cache=TRUE, eval=FALSE}
+best_accuracy <- select_best(tune_rs_svm, "accuracy")
+
+svm_wf_final <- finalize_workflow(
+  svm_wf,
+  best_accuracy
+)
+```
+
+At this point, @silge_supervised_2020 says we  use `last_fit()` to fit our model to our training data and evaluate it on our testing data. On initial runs, this worked and gave a final accuracy rate of roughly 83%. **But two problems arose:**
+
+1. **It stopped working reliably!** I have no idea what changed, but all of my code started to crash at the `last_fit()` stage. Even behind-the-scenes scratch work now crashes, despite working fine a few days ago. *But then it worked again when I tried to knit the final version of this document!*
+2. **When it did work, I couldn't use the final fit object to make predictions.** After reading the documentation, it does seem that objects created by `last_fit()` includes the fitted workflow in a list column called `.workflow`. However, it took me a while to figure this out, and by the time I did `last_fit()` had stopped working.
+
+When it **did** work unexpectedly I saved the results to file, and the rest of this report uses the saved results. Here is the the code that worked sporadically:
+
+```{r last_fit_svm_not_run, eval=FALSE}
+# get final results
+final_res <- svm_wf_final %>%
+  last_fit(yelp_split,
+           metrics = metric_set(accuracy))
+
+```
+
+```{r}
+#save(list = "final_res", file = "data/final_res.Rdata")
+load("data/final_res.Rdata")
+```
+
+We can then see the results which look quite good, with roughly 83% accuracy on the test data:
+
+```{r}
+
+# Then we can see results with `collect_metrics()` and `collect_predictions()`.
+final_res_metrics <- collect_metrics(final_res)
+final_res_predictions <- collect_predictions(final_res)
+
+final_res_metrics %>%
+  knitr::kable()
+```
+
+And Figure \@ref(fig:svm-heatmap-works-now) shows a heatmap of the confusion matrix. The off-diagonals look reasonably symmetric, so the model isn't biased significantly. 
+
+```{r svm-heatmap-works-now}
+
+# Visualize the model's performance with a heatmap of the confusion matrix.
+# When it worked, the results were nearly symmetric.
+final_res_predictions %>%
+  conf_mat(truth = rating_factor, estimate = .pred_class) %>%
+  autoplot(type = "heatmap")
+```
+
+## Predicting with `last_fit()`
+
+Now we'll try to use the results from `last_fit()` to predict a *new* result. Here we'll pull the fitted workflow and try to use it to predict the values for the test set.
+
+*But this code fails!*
+
+```{r, eval=FALSE}
+wf <- final_res$.workflow[[1]]
+
+test <- wf %>%
+  predict(new_data = yelp_test[1:10,])
+
+yelp_test %>%
+  bind_cols(test) %>%
+  mutate(correct = (.pred_class == rating_factor)) %>%
+  summarise(sum(correct) / n())
+
+```
+
+We get the following output:
+
+> SVM not known from cookie 35  cookies.size: 0!
+Error in test.liquidSVM(model = object, newdata = newdata, labels = 0, : Should not happen!! liquid_svm_test
+
+This concludes my experiment with `last_fit()`.
+
+## Fitting and Predicting Using `fit()`
+
+Instead of using `last_fit()`, we should be able to just use `fit()` to fit our final workflow to our training data. This creates a fitted workflow object that includes our preprocessing recipe and our fitted model. It's a 20.4 MB file when saved to disk.
+
+
+```{r pretend_to_do_final_fit, eval=FALSE}
+
+final_fit <- fit(svm_wf_final, 
+                 data = yelp_train)
+
+final_fit
+```
+
+```{r load_saved_final_fit, echo=FALSE}
+load("data/final_fit.Rdata")
+
+final_fit
+
+```
+
+Then we can use our `final_fit` object to predict rating factors for our test data.
+
+```{r pretend_to_do_predictions, eval=FALSE}
+
+preds <- final_fit %>%
+  predict(new_data = yelp_test)
+```
+
+```{r load_predictions, include=FALSE}
+load("data/preds.Rdata")
+```
+
+To evaluate our fit, we can bind our prediction columns to our test data and check to see how often the true and predicted ratings agree.
+
+```{r evaluate-predictions, cache=TRUE}
+yelp_test <- bind_cols(yelp_test, preds) %>%
+  mutate(correct = (.pred_class == rating_factor))
+
+yelp_test %>%
+  summarise(sum(correct) / n())
+
+```
+
+But now our accuracy drops to 67% and I'm not sure why! According to the help docs `last_fit()` is supposed to "[f]it the final best model to the training set and evaluate the test set," and that's exactly what I did above. But the results here are quite different.
+
+Since the SVM process is slow and since I've had some kind of toolchain breakdown, I wasn't able to get to the root of the problem in time for this week's report.
+
+## Conclusions
+
+In this section I created a support vector machine (SVM) classifier model to predict whether Yelp reviews were positive or negative based on their text. In an initial experiment, according to `tune::last_fit()` the model achieved ~89% testing accuracy on~11,000 observations, and 83% accuracy on ~211,000 testing observations. However, on subsequent runs `tune::last_fit()` stopped working. When it started to work again, I wasn't able to use the fitted model to make predictions. I then fit the final model manually on the training data and tested it against the test data, but the accuracy dropped to 67%.
+
+## SessionInfo
+
+```{r sessinfo-svm}
+sessionInfo()
+```
+
+## References

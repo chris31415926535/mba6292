@@ -1,0 +1,4941 @@
+--- 
+title: "Telfer 2020 Directed Reading: Natural Language Processing"
+author: "Christopher Belanger"
+date: "`r Sys.Date()`"
+site: bookdown::bookdown_site
+output: bookdown::gitbook
+documentclass: book
+bibliography: [book.bib, packages.bib, Exported Items.bib]
+biblio-style: apalike
+link-citations: yes
+github-repo: rstudio/bookdown-demo
+description: "This is Christopher Belanger's work product for the Telfer School of Management course *MBA6292*, Directed Readings in Natural Language Processing."
+---
+
+# Preface
+
+This is a work product for the Telfer School of Management course *MBA6292*, Directed Readings in Natural Language Processing with Dr. Peter Rabinovitch.
+
+This document is intended as a final-work-in-progress: I will continue to revise and add through it during the semester, with the intention that at the end of the semester it will stand as a final product.
+
+This document is written in **RMarkdown** using **RStudio** and the **bookdown** package. For details and to learn how to create your own, see @R-bookdown.
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache=TRUE)
+```
+
+<!--chapter:end:index.Rmd-->
+
+# Introduction {#intro}
+
+**Placeholder for introduction text. I'll write this last along with the Conclusion.**
+
+
+
+
+This product uses the **bookdown** package [@R-bookdown], which was built on top of R Markdown and **knitr** [@xie2015].
+
+<!--chapter:end:01-intro.Rmd-->
+
+# Web Scraping Our Data
+
+This section will describe the three different approaches I used to scrape datasets from Yelp, Goodreads, and MEC. 
+
+thing reviewed, reviewer, date, text, and star rating.
+
+## Foreword: Ethics & Legality
+
+Web scraping is ubiquitous. As a rough working definition, let's say that web scraping--which can also be called crawling, trawling, harvesting, or any number of other terms--means automatically visiting websites to collect and store the information there so it can be used for a later purpose. So at one extreme, browsing Facebook at work doesn't count since it's not automatic; on the other extreme, automatically sending billions of requests to a server in an attempt to overload (i.e. a DDoS attack) doesn't count either, since nothing is being done with the information the server sends back.   To take the most obvious example, Google's entire business is based on @google-2020
+
+It's also widespread--it's how Google gets its information,  something like 50% of page visits are for scraping? source this. There are many commercial web-scraping companies, and programming languages like R have web-scraping libraries. 
+
+Lots of worrying about this
+
+@scasa-2018 gives a good overview of the legal situation from a Canadian perspective, although it came out before the Mongohouse case.
+
+[mongodb opinion piece](https://www.canadianlawyermag.com/news/opinion/federal-court-makes-clear-website-scraping-is-illegal/276128)
+
+[Apparently it's legal!](https://www.forbes.com/sites/emmawoollacott/2019/09/10/linkedin-data-scraping-ruled-legal/#56172d721b54)
+
+
+
+To mitigate any ethical concerns, in this project we've made the following choices:
+
+* We're scraping a reasonably small number of pages/reviews;
+* We're being considerate of their servers by spacing out our requests; and,
+* We're collecting and using the data for educational non-commercial purposes.
+
+## The General Idea
+
+Web scraping these sites follows a two-step process:
+
+1. Get a list of urls for pages you want to scrape (generating an *index*).
+  * Usually we'll get these urls by first scraping another page.
+1. Use a loop to scrape the information from each page (loading the *content*).
+
+Since different sites have different structures, we'll need custom code for the index and content pages. Also, by random chance these three sites all use different web-design principles, so we'll also need to use different techniques. 
+
+
+## Goodreads: CSS Selectors
+
+[Goodreads](www.goodreads.com) describes itself as "the world’s largest site for readers and book recommendations" (@goodreads-2020). Registered users can leave reviews and ratings for books, any anyone can use the site to browse user-submitted reviews and a variety of information about books. 
+
+Goodreads' pages are standard html, so we can use css selectors to isolate the exact parts of the page we're interested in. I used R's **rvest** package, and the package documentation has details about the methods and about css selectors in general [@wickham-package-2020]. To find the css selectors I used [SelectorGadget](https://selectorgadget.com/), a point-and-click Chrome extension.
+
+### Scraping the Index
+
+Goodreads assigns books to genres like "sci-fi" and "romance," and curates lists of each genre's 100 most-read books in the past week. By scraping these pages, we can get links to content pages for hundreds of books across different genres.
+
+Here is a code block to get the links to the 100 most-read books in the "classics" genre. The code could be functionized or run several times for other genres.
+
+```{r, eval=FALSE}
+library(tidyverse)
+library(rvest)
+
+# choose a genre
+genre <- "classics"
+
+url <- paste0("https://www.goodreads.com/genres/most_read/",genre)
+
+# read the page
+page <- read_html(url)
+
+# extract the links to each book's page using css selectors
+book_links <- page %>%
+  html_nodes(".coverWrapper") %>%
+  html_nodes("a") %>%
+  html_attr("href") %>%
+  paste0("https://www.goodreads.com", .)
+
+book_links %>%
+  as_tibble() %>%
+  write_csv(paste0("book_links_",genre,".csv"))
+```
+
+
+### Scraping the Content
+
+The next step is to load each content link and extract the information about the book, its author, and all the reviews. Books can have several pages of reviews, so we need to figure out how mayn pages there are and how to crawl through them. Since not all reviews have both text and star ratings, we also need to be careful to make sure we handle missing data appropriately. 
+
+```{r, eval=FALSE}
+
+#https://www.goodreads.com/genres/most_read/non-fiction
+links <- book_links
+
+# set up empty results tibble
+results <- tibble()
+
+# remove any links we've already seen, if we crashed and are resuming
+links <- links[!links %in% results$url]
+
+for (i in 1:length(links)) {
+  
+  # pause briefly
+  pause()
+  
+  # get the url we're interested in
+  url <- links[[i]]
+  
+  
+  # write an update, since I'm impatient and want to know what's happening
+  message(paste0(i,"/",length(links),": ", url))
+  
+  # choose a random useragent each time we load the page -- anti-anti-scraping measure
+  httr::user_agent(random_useragent()) %>%
+    httr::set_config()
+  # read the url
+  
+  page <- read_html(url)
+  
+  # read the review page's html
+  reviews_html <- page %>%
+    html_nodes(".review")
+  
+  # extract the informaiton we're interested in
+  book_title <- page %>%
+    html_nodes("#bookTitle") %>%
+    html_text() %>%
+    stringr::str_trim()
+  
+  author_name <- page %>%
+    html_nodes(".authorName span") %>%
+    html_text() %>% head(1)
+  
+  review_names <- purrr::map_chr(reviews_html, function(x) { html_nodes(x, ".user") %>% html_text() })
+  review_dates <- purrr::map_chr(reviews_html, function(x) {html_nodes(x, ".reviewDate") %>% html_text()})
+  review_text <- purrr::map_chr(reviews_html, function(x) {html_nodes(x, ".readable span") %>% html_text() %>% paste0(., " ") %>% na_if(y=" ") %>% str_trim() %>% tail(1)})
+  review_rating <- purrr::map_chr(reviews_html, function(x) {html_nodes(x, ".staticStars") %>% html_text() %>% paste0(., " ") %>% na_if(y=" ") %>% str_trim()}) 
+  
+  # how many pages of reviews?
+  # there may be an easier way but this should work
+  num_pages <- page %>%
+    html_text() %>%
+    str_extract_all("(?<=previous).*?(?=next)") %>%
+    unlist() %>% tail(1) %>%
+    stringr::str_trim() %>%
+    stringr::str_split(" ") %>%
+    unlist() %>%
+    map_dbl(as.double) %>%
+    max()
+  
+  # put it all together
+  page_reviews <- tibble(
+    book_title = book_title,
+    author_name = author_name,
+    comment = review_text,
+    names = review_names,
+    rating = review_rating,
+    dates = lubridate::mdy(review_dates),
+    url = url,
+    num_pages = num_pages
+  ) 
+  
+  results <- bind_rows(results, page_reviews)
+}
+
+filename <- paste0("goodreads_",genre,"_reviews.csv")
+results %>%
+  write_csv(path = filename)
+```
+
+
+## Yelp: Embedded JSON
+
+[Yelp](www.yelp.com), according to its website, "connects people with great local businesses" [@yelp-about-2020]. Businesses can upload information like their location, hours, and services, and registered users can can leave reviews with text, star ratings, and pictures. 
+
+Yelp's web design includes structured json data within its html. In other words, each Yelp review page has machine-readable data hidden inside it if you know where to look. We'll exploit this by using a regular expression to extract the json from the html, then parse the json and work with it directly.
+
+### Scraping the Index
+
+First we'll get the urls for each restaurant in Ottawa. We start at the base url for Ottawa restaurants and iterate through all of the pages: we could get the page numbers automatically, but here I just saw that there are 24 and hard-coded that number in. We extract the urls from the json in the page *without* parsing it using a regex. We could have parsed the json and done it using structured data, but since we're only looking for one value type this was faster and worked fine.
+
+```{r, eval=FALSE}
+# the base url for restaurants in Ottawa
+baseurl <- "https://www.yelp.ca/search?cflt=restaurants&find_loc=Ottawa%2C%20Ontario%2C%20CA"
+
+# an empty tibble for our links
+links <- tibble()
+
+# loop through all 24 pages of Ottawa restaurants. (The number 24 was hard-coded to keep things moving.)
+for (pagenum in 1:24){
+  Sys.sleep(1) 
+  
+  # get the url for the page we're loading
+  url <- paste0(baseurl, if(pagenum>1){ paste0("&start=",(pagenum-1)*10) })
+  
+  # load the html for the page and print an update message
+  text <- read_html(url) %>%
+    html_text() 
+  message("**PAGE ",pagenum,": ", url)
+  
+  # extract the urls using a straight regex based on the json value key. we're not parsing any json here.
+  urls <- text %>%
+    str_extract_all('(?<=businessUrl":")(.*?)(?=")') %>%
+    unlist() %>%
+    enframe() %>%
+    select(-name) %>%
+    filter (!str_detect(value, "ad_business_id")) %>%
+    distinct() %>%
+    transmute(url = paste0("http://www.yelp.ca", value))
+  
+  # add to our results
+  links <- bind_rows(links, urls)
+}
+
+links %>%
+  write_csv("yelp_ottawa_links.csv")
+```
+
+
+### Scraping the Content
+
+Scraping the content has two steps. First, now that we have a list of content urls, we can load each in turn and extract the reviews and the links for any additional review pages for this business. In the second step we'll load these new links and get those reviews. 
+
+This function loads a single review page, extracts the machine-readable json using a regex, parses the json, and extracts the information we're interested in. It then returns that information in a tibble.
+
+```{r function_get_review, eval=FALSE}
+get_review <- function(page, url) {
+  
+  # get the html
+  text <- page %>%
+    html_text()
+  
+  # extract the json with the review data
+  json_text <- text %>%
+    str_extract('(?<="reviewFeedQueryProps":)(.*)("query":""\\}\\})')
+  
+  # set our review_page results variable to NA, in case we don't get a results
+  review_page <- NA
+  
+  # make sure we have valid json text before we try to parse it
+  if (!is.na(json_text)){
+    # parse the json
+    json_parse <- json_text %>%
+      jsonlite::fromJSON()
+    
+    # pull out the variables we're interested in
+    review_text <- json_parse$reviews$comment$text
+    review_rating <- json_parse$reviews$rating
+    review_name <- json_parse$reviews$user$markupDisplayName
+    review_date <- json_parse$reviews$localizedDate
+    review_business <- json_parse$reviews$business$name
+    review_url <- rep(url, length(review_text))
+    
+    # put them all into a tibble
+    review_page <- tibble(business = review_business,
+                          name = review_name,
+                          date = review_date,
+                          comment = review_text,
+                          rating = review_rating,
+                          url = review_url)
+  }
+  
+  # return either NA or a results tibble
+  return (review_page)
+}
+
+
+# simple function to pause for a random period of time
+pause <- function(min_wait = 1, max_wait = 3){
+  runif(n=1, min=min_wait, max = max_wait) %>% Sys.sleep()
+}
+
+```
+
+We then proceed with step one, loading the initial list of links, extracting the reviews there, and collecting any more links to more reviews:
+
+
+
+```{r, eval=FALSE}
+# load our set of restaurant page links
+base_links <- read_csv("yelp_ottawa_links.csv")
+
+# set up an empty tibble for our reviews
+reviews <- tibble()
+
+# set up an empty tibble for the links we're going to visit later
+more_links <- tribble(~links)
+
+# now we're going to visit each page, extract the reviews from it, and find out how many *more* pages there are for this restaurant.
+# we'll keep track of those other pages and visit them later in a random order.
+for (i in 1:nrow(base_links)) {
+  # pause briefly
+  pause()
+  
+  # get the url we're interested in
+  url <- links[[i]]
+  
+  # write an update, since I'm impatient and want to know what's happening
+  message(paste0(i,"/",nrow(base_links),": ", url))
+  
+  # read the url
+  page <- read_html(url)
+  
+  # extract the reviews from the page
+  review_page <- get_review(page, url)
+  
+  # add these reviews to our list of reviews
+  reviews <- bind_rows(reviews, review_page)
+  
+  # now find out how many other pages there are for this restaurant
+  # we'll regex to find the second half of "dd of dd", where d is a digit (and it could be either one or two digits--see the regex below)
+  num_pages <- page %>%
+    html_node((".text-align--center__373c0__2n2yQ .text-align--left__373c0__2XGa-")) %>%
+    html_text() %>%
+    str_extract("(?<=of )(\\d\\d?)") %>%
+    as.integer()
+  
+  # make sure we don't get an NA
+  if (is.na(num_pages)) num_pages <- 1
+  
+  # if there's more than one page, construct the links and add them to our list of links to read next
+  if (num_pages > 1) {
+    more_links <- more_links %>% 
+      add_row(links = paste0(url, "?start=",(1:(num_pages-1))*20) )
+  }
+  
+} # end for i in 1:nrow(base_links)
+
+# save our results
+reviews %>%
+  write_csv("data/ottawa-reviews-1.csv")
+
+more_links %>%
+  write_csv("data/ottawa_more_links.csv")
+
+```
+
+In step two, we'll repeat the process for the new links we collected:
+
+
+Now let's do the same thing for the extra links we got:
+note it's stopping me every 136 or so and giving a 503 error, so i'm either rebooting my modem to get a new ip address or tethering to my phone for a bit
+
+```{r, warning=FALSE, eval=FALSE}
+links <- more_links
+
+for (i in 1:length(links)) {
+  # pause briefly for random interval
+  pause()
+  
+  # get the url we're interested in
+  url <- links[[i]]
+  
+  # write an update, since I'm impatient and want to know what's happening
+  message(paste0(i,"/",length(links),": ", url))
+
+  message("  Loading page.")
+  # read the url
+  page <- read_html(url)
+  
+  message("  Parsing review.")
+  # extract the reviews from the page
+  review_page <- get_review(page, url)
+  
+  if (!is.na(review_page)){
+    message ("  Adding to inventory.")
+    # add these reviews to our list of reviews
+    reviews <- bind_rows(reviews, review_page)
+  } else {
+    message ("  No valid json found.")
+  }
+} # end for i in 1:nrow(base_links)
+
+
+reviews %>%
+  write_csv("ottawa-reviews-2.csv")
+
+```
+
+## MEC: Reverse-Engineering Client-Side API Calls
+
+MEC's website uses a completely different design principle that makes it seem more difficult to extract information. If you inspect the html for one of MEC's product pages, you'll find that the review information simply isn't there! It's quite mysterious.
+
+The secret is that MEC's site uses client-side API calls to download the data which is then displayed locally. To solve this puzzle, I needed to use  Chrome's developer console (opened with *Control-Shift-J*) to see the network activity (under the *Network* tab) happening each time I loaded a new product page. I discovered that my browser was making API calls to a specific server, and by comparing the calls for a few products I found that the main difference was the product ID. This let me reverse-engineer the syntax just enough to be able to call it myself and get reviews for any product based on its ID. I also found that there was one API call for the first page of reviews and a different one for loading more reviews, so I built functions for both of them.
+
+As a result, the index in this case is a list of product IDs rather than urls, and the content is the result of API calls rather than web pages. However, the principles remain the same.
+
+### Scraping the Index
+
+This code block collects product IDs for [mittens and gloves](https://www.mec.ca/en/products/clothing/clothing-accessories/gloves-and-mittens/c/987). Each product category has a different catalogue page, so I modified the code to load a few different kinds of products. We load the first page, use a regex to figure out how many pages there are, then use css selectors to extract the IDs for products with reviews.
+
+```{r, eval=FALSE}
+# enter the base url by hand
+base_url <- "https://www.mec.ca/en/products/clothing/clothing-accessories/gloves-and-mittens/c/987"
+
+# enter the product type by hand
+product_type <- "gloves-and-mittens"
+
+# read the page
+page <- read_html(base_url)
+
+# get the number of items using a CSS selector and a regex
+# we expect to find between one and three digits
+num_items <- page %>%
+  html_nodes(".qa-filter-group__count") %>%
+  html_text() %>%
+  str_extract("(\\d\\d?\\d?)") %>%
+  as.integer()
+
+# there are at most 36 items per page
+num_pages <- (num_items / 36) %>% ceiling()
+
+# first let's do the items on this page
+# find each link to a product, filter out any that don't have reviews yet, extract the product ids
+product_ids <- page %>%
+  html_nodes(".rating__count__link") %>%
+  html_attrs() %>%
+  enframe() %>%
+  unnest_wider(value) %>%
+  filter(!str_detect(title, "No reviews yet")) %>%
+  mutate(product_id = str_extract(href, "\\d\\d\\d\\d-\\d\\d\\d")) %>%
+  select(-name, -class)
+
+# now we load the extra pages, if there are any
+if (num_pages > 1) {
+  # we iterate from 1 to num_pages-1, because MEC calls the first extra page page 1
+  for (i in 1:(num_pages-1)){
+    # send an update to the console
+    message(paste0(i,"/",(num_pages-1)))
+    
+    # wait a little bit
+    patience(min_wait = 3, max_wait = 10)
+    
+    # get the new url for the next page
+    url <- paste0(base_url,"?page=",i)
+    
+    # load the next page
+    page <- read_html(base_url)
+    
+    # find each link to a product, filter out any that don't have reviews yet, extract the product ids
+    new_product_ids <- page %>%
+      html_nodes(".rating__count__link") %>%
+      html_attrs() %>%
+      enframe() %>%
+      unnest_wider(value) %>%
+      filter(!str_detect(title, "No reviews yet")) %>%
+      mutate(product_id = str_extract(href, "\\d\\d\\d\\d-\\d\\d\\d")) %>%
+      select(-name, -class)
+    
+    # add it to our list
+    product_ids <- bind_rows(product_ids, new_product_ids)
+    
+  } # end for (i in 1:(num_pages-1))
+} # end if (num_pages >1)
+
+
+product_ids %>%
+  write_csv(paste0("data/product_ids_",product_type,".csv"))
+
+```
+
+
+### Functions for API Calls  
+
+Next, I defined functions to make the API calls and to process their results. The API calls are quite ugly--I could have spent more time figuring out exactly how they worked and slimmed them down, but this worked.
+
+```{r, eval=FALSE}
+get_first_api_url <- function(product_code){
+  api_url <- paste0("https://api.bazaarvoice.com/data/batch.json?passkey=dm7fc6czngulvbz4o3ju0ld9f&apiversion=5.5&displaycode=9421-en_ca&resource.q0=products&filter.q0=id%3Aeq%3A",product_code,"&stats.q0=questions%2Creviews&filteredstats.q0=questions%2Creviews&filter_questions.q0=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&filter_answers.q0=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&filter_reviews.q0=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&filter_reviewcomments.q0=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&resource.q1=questions&filter.q1=productid%3Aeq%3A",product_code,"&filter.q1=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&sort.q1=totalanswercount%3Adesc&stats.q1=questions&filteredstats.q1=questions&include.q1=authors%2Cproducts%2Canswers&filter_questions.q1=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&filter_answers.q1=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&limit.q1=10&offset.q1=0&limit_answers.q1=10&resource.q2=reviews&filter.q2=isratingsonly%3Aeq%3Afalse&filter.q2=productid%3Aeq%3A",product_code,"&filter.q2=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&sort.q2=helpfulness%3Adesc%2Ctotalpositivefeedbackcount%3Adesc&stats.q2=reviews&filteredstats.q2=reviews&include.q2=authors%2Cproducts%2Ccomments&filter_reviews.q2=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&filter_reviewcomments.q2=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&filter_comments.q2=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&limit.q2=8&offset.q2=0&limit_comments.q2=3&resource.q3=reviews&filter.q3=productid%3Aeq%3A",product_code,"&filter.q3=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&limit.q3=1&resource.q4=reviews&filter.q4=productid%3Aeq%3A",product_code,"&filter.q4=isratingsonly%3Aeq%3Afalse&filter.q4=issyndicated%3Aeq%3Afalse&filter.q4=rating%3Agt%3A3&filter.q4=totalpositivefeedbackcount%3Agte%3A3&filter.q4=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&sort.q4=totalpositivefeedbackcount%3Adesc&include.q4=authors%2Creviews%2Cproducts&filter_reviews.q4=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&limit.q4=1&resource.q5=reviews&filter.q5=productid%3Aeq%3A",product_code,"&filter.q5=isratingsonly%3Aeq%3Afalse&filter.q5=issyndicated%3Aeq%3Afalse&filter.q5=rating%3Alte%3A3&filter.q5=totalpositivefeedbackcount%3Agte%3A3&filter.q5=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&sort.q5=totalpositivefeedbackcount%3Adesc&include.q5=authors%2Creviews%2Cproducts&filter_reviews.q5=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&limit.q5=1&callback=BV._internal.dataHandler0")
+
+    return(api_url)
+}
+
+get_second_api_url <- function(product_code){
+  api_url <- paste0("https://api.bazaarvoice.com/data/batch.json?passkey=dm7fc6czngulvbz4o3ju0ld9f&apiversion=5.5&displaycode=9421-en_ca&resource.q0=reviews&filter.q0=isratingsonly%3Aeq%3Afalse&filter.q0=productid%3Aeq%3A",product_code,"&filter.q0=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&sort.q0=helpfulness%3Adesc%2Ctotalpositivefeedbackcount%3Adesc&stats.q0=reviews&filteredstats.q0=reviews&include.q0=authors%2Cproducts%2Ccomments&filter_reviews.q0=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&filter_reviewcomments.q0=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&filter_comments.q0=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&limit.q0=30&offset.q0=8&limit_comments.q0=3&callback=bv_351_44883")
+  
+  #api_url <- paste0("https://api.bazaarvoice.com/data/batch.json?passkey=dm7fc6czngulvbz4o3ju0ld9f&apiversion=5.5&displaycode=9421-en_ca&resource.q0=reviews&filter.q0=isratingsonly%3Aeq%3Afalse&filter.q0=productid%3Aeq%3A",product_code,"&filter.q0=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&sort.q0=helpfulness%3Adesc%2Ctotalpositivefeedbackcount%3Adesc&stats.q0=reviews&filteredstats.q0=reviews&include.q0=authors%2Cproducts%2Ccomments&filter_reviews.q0=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&filter_reviewcomments.q0=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&filter_comments.q0=contentlocale%3Aeq%3Aen*%2Cfr_CA%2Cen_CA&limit.q0=500&offset.q0=0&limit_comments.q0=3&callback=bv_351_44883")
+  
+  return(api_url)
+}
+
+# function to go through the list and extract meaningful results
+get_review <- function(x){
+  product_id <- ifelse(!is.null(x$ProductId), x$ProductId, "")
+  user_name <- ifelse(!is.null(x$UserNickname), x$UserNickname, "")
+  rating <- ifelse(!is.null(x$Rating), x$Rating, 0)
+  
+  review_date <- ifelse(!is.null(x$SubmissionTime), x$SubmissionTime, "")
+  review_text <- ifelse(!is.null(x$ReviewText), x$ReviewText, "")
+  review_title <- ifelse(!is.null(x$Title), x$Title, "")
+  
+#  message ("sofa sogood")
+  
+  results <- tibble(
+    product_id = product_id,
+    user_name= user_name,
+    rating_num = rating,
+    review_date =review_date,
+    review_text =review_text ,
+    review_title = review_title
+  )
+  return(results)
+}
+
+```
+
+
+
+### Scraping the Content
+
+Now that we have the product ids, we can loop through them and call the API to get the reviews.
+
+```{r, eval=FALSE}
+# set up our results tibble
+all_reviews <- tibble()
+
+# #20 seems to have no reviews, json_results didn't have SubmissionTime, so added that to conditions
+for (i in 1:nrow(product_ids)){
+  # print an update message and wait nicely
+  product_id <- product_ids$product_id[[i]]
+  message(paste0("Product #",i,"/",nrow(product_ids),": ",product_id))
+  Sys.sleep(2)
+  
+  api_url <-  get_first_api_url(product_id)
+  
+  # call the API
+  text <- GET(api_url) %>%
+    content("text")
+  
+  # parse the returned text into json
+  json_parsed <- text %>%  
+    str_extract("\\{(.*)\\}") %>%
+    #str_extract("(?<=BV._internal.dataHandler0\\()(.*)")#(?=\\))") %>%
+    jsonlite::parse_json()
+  
+  # get the product information
+  product <-  json_parsed$BatchedResults$q0$Results[[1]]
+  product_name <- product$Name
+  product_brand <- product$Brand$Name
+  
+  
+  reviews <- json_parsed$BatchedResults$q2$Results
+  
+  # use purrr::map to apply get_review() to each individual review
+  reviews1 <- tibble(
+    x = purrr::map(reviews, get_review)
+  ) %>%
+    unnest(cols = "x")
+  
+  message ("   First API call done and processed.")
+  
+  ####################################3
+  # SECOND API CALL. Try to load additional reviews:
+  api_url <-  get_second_api_url(product_id)
+  # test <- read_html(api_url)
+  # text <- test %>% html_text() 
+  text <- GET(api_url) %>%
+    content("text")
+  
+  json_parsed <- text %>%
+    str_extract("(?<=\\()(.*)(?=\\))") %>%
+    jsonlite::fromJSON()
+  
+  json_results <- json_parsed$BatchedResults$q0$Results 
+  
+  
+  # set our second set of reviews to NULL in case we don't find any
+  reviews2 <- NULL
+  
+  # if we do find some, set them to that!
+  if (!is.null(json_results) & length(json_results)>0) {
+    if (any(str_detect(names(json_results), "SubmissionTime"))){
+      reviews2 <-   json_results %>%
+        as_tibble() %>%
+        select(review_date = SubmissionTime,
+               user_name = UserNickname,
+               review_title = Title,
+               review_text = ReviewText,
+               rating_num = Rating
+        ) %>%
+        mutate(product_id = product_code)
+    }
+  }
+  
+  message ("    Second API call done and processed.")
+  
+  # put the new reviews together:
+  new_reviews <-  bind_rows(reviews1, reviews2) %>%
+    mutate(product_name = product_name,
+           product_brand= product_brand)
+  
+  all_reviews <- bind_rows(all_reviews, new_reviews)
+} # end (for i)
+
+all_reviews %>%
+  distinct() %>%
+  write_csv(paste0("reviews-",product_type,".csv"))
+```
+
+## Summary
+
+
+<!--chapter:end:02-web-scraping.Rmd-->
+
+---
+title: "Week 2 Report: Data Summary, EDA, & Initial Model Attempts "
+author: "Christopher Belanger"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    code_folding: hide
+    toc: true
+    toc_float: true
+---
+
+
+```{r setup_eda, include=FALSE, warning=FALSE, message=FALSE}
+#knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+library(tidyverse)
+library(tidytext)
+
+```
+
+# Data Summary, EDA, & Initial Model Attempts 
+
+## Introduction
+
+
+I have three original datasets for analysis, both of which were collected from public websites between October 21 and 27, 2020.
+
+1. **Yelp Reviews:**  9,402 reviews for restaurants in Ottawa, which I believe includes all reviews available as of October 21. Each review includes:
+    * **Business Name:** The name the business is listed as operating under on Yelp. (Character)
+    * **Reviewer Name:** The screen name of the user who wrote the review. (Character)
+    * **Review Date:** The date the review was posted. (Character in mm/dd/yyyy format)
+    * **Review Text:** The full text of the review. (Character)
+    * **Star Rating:** The number of stars associated with the review (Integer from 1 to 5)
+    * **Review URL:** The URL from which the review was downloaded for traceability. (Character)
+1. **Goodreads Reviews:** 17,091 book reviews, culled from the first-page reviews of the "100 most-read books" in a number of genres. Each review includes:
+    * **Book Title:** The title of the book. (Character)
+    * **Book Genre:** The Goodreads-assigned genre of the book, e.g. "scifi" or "romance." (Character)
+    * **Book Author:** The author of the book. (Character)
+    * **Reviewer Name:** The screen name of the user who wrote the review. (Character)
+    * **Review Date:** The date the review was posted. (Character in yyyy-mm-dd format)
+    * **Review Text:** The full text of the review. (Character)
+    * **Star Text:** Goodreads' text equivalent for star ratings. (Character)
+    * **Star Rating:** The number of stars associated with the review (Integer from 1 to 5)
+    * **Review URL:** The URL from which the review was downloaded for traceability. (Character)
+1. **Mountain Equipment Co-op (MEC) Reviews:** 2,392 reviews for products for sale from MEC. Each review includes:
+    * **Product Type:** MEC's categorization for the product (e.g. mittens, bicycle components.) (Character)
+    * **Product Brand:** The brand under which the product is marketed on MEC's website. (Character)
+    * **Product Name:** The name of the product. (Character)
+    * **Product ID:** MEC's internal product ID, used to call the API. (Character)
+    * **Reviewer Name:** The username of the review writer. (Character)
+    * **Review Date:** The date the review was left. (Character)
+    * **Review Title:** The title of the review. (Character)
+    * **Review Text:** The complete text of the review. (Character)
+    * **Star Rating:** The number of stars associated with the review. (Integer from 1 to 5)
+
+
+In this section, I'll take a look at these two datasets to get a feel for the star ratings and review text. I will consider each dataset in turn.
+
+```{r load_data_eda, message=FALSE}
+reviews_yelp <- read_csv("../tests/data/ottawa_yelp_reviews.csv") %>%
+  rename(rating_num = rating)
+reviews_gr <- read_csv("../tests/data/goodreads_all.csv")
+
+reviews_mec <- read_csv("../tests/data/mec-reviews.csv") %>%
+  rename(comment = review_text,
+         date = review_date)
+```
+
+## Goodreads
+
+### Star Ratings
+
+The following histogram shows the overall distribution of star ratings. Reviews are overwhelmingly positive: there are move 5-star reviews than there are 1-, 2-, and 3-star reviews combined. This may make modeling more difficult, since there will be fewer low-star ratings to train our models.
+
+```{r gr_overall_hist}
+reviews_gr %>%
+  ggplot() +
+  geom_bar(aes(x=rating_num)) +
+  theme_minimal() +
+  labs(title = "Goodreads Ratings: Rating Count, Overall",
+       x="Star Rating",
+       y=NULL)
+
+```
+
+The next histogram shows that the pattern is broadly consistent across genres. There are some minor differences: for example, graphic-novel and mystery reviews have nearly the same number of 4- and 5-star ratings, whereas nonfiction and romance novels show markedly  more  5-star reviews than 4-star reviews. But for present purposes the overall pattern looks largely the same--for example, there are no U-shaped distributions, or exponential-type distributions with the opposite skew. 
+
+```{r gr_facet_hist}
+reviews_gr %>%
+  ggplot() +
+  geom_bar(aes(x=rating_num)) +
+  theme_minimal() +
+  labs(title = "Goodreads Ratings: Rating Count by Genre",
+       x = "Star Rating",
+       y=NULL) +
+  facet_wrap(facets = vars(genre))
+
+```
+
+
+However, if we look at the level of individual books, the distributions look a bit more interesting. All the histograms are unimodal, but some of them peak at 3 or 4. (Poor Brian K. Vaughan.)
+
+```{r gr_book_star_distributions}
+top_6_books <- reviews_gr %>%
+  group_by(book_title) %>%
+  summarise(n = n()) %>%
+  slice_max(n=6, order_by=n, with_ties=FALSE) %>%
+  pull(book_title) 
+
+reviews_gr %>%
+  filter(book_title %in% top_6_books) %>%
+  ggplot(aes(x = rating_num)) +
+  geom_histogram( binwidth=1, boundary=0.5, bins=5) +
+  facet_wrap(facets = vars(book_title)) +
+  theme_grey() +
+  labs(title = "Star Ratings for 6 of the Most-Reviewed Books",
+       subtitle = "Sampled randomly from across all genres.",
+       x = "Star Rating",
+       y = "# of Ratings")
+```
+
+
+
+### Word Count
+
+Turning to word count, the following graph shows the cumulative density of word counts in our review dataset. In other words, as word count increases on the x-axis, the y-axis shows us how many reviews have *at most* that many words. I have counted words here using `unnest_tokens()` from the `tidytext` package (as per [Tidy Text Mining](https://www.tidytextmining.com/tidytext.html)). There may be an easier way, but this worked!
+
+We find that most reviews are very short: about 15,000 are below 500 words, and they go as short as one word. Some reviews are quite long, and one stretches out past 3,500 words.
+
+```{r wordcounts_goodreads, message=FALSE}
+wordcounts_gr <- reviews_gr %>%
+  select(comment) %>%
+  rowid_to_column() %>%
+  tidytext::unnest_tokens(word, comment) %>%
+  group_by(rowid) %>%
+  summarise(n = n()) %>%
+  arrange(n)  %>%
+  mutate(id = 1,
+         cumdist = cumsum(id)) 
+
+wordcounts_gr %>%
+  ggplot() +
+  geom_point(aes(y=cumdist, x=n)) +
+  theme_minimal() +
+  labs(title ="Goodreads Reviews: Cumulative Distribution of Word-Lengths",
+       x = "Word Length",
+       y = "# of Reviews")
+  
+  
+
+```
+
+This distribution may also make our modeling task more difficult. With so many short reviews it's unlikely that they will have many words in common, and so a lasso regression at the word level may not work very well.
+
+However, short reviews may still be useful for sentiment analysis. The following table shows the five shortest reviews, since I wanted to check and make sure it wasn't a data error. One reviewer left a single word: "SUCKS." Concise and informative.
+
+
+```{r short_goodreads}
+wordcounts_gr %>%
+  arrange(n) %>%
+  head(5) %>%
+  pull(rowid) %>% 
+  slice(reviews_gr, .)  %>%
+  select(book_title,author_name, rating_num, comment) %>%
+  mutate(across(where(is.character), str_trunc, width=40)) %>%
+  knitr::kable(booktabs = T,
+        col.names = c("Book Title", "Book Author", "Stars", "Review"),
+        align = c("l","l","c","l")) 
+# 
+# %>%
+#   kableExtra::column_spec(column = 1:4,
+#                           width = c("15cm","10cm","3cm","10cm")) %>%
+#   kableExtra::kable_styling(bootstrap_options = "striped")
+
+```
+
+### Reviewers
+
+The following histogram shows that while most Goodreads users posted only a handful of reviews in our dataset, some posted over 50.
+
+```{r gr_reviewers_histogram}
+reviewers_gr <- reviews_gr %>%
+  group_by(names) %>%
+  summarise(n = n()) %>%
+  arrange(desc(n))
+
+reviewers_gr %>%
+  ggplot(aes(x=n)) +
+  geom_histogram() +
+  theme_minimal() +
+  labs(title = "Goodreads: Distribution of Reviews per User",
+       x = "# of Reviews",
+       y = "# of Users") 
+
+```
+
+Looking at the following table, we can see that the top 10 reviewers all posted over 50 reviews, and one posted 95.
+
+```{r gr_top_reviewers}
+reviewers_gr %>%
+  top_n(10, wt = n)
+```
+
+Out of curiosity (and as a check on our data quality), let's investigate the 95 reviews from our top poster, Ahmad Sharabiani:
+
+```{r check_top_reviewer}
+reviews_gr %>%
+  filter(names == "Ahmad Sharabiani") %>%
+  select(book_title, author_name, rating_num, comment) %>%
+  mutate (comment = str_trunc(comment, 80)) %>%
+  arrange(desc(author_name)) %>%
+  slice_head(n=10) %>%
+  knitr::kable(col.names = c("Book Title", "Book Author", "Stars", "Review"),
+               align = c("l","l","c","l"))
+# 
+# %>%
+#   kableExtra::kable_styling(bootstrap_options = "striped")
+```
+
+Something looks a bit suspicious here. First, many books have more than one review (for example, *Othello* has 2 and *The Catcher in the Rye* has 3). Second, the reviews all seem to begin with the title of the book and a factual summary without much personality.
+  
+If we do a Google search for the opening text of Ahmad's review for *Farenheit 451*, "Fahrenheit 451 is a dystopian novel by American", we find that exact text in [the first line of the book's Wikipedia page](https://en.wikipedia.org/wiki/Fahrenheit_451). Google also suggests we look at *Farenheit 451*'s [Goodreads page](https://www.goodreads.com/book/show/13079982-fahrenheit-451), which includes Ahmad's review.
+
+If we look at Ahmad's review more closely, we see that it includes an English-language summary and then a lot of text in a non-Latin alphabet.
+
+```{r fahrenheit_review}
+reviews_gr %>%
+  filter(names == "Ahmad Sharabiani" & book_title == "Fahrenheit 451") %>%
+  pull(comment) %>%
+  str_trunc(700)
+```
+
+Google Translate tells me the language is Persian, and the translated text includes a brief note--"Date of first reading: The third day of February 1984"--and then *another* summary of the book written in Persian. The text does not seem to have any actual review or opinion in it.
+
+I'm not sure what's going on here, but we have learned that:
+* Some users post a large number of reviews;
+* Some users post useless/non-review reviews, e.g. copy/pasting text from Wikipedia; and,
+* At least one super-poster posts such reviews.
+
+This bears looking into more, since reviews that are copy/pasted from Wikipedia are unlikely to have any predictive value at all and may need to be identified and filtered out in pre-processing. These users may even be bots, especially given the short timeframe for the Goodreads dataset (see below).
+
+
+## Yelp
+
+### Star Ratings
+
+Repeating the process for Yelp, this histogram shows the distribution of star ratings. Reviews are again very positive and show a similar distribution.
+
+
+```{r yp_overall_hist}
+reviews_yelp %>%
+  ggplot() +
+  geom_bar(aes(x=rating_num)) +
+  theme_minimal() +
+  labs(title = "Yelp Ratings by Star",
+       x="Star Rating",
+       y=NULL)
+
+```
+
+The Yelp data didn't include restaurant type, so we can't do a genre-specific investigation as we did for Goodreads.
+
+However, we can repeat the analysis where we look at star distributions for the top 6 businesses. Overall the distributions look the same, but here, finally, we get the first hint of bimodality in our distributions. Two restaurants, Sansotei Ramen and Shawarma Palace, have *slight* second peaks at 1 star. However, the overall story is the same and this could arguably be random fluctuations.
+
+```{r yp_restaurant_star_distributions}
+top_6_restos <- reviews_yelp %>%
+  group_by(business) %>%
+  summarise(n = n()) %>%
+  slice_max(n=6, order_by=n, with_ties=FALSE) %>%
+  pull(business) 
+
+reviews_yelp %>%
+  filter(business %in% top_6_restos) %>%
+  ggplot(aes(x = rating_num)) +
+  geom_histogram( binwidth=1, boundary=0.5, bins=5) +
+  facet_wrap(facets = vars(business)) +
+  theme_grey() +
+  labs(title = "Star Ratings for 6 of the Most-Reviewed Restaurants",
+       x = "Star Rating",
+       y = "# of Ratings")
+```
+
+
+
+### Word Count
+
+As with the Goodreads data, most Yelp reviews are very short. 
+
+```{r wordcounts_yelp, message=FALSE}
+wordcounts_yelp <- reviews_yelp %>%
+  select(comment) %>%
+  rowid_to_column() %>%
+  tidytext::unnest_tokens(word, comment) %>%
+  group_by(rowid) %>%
+  summarise(n = n()) %>%
+  arrange(n) %>%
+  mutate(id = 1,
+         cumdist = cumsum(id)) 
+
+wordcounts_yelp %>%
+  ggplot() +
+  geom_point(aes(y=cumdist, x=n)) +
+  theme_minimal() +
+  labs(title ="Yelp Reviews: Cumulative Distribution of Word-Lengths",
+       x = "Word Length",
+       y = "# of Reviews")
+  
+  
+
+```
+
+And again, let's review the five shortest Yelp reviews in the table below. They seem to be genuine good-faith reviews that include helpful words, and so may be workable for our models.
+
+
+```{r short_yelp_reviews}
+wordcounts_yelp %>%
+  arrange(n) %>%
+  head(5) %>%
+  pull(rowid) %>%
+  slice(reviews_yelp, .) %>%
+  select(business,rating_num,comment) %>%
+  mutate(across(where(is.character), str_trunc, width=40)) %>%
+  knitr::kable(booktabs = T,
+        col.names = c("Business", "Stars", "Review"),
+        align = c("l","c","l")) 
+
+# %>%
+#   kableExtra::column_spec(column = 1:3,
+#                           width = c("5cm","3cm","10cm")) %>%
+#   kableExtra::kable_styling()%>%
+#   kableExtra::kable_styling(bootstrap_options = "striped")
+
+
+```
+
+
+### Reviewers
+
+The following histogram shows how many reviews were posted be users. Its distribution is similar to the one we found for Goodreads: most users posted only a few times, but some posted over 50.
+
+```{r yp_reviewers_histogram}
+reviewers_yelp <- reviews_yelp %>%
+  group_by(name) %>%
+  summarise(n = n()) %>%
+  arrange(desc(n))
+
+reviewers_yelp %>%
+  ggplot(aes(x=n)) +
+  geom_histogram() +
+  theme_minimal() +
+  labs(title = "Yelp: Distribution of Reviews per User",
+       x = "# of Reviews",
+       y = "# of Users") 
+
+```
+
+Looking at our top-10 Yelp reviewers, the drop-off is quite a bit sharper than it was for Goodreads.
+
+```{r yp_top_reviewers}
+reviewers_yelp %>%
+  top_n(10, wt = n) %>%
+  knitr::kable(col.names = c("Name", "# Reviews"),
+               align = c("l","c"))
+# 
+# %>%
+#   kableExtra::kable_styling(bootstrap_options = "striped")
+```
+
+The following table shows the first 10 reviews by our top reviewer, Jennifer P., in chronological order.
+
+```{r yelp_top_reviewer}
+reviews_yelp %>%
+  filter(name == "Jennifer P.") %>%
+  select(date, business, rating_num, comment) %>%
+  mutate(date = lubridate::mdy(date),
+         comment = str_trunc(comment, 70)) %>%
+  arrange(date) %>%
+  slice_head(n=10) %>%
+  knitr::kable(booktabs = TRUE,
+               col.names = c("Date", "Business", "Stars", "Review"),
+               align = c("l","l","c","l"))
+# 
+# %>%
+#   kableExtra::kable_styling(bootstrap_options = "striped")
+```
+
+
+These all seem to be good-faith restaurant reviews. And since this user has been active since 2012, to write 78 reviews they would have to write fewer than one per month. From this brief glance, we have no reason to think that Yelp users are posting insincere reviews.
+
+However, I note that the reviews have some html junk in them: `&amp;#39;` instead of an apostrophe, for example. These will need to be cleaned up before we use the data.
+
+## Mountain Equipment Co-op (MEC)
+
+### Star Ratings 
+
+This histogram shows the distribution of star ratings for MEC reviews. It's broadly similar to the Yelp and Goodreads reviews, except there is a small second peak at 1 star.
+
+```{r mec_overall_hist}
+reviews_mec %>%
+  ggplot() +
+  geom_bar(aes(x=rating_num)) +
+  theme_minimal() +
+  labs(title = "MEC Ratings: Rating Count, Overall",
+       x="Star Rating",
+       y=NULL)
+
+```
+
+If we break out the reviews by category, we can see that they all follow the same kind of exponential distribution *except* bicycle components.
+
+
+```{r mec_product_type_hist}
+reviews_mec %>%
+  ggplot() +
+  geom_bar(aes(x=rating_num)) +
+  theme_minimal() +
+  labs(title = "MEC Ratings: Rating Count by Product Category",
+       x="Star Rating",
+       y=NULL) +
+  facet_wrap(~product_type)
+
+```
+
+We can break the bicycle compoenents category down further by individual product. The facet wrap is messy, but we can clearly see that there are a few produts with anomalous spikes in 1-star ratings, and that ecah of these products has the word "tube" in the title.
+
+
+```{r mec_products_hist}
+reviews_mec %>%
+  filter(product_type=="bike-components") %>%
+  ggplot() +
+  geom_bar(aes(x=rating_num)) +
+  theme_minimal() +
+  labs(title = "MEC Ratings: Rating Count by Product",
+       subtitle = "Bicycle Components",
+       x="Star Rating",
+       y=NULL) +
+  facet_wrap(~product_name)
+
+```
+
+We can conclude that MEC's reviews follow the same pattern as Yelp and Goodreads overall, *except* for bicycle inner tubes which have unusually high numbers of 1-star reviews. We should keep this in mind when modeling using the MEC data.
+
+### Word Counts 
+
+Most MEC reviews are very short. They look to be shortest of all three datasets, both in terms of the shape of the dsitribution and the maximum review lengths. We will see this below in a later section when we plot all three distributions at once.
+
+```{r wordcounts_mec, message=FALSE}
+wordcounts_mec <- reviews_mec %>%
+  select(comment) %>%
+  rowid_to_column() %>%
+  tidytext::unnest_tokens(word, comment) %>%
+  group_by(rowid) %>%
+  summarise(n = n()) %>%
+  arrange(n) %>%
+  mutate(id = 1,
+         cumdist = cumsum(id)) 
+
+wordcounts_mec %>%
+  ggplot() +
+  geom_point(aes(y=cumdist, x=n)) +
+  theme_minimal() +
+  labs(title ="MEC Reviews: Cumulative Distribution of Word-Lengths",
+       x = "Word Length",
+       y = "# of Reviews")
+  
+  
+
+```
+
+If we look at the five shortest reviews, they all seem to be short but legitimate so we can be comfortable with our data quality.
+
+```{r short_mec_reviews}
+wordcounts_mec %>%
+  arrange(n) %>%
+  head(5) %>%
+  pull(rowid) %>%
+  slice(reviews_mec, .) %>%
+  select(product_name,rating_num,comment) %>%
+  mutate(across(where(is.character), str_trunc, width=40)) %>%
+  knitr::kable(booktabs = T,
+        col.names = c("Business", "Stars", "Review"),
+        align = c("l","c","l"))
+
+ # %>%
+ #  kableExtra::column_spec(column = 1:3,
+ #                          width = c("5cm","3cm","10cm")) %>%
+ #  kableExtra::kable_styling()%>%
+ #  kableExtra::kable_styling(bootstrap_options = "striped")
+
+
+```
+
+### Reviewers
+
+As with the other datasets, it first appears that most users leave only a few reviews but there are some "super-users" who leave quite a few.
+
+```{r mec_reviewers_histogram}
+reviewers_mec <- reviews_mec %>%
+  group_by(user_name) %>%
+  summarise(n = n()) %>%
+  arrange(desc(n))
+
+reviewers_mec %>%
+  ggplot(aes(x=n)) +
+  geom_histogram() +
+  theme_minimal() +
+  labs(title = "MEC: Distribution of Reviews per User",
+       x = "# of Reviews",
+       y = "# of Users") 
+
+```
+
+Upon closer inspection, however, we see that our largest "user" is *NA*, suggesting that most users leave a smallish number of reviews but that some leave reviews anonymously.
+
+
+```{r mec_top_reviewers}
+reviewers_mec %>%
+  top_n(10, wt = n) %>%
+  knitr::kable(col.names = c("Name", "# Reviews"),
+               align = c("l","c"))%>%
+  kableExtra::kable_styling(bootstrap_options = "striped")
+```
+
+The following table shows all 9 reviews by our top reviewer, Matt, in chronological order.
+
+```{r mec_top_reviewer}
+reviews_mec %>%
+  filter(user_name == "Matt") %>%
+  select(date, product_name, rating_num, comment) %>%
+  mutate(comment = str_trunc(comment, 70)) %>%
+  arrange(date) %>%
+  knitr::kable(booktabs = TRUE,
+               col.names = c("Date", "Product", "Stars", "Review"),
+               align = c("l","l","c","l"))
+
+# %>%
+#   kableExtra::kable_styling(bootstrap_options = "striped")
+```
+
+This looks like a legit usage pattern with real reviews. However, we should also spot-check some reviews assigned to *NA*:
+
+```{r mec_NA-reviews}
+reviews_mec %>%
+  filter(is.na(user_name)) %>%
+  select(date, product_name, rating_num, comment) %>%
+  slice_head(n=10) %>%
+  mutate(comment = str_trunc(comment, 70)) %>%
+  arrange(date) %>%
+  knitr::kable(booktabs = TRUE,
+               col.names = c("Date", "Business", "Stars", "Review"),
+               align = c("l","l","c","l"))
+
+# # %>%
+#   kableExtra::kable_styling(bootstrap_options = "striped")
+```
+
+These also look like legitimate reviews, so it's possible that these were legitimately left anonymously or that there was a data-parsing issue with the API.
+
+## Comparing Goodreads, MEC, and Yelp
+
+### Star Ratings
+
+When we compare Yelp and Goodreads reviews by the number of star ratings, the distributions look very similar. There are fewer Yelp reviews, but the shape of the distribution looks like a scaled-down version of the Goodreads distribution. There are far fewer MEC reviews, and it looks like the distribution has a slight second peak at 1 star.
+
+```{r gr_yp_hist}
+gr <- reviews_gr %>%
+  group_by(rating_num) %>%
+  summarise(gr = n())
+
+yp <- reviews_yelp %>%
+  group_by(rating_num) %>%
+  summarise(yp = n())
+
+mc <- reviews_mec %>%
+  group_by(rating_num) %>%
+  summarise(mc = n())
+
+compare <- left_join(gr, yp) %>%
+  left_join(mc)
+  
+compare_long <- compare %>%
+  pivot_longer(cols = c("gr", "yp","mc"), names_to = "source", values_to = "num")
+
+compare_long %>%
+  ggplot() +
+  geom_col(aes(x=rating_num, y=num, group=source, fill=source), position = "dodge") +
+  theme_minimal() +
+  labs(title = "Goodreads, MEC, and Yelp Reviews: Total Counts by Rating",
+       x = "Star Rating",
+       y = "n",
+       fill = "Source") +
+    scale_fill_viridis_d(labels = c("Goodreads", "MEC", "Yelp"))
+```
+
+ To get a better feel for how the distributions vary, we can plot the proportional breakdown of star reviews for each source. The following plot shows that the Goodreads and Yelp distributions track each other somewhat closely but the MEC reviews are quite different.
+
+```{r plot_prop}
+compare_long %>%
+  group_by(source) %>%
+  mutate(prop = num / sum(num)) %>%
+  ggplot() +
+  geom_col(aes(x=rating_num, y=prop, group=source, fill=source), position = "dodge") +
+  theme_minimal() +
+  labs(title = "Goodreads, MEC, and Yelp Reviews: Proportion of Counts by Rating",
+       x = "Star Rating",
+       y = "Proportion",
+       fill = "Source") +
+    scale_fill_viridis_d(labels = c("Goodreads", "MEC", "Yelp"))
+
+
+```
+
+We can use a standard Pearson's Chi-squared test to see if the Goodreads and Yelp distributions differ meaningfully. 
+
+```{r chisquared}
+
+t <- chisq.test(compare$gr, compare$yp)
+tt <- chisq.test(matrix(c(compare$gr, compare$yp), ncol=5))
+tt
+```
+
+We find that *yes*, we can reject the null hypothesis that there is no difference between the two distributions with a large amount of confidence. However, the two review distributions are still *qualitatively* similar, it's not clear that the  difference between them is large or meaningful--we could look into that later.
+
+### Word Counts
+
+Out of interest, let's also check the differences in word-count distributions between the three datasets. From the figure below, we can see that Yelp reviews tend to be much shorter than Goodreads reviews. Just by visual inspection, we can estimate that the 80th percentile Goodreads review is about 500 words, whereas the 80th percentile Yelp review is only about half of that. The MEC reviews are shortest of all.
+
+```{r wordcount_diffs}
+wordcounts_all <- wordcounts_gr %>%
+  select(n, cumdist) %>%
+  mutate(source = "goodreads") %>%
+  bind_rows( wordcounts_yelp %>%
+               select(n, cumdist) %>%
+               mutate(source = "yelp")) %>%
+  bind_rows( wordcounts_mec %>%
+               select(n, cumdist) %>%
+               mutate(source = "mec"))
+
+wordcounts_all %>%
+  group_by(source) %>%
+  mutate (prop = cumdist / max(cumdist)) %>%
+  ggplot() +
+  geom_point(aes(y=prop, x=n, colour = source)) +
+  labs(title = "Cumulative Distribution of Word Lengths",
+         subtitle = "Comparing Goodreads, MEC, and Yelp",
+         x = "Word Length",
+         y = "Cumulative Probability",
+       colour = "Source") +
+  scale_color_viridis_d(labels = c("Goodreads", "MEC", "Yelp")) +
+  theme_minimal()
+
+```
+
+To test for difference, we can confirm do a non-parametric Kolmogorov-Smirnov test to see if the Goodreads and Yelp distributions differ.
+
+```{r kolmogorov_smirnov}
+
+# pull the word lengths for goodreads into a vector
+grd <- wordcounts_all %>%
+  filter(source == "goodreads") %>%
+  pull(n)
+
+# pull the word lengths for yelp into a vector
+ypd <- wordcounts_all %>%
+  filter(source == "yelp") %>%
+  pull(n)
+
+# run KS test comparing the two vectors
+ks.test(grd, ypd)
+
+# remove the vectors to keep environment clean
+rm(grd, ypd)
+
+```
+
+We can again reject the null hypothesis that there is no difference between the two distributions. We can hypothesize about why there might be a difference: Goodreads reviewers are writing about books, and so might be expected to be interested in expressing themselves through writing. Yelp reviewers, by and large, are interested in restaurants, and so may not put as much effort into writing full reports.
+
+We might expect the difference in distributions to have an effect on our future modeling, since shorter reviews may contain less information.
+
+
+
+## Reviews Over Time
+
+This section looks at how our review datasets change over time, to see how recent reviews are and if there are any trends in volume.
+
+### Goodreads
+
+The following chart shows the monthly volume of reviews in the Goodreads dataset.
+
+```{r gr_reviews_over_time}
+reviews_gr %>%
+  mutate(dates = lubridate::ymd(dates) %>% lubridate::floor_date("months")) %>%
+  group_by(dates) %>%
+  summarise(n = n()) %>%
+  ggplot(aes(x=dates,y=n)) +
+  geom_line() +
+  theme_minimal() +
+  labs(title = "Goodreads Reviews: Monthly Volume of New Reviews",
+       x = "Date",
+       y = "# of Reviews")
+```
+
+While some reviews date from as far back as 2005, most reviews are from 2020 and the majority are from the past few months. However, it's unlikely that this distribution represents an actual exponential growth in the number of reviews posted. Instead, recall that I collected reviews for the 100 most-read books in the past week across a few genres. In other words, I collected reviews from books that were being reviewed a lot at that moment in time, so my data collection is heavily biased towards more recent reviews. There may a trend in usage--for example, home-bound readers may be posting more reviews during COVID-19--but we can't draw any conclusions from this distribution.
+
+### Yelp
+
+The following chart shows the monthly volume of reviews in the Yelp dataset.
+
+```{r yp_reviews_over_time}
+reviews_yelp %>%
+  mutate(date = lubridate::mdy(date) %>% lubridate::floor_date("months")) %>%
+  group_by(date) %>%
+  summarise(n = n()) %>%
+  ggplot(aes(x=date,y=n)) +
+  geom_line() +
+  theme_minimal() + 
+  labs(title = "Yelp Reviews: Monthly Volume of New Reviews",
+       x = "Date",
+       y = "# of Reviews")
+```
+
+Since I collected all Yelp reviews for restaurants in Ottawa, we can use this dataset to make statements about how review volumes have changed over time. We can see a steep decline in the early months of 2020, coinciding with the start of the COVID-19 pandemic and worldwide lockdowns. However, the volumes also tell an interesting story pre-COVID. From 2010 to 2015 we can see what looks like slow but steady growth, and then after 2015 usage increases dramatically. From 2015-2020 we can see what look like seasonal trends, but it looks like overall volumes stopped growing and may have started declining. In other words, Yelp may have been in trouble before the pandemic hit.
+
+For our purposes, we can be satisfied that our restaurant review dataset spans a long period of time both pre- and post-COVID.
+
+### MEC
+
+The following chart shows the monthly volume of reviews in the MEC dataset for each complete month. The data was collected in the first few days of November, so I have left November out.
+
+```{r mec_reviews_over_time}
+reviews_mec %>%
+  mutate(date = lubridate::floor_date(date, "months")) %>%
+  group_by(date) %>%
+  summarise(n = n()) %>%
+  slice_head(n = nrow(.)-1) %>%
+  ggplot(aes(x=date,y=n)) +
+  geom_line() +
+  theme_minimal() + 
+  labs(title = "MEC Reviews: Monthly Volume of New Reviews",
+       x = "Date",
+       y = "# of Reviews")
+```
+
+We can expect several biases in the MEC data, so we will need to be cautious about making inferences from this time series. First, I collected MEC data from only a few product categories which may have seasonal trends (e.g. biking in the summer, snowshoeing in the winter). Second, MEC only lists products on its website if they're currently for sale, so the maximum review age is limited by the longevity of MEC's product lines. So we should expect to see a decay in review volume as we go further back in time caused by MEC naturally rotating its product line. 
+
+That said, we can still see a big dip in early 2020 and then a big spike in summer 2020. This could correspond to a big drop in sales with the COVID lockdown and associated uncertainty, and then a bike spike in outdoor sporting goods as people tried to find socially distanced ways of entertaining themselves over the summer.
+
+Out of curiosity, here are the 10 oldest reviews in our dataset:
+
+```{r oldest_mec_reviews}
+reviews_mec %>%
+  arrange(date) %>%
+  slice_head(n=10) %>%
+  select(date, product_name, review_title)
+```
+
+Not surprisingly, 9 out of 10 are for standard bicycle components that are more about function than fashion: it seems that MEC and SRAM have been offering the same brake pads and chains for more than 10 years. 
+
+And we can take a look at the first review for the Zamberlan boots:
+
+```{r mec_boots}
+reviews_mec %>%
+  filter(product_name=="Zamberlan Vioz GT Gore-Tex Backpacking Boots - Women's") %>%
+  slice_head(n=1) %>%
+  transmute(date = date,
+            comment = str_trunc(comment, 150)) 
+  
+```
+
+These boots seem to have been around for a while (and certainly seem to have committed fans), so we can be confident that these reviews are legit.
+
+## Proposed Next Steps
+
+* Sentiment analysis
+* Regression models
+  * LASSO regression to predict star rating from review text.
+    * Potential to use minimum review length as a parameter.
+  * Linear regression to predict star rating from review sentiment.
+* Classification models
+
+## SessionInfo
+
+```{r sesionInfo}
+sessionInfo()
+```
+
+
+<!--chapter:end:03-EDA-and-initial-analysis.Rmd-->
+
+# A First LASSO Attempt
+
+```{r setup_lasso, include=FALSE}
+library(tidyverse)
+library(tidymodels)
+library(lubridate)
+library(textrecipes)
+library(tictoc)
+```
+
+
+## Introduction
+
+This analysis will use regression methods to attemp to predict star ratings from the text and/or titles of the reviews in our Yelp, Goodreads, and MEC datasets. My methods will closely follow those given in Chapter 6 of [Supervised Machine Learning for Text Analysis in R](https://smltar.com/mlregression.html) (SMLTAR) by @silge_supervised_2020. In the first case I will work through an example in detail to describe the steps (and to learn them!!), and in later sections I will move more quickly to try some different variations on the analysis.
+
+I'm going to use the **tidymodels** framework as much as possible, both because it's the approach used in SMLTAR and because I'm a fan of the  Tidyverse approach to software design and analysis.
+
+## A First Regression: Yelp Data
+
+I will begin with the Yelp data because we have a lot of it, and because based on our EDA it seemed to be "cleaner" than the Goodreads data which had a lot of duplicate posts, spam posts, plot summaries, etc.
+
+```{r, message=FALSE, warning=FALSE}
+reviews_yelp <- read_csv("../tests/data/ottawa_yelp_reviews.csv") %>%
+  mutate(date = lubridate::mdy(date)) %>%
+  rename(text = comment,
+         rating_num = rating)
+
+reviews_yelp %>%
+  head(10) %>%
+  mutate(text = stringr::str_trunc(text, 100)) %>%
+  knitr::kable()
+```
+
+
+### Splitting the data
+
+First we will split our data into a training set and a testing set. This is a standard practice, wherein we build a model using the training data but set aside some other data so we can test it later. Otherwise we might have concerns about overfitting or model validity.
+
+I'm setting the value `strata = "rating_num"` to ensure that our random sampling has about the same distribution of star ratings as our full population--see the documentation for `initial_split()`.
+
+```{r test_train_split, cache=TRUE}
+set.seed(1234)
+
+yelp_split <- reviews_yelp %>%
+  initial_split(strata = "rating_num")
+
+yelp_train <- yelp_split %>%
+  training()
+
+yelp_test <- yelp_split %>%
+  testing()
+```
+
+The next step is to define our preprocessing steps: the stuff we'll do to the text before we put it into a regression model. In the `tidymodels` approach we do this by creating a "recipe" objects and then adding a number of steps to it. We modify the object by using the pipe operator to add a bunch of steps to it using verb functions. This makes it easy to read the step-by-step process and understand what's going on.
+
+I'll note, though, that when I follow SMLTAR's guide the recipe still includes explicit references to the dataset we're analyzing, so it's not a completely generic object that could be applied to other datasets: we would need to make other recipes for MEC and Goodreads. There may be more advanced ways to create generic recipes that can be reused.
+
+Here, following SMLTAR, we will use a recipe with the following steps:
+
+* *Tokenizing* the text, which means breaking it down into constituent bits (words here),
+* *Filtering the tokens* based on frequency, taking only the 250 most-common tokens, (NOTE this is not many tokens!!)
+* *TFIDF*, or "term frequency inverse document frequency," which weights each token based on both how frequent it is and on how common it is across documents (see `step_tfidf()`'s help page for details), and then
+* *Normalizing* so our lasso regression will work properly.
+
+```{r first_recipe, cache=TRUE}
+num_tokens <- 250
+
+yelp_rec <- recipe(rating_num ~ text, data = yelp_train) %>%
+  step_tokenize(text) %>%
+  step_tokenfilter(text, max_tokens = num_tokens) %>%
+  step_tfidf(text) %>%
+  step_normalize(all_predictors())
+  
+rm(num_tokens)
+
+yelp_rec
+```
+
+Next, @silge_supervised_2020 suggest we create a `workflow()` object that combines preprocessing steps and models. 
+
+```{r yelp_wf, cache=TRUE}
+
+yelp_wf <- workflow() %>%
+  add_recipe(yelp_rec) 
+  
+yelp_wf
+```
+
+We now define a lasso regression model using `parsnip`. My understanding is that this acts as a "tidy wrapper" around other functions/packages, in this case `glmnet`, that lets you use them in a tidy way. I believe it can also make it easier to swap out models or parameters without having to completely rewrite your codebase.
+
+Note that `penalty = 0.1` is arbitrary and we'll look into that parameter more closely later.
+
+```{r, cache=TRUE}
+lasso_model <- parsnip::linear_reg(penalty = 0.1, mixture = 1) %>%
+  set_mode("regression") %>%
+  set_engine("glmnet")
+
+lasso_model
+
+```
+
+Now we add the lasso model to the workflow and run the model. This takes about 9 seconds on my machine using only 250 tokens. (I expect we'll need to use more to get a good result.)
+
+```{r, cache=TRUE}
+tic()
+lasso_fit <- yelp_wf %>%
+  add_model(lasso_model) %>%
+  fit(data = yelp_train)
+toc()
+
+
+```
+
+We can look at the terms with the highest coefficients in the model:
+
+```{r yelp_fit_terms, cache=TRUE}
+lasso_fit %>%
+  pull_workflow_fit() %>%
+  tidy() %>%
+  arrange(-estimate)
+```
+
+This already doesn't look too promising; only 5 terms have positive coefficients, and the intercept is 4.16. But let's see how it goes.
+
+### Evaluating the first model
+
+Following @silge_supervised_2020, we'll evaluate the model using cross-fold validation, which is a way of trying to squeeze as much validation as you can out of a finite dataset. We will resample our training dataset to create 10 *new* datasets, and in each one we'll use 90% for training and 10% for assessment.
+
+```{r fit_first_lasso_resamples, cache=TRUE}
+set.seed(1234)
+yelp_folds <- vfold_cv(yelp_train)
+
+lasso_rs <- fit_resamples(
+  yelp_wf %>% add_model(lasso_model),
+  yelp_folds,
+  control = control_resamples(save_pred = TRUE)
+)
+
+tic()
+lasso_rs
+toc()
+```
+
+Our $R^2$ and RMSEs look really quite terrible:
+
+```{r, cache=TRUE}
+lasso_rs %>%
+  collect_metrics()
+```
+
+And when we plot predictions vs. true values, that also looks quite terrible:
+
+```{r, cache=TRUE}
+lasso_rs %>%
+  collect_predictions() %>%
+  ggplot(aes(rating_num, .pred, color = id)) +
+  geom_abline(slope=1, intercept = 0,color = "gray80", size = 1.5) +
+  geom_point(alpha = 0.3) +
+  labs(
+    x = "Truth",
+    y = "Predicted Rating",
+    color = NULL,
+    title = "Predicted and true star ratings for Yelp reviews",
+    subtitle = "Each cross-validation fold is shown in a different color"
+  )
+
+
+```
+
+The model generally predicts that everything will have a star rating of between 3 and 5, and is especially poor at predicting lower values. 
+
+We're now operating without much of a map, since the example in @silge_supervised_2020 worked beautifully (predicting the year a USA Supreme Court decision was written based on its text). However, we can follow one of their last steps by tuning our lasso hyperparameters.
+
+### Tuning model parameters
+
+We can repeat the process but use *model tuning* to set the paramters in our lasso regression. Now instead of choosing a random lasso penalty of 0.1, we're going to use the `tune()` function to figure out which penalty gives the best results on our training data.
+
+
+```{r, cache=TRUE}
+tune_model <- linear_reg(penalty = tune(), mixture = 1) %>%
+  set_mode("regression") %>%
+  set_engine("glmnet")
+
+tune_model
+```
+
+We create a grid of values to try:
+
+```{r, cache=TRUE}
+lambda_grid <- grid_regular(penalty(), levels = 30)
+```
+
+And now we use the function `tune_grid()` to fit our model at many different parameter values to see how they fare on our cross-fold validation set. *Note: this takes a long time, 81.5 seconds for the 250-token model on my machine.*
+
+```{r, cache=TRUE}
+set.seed(1234)
+tic()
+tune_rs <- tune_grid(
+  yelp_wf %>% add_model(tune_model),
+  yelp_folds,
+  grid = lambda_grid,
+  control = control_resamples(save_pred = TRUE)
+)
+toc()
+tune_rs
+
+
+```
+
+
+We can visualize our lasso model's performance for each parameter value:
+
+```{r, cache=TRUE}
+tune_rs %>%
+  collect_metrics() %>%
+  ggplot(aes(penalty, mean, color = .metric)) +
+  geom_errorbar(aes(
+    ymin = mean - std_err,
+    ymax = mean + std_err
+  ),
+  alpha = 0.5
+  ) +
+  geom_line(size = 1.5) +
+  facet_wrap(~.metric, scales = "free", nrow = 2) +
+  scale_x_log10() +
+  theme(legend.position = "none") +
+  labs(
+    title = "Lasso model performance across regularization penalties",
+    subtitle = "Performance metrics can be used to identity the best penalty"
+  )
+```
+
+Since we want the best model performance possible, we'll follow @silge_supervised_2020 and choose the value that minimizes our RMSE.
+
+
+```{r, cache=TRUE}
+tune_rs %>%
+  show_best("rmse")
+```
+
+And we can extract the penalty that gives us the lowest RMSE using the `select_best()` function as follows:
+
+```{r, cache=TRUE}
+lowest_rmse <- tune_rs %>%
+  select_best("rmse")
+```
+
+And we can put it all together into a final workflow:
+
+```{r, cache=TRUE}
+final_lasso <- finalize_workflow(
+  yelp_wf %>% add_model(tune_model),
+  lowest_rmse
+)
+
+```
+
+We can then do a final fit by testing our model's predictions against our testing data using the following command.
+
+```{r, cache=TRUE}
+lasso_fit <- final_lasso %>%
+  last_fit(split = yelp_split)
+  
+```
+
+And then we can extract its predictions and plot them against the true values to see how it looks.
+
+```{r, cache=TRUE}
+lasso_fit %>%
+  collect_predictions() %>%
+    ggplot(aes(rating_num, .pred)) +
+  geom_abline(slope=1, intercept = 0,color = "gray80", size = 1.5) +
+  geom_point(alpha = 0.3) +
+  labs(
+    x = "Truth",
+    y = "Predicted Rating",
+    color = NULL,
+    title = "Final lasso model: Predicted and true star ratings for Yelp reviews"
+  )
+```
+
+This model looks better in some ways but worse in others. It's better in that it gives lower predictions for in-truth lower reviews; it's worse in that it predicts ratings over 5, and even over 6.5. The spread of predictions is also still quite large, but that may be to be expected with an $R^2$ of only about 0.25.
+
+## Trying lasso again
+
+### With 1000 tokens
+
+Here is the whole process again in a single code block using 1000 tokens.
+
+```{r yelp_lasso_1000_tokens, message=FALSE, warning=FALSE, cache=TRUE}
+
+num_tokens <- 1000
+
+set.seed(1234)
+
+# do initial split
+
+yelp_split <- reviews_yelp %>%
+  initial_split(strata = "rating_num")
+
+yelp_train <- yelp_split %>%
+  training()
+
+yelp_test <- yelp_split %>%
+  testing()
+
+# set up recipe
+
+yelp_rec <- recipe(rating_num ~ text, data = yelp_train) %>%
+  step_tokenize(text) %>%
+  step_tokenfilter(text, max_tokens = num_tokens) %>%
+  step_tfidf(text) %>%
+  step_normalize(all_predictors())
+  
+rm(num_tokens)
+
+yelp_wf <- workflow() %>%
+  add_recipe(yelp_rec)
+
+# set up our lasso model using tuning parameters
+tune_model <- linear_reg(penalty = tune(), mixture = 1) %>%
+  set_mode("regression") %>%
+  set_engine("glmnet")
+
+# create a grid of tuning parameters
+lambda_grid <- grid_regular(penalty(), levels = 30)
+
+# create cross-validation folds
+set.seed(1234)
+yelp_folds <- vfold_cv(yelp_train)
+
+# fit our model at many different parameter values using the cross-fold validation set
+set.seed(1234)
+tic()
+tune_rs <- tune_grid(
+  yelp_wf %>% add_model(tune_model),
+  yelp_folds,
+  grid = lambda_grid,
+  control = control_resamples(save_pred = TRUE)
+)
+toc()
+
+# extract penalty that gives us the lowest RMSE
+lowest_rmse <- tune_rs %>%
+  select_best("rmse")
+
+# put it into a final workflow
+final_lasso <- finalize_workflow(
+  yelp_wf %>% add_model(tune_model),
+  lowest_rmse
+)
+
+# do a last fit
+lasso_fit <- final_lasso %>%
+  last_fit(split = yelp_split)
+
+# see the metrics
+lasso_fit %>%
+  collect_metrics()
+
+# and plot it
+lasso_fit %>%
+  collect_predictions() %>%
+    ggplot(aes(rating_num, .pred)) +
+  geom_abline(slope=1, intercept = 0,color = "gray80", size = 1.5) +
+  geom_point(alpha = 0.3) +
+  labs(
+    x = "Truth",
+    y = "Predicted Rating",
+    color = NULL,
+    title = "Final lasso model: Predicted and true star ratings for Yelp reviews",
+    subtitle = "All reviews, 1000 tokens"
+  )
+```
+
+This has an $R^2$ of 0.37, which is a big improvement over the 250-token model, but it's still nowhere near good enough to use in practice.
+
+### Short reviews only: <125 words
+
+Let's try only using reviews under 125 words. It's possible that shorter reviews are "denser" and more to the point, and that longer reviews contain too much "noise." This leaves us with 6,323 reviews. 
+
+To begin with, I'm  going to define a function to run the lasso regression with different inputs.
+
+```{r define_lasso_function}
+run_lasso <- function(dataset, num_tokens){
+  
+  set.seed(1234)
+
+data_split <- dataset %>%
+  initial_split(strata = "rating_num")
+
+data_train <- data_split %>%
+  training()
+
+data_test <- data_split %>%
+  testing()
+
+data_rec <- recipe(rating_num ~ text, data = data_train) %>%
+  step_tokenize(text) %>%
+  step_tokenfilter(text, max_tokens = num_tokens) %>%
+  step_tfidf(text) %>%
+  step_normalize(all_predictors())
+  
+rm(num_tokens)
+
+data_wf <- workflow() %>%
+  add_recipe(data_rec)
+
+# set up our lasso model using tuning parameters
+tune_model <- linear_reg(penalty = tune(), mixture = 1) %>%
+  set_mode("regression") %>%
+  set_engine("glmnet")
+
+# create a grid of tuning parameters
+lambda_grid <- grid_regular(penalty(), levels = 30)
+
+# create cross-validation folds
+set.seed(1234)
+data_folds <- vfold_cv(data_train)
+
+# fit our model at many different parameter values using the cross-fold validation set
+set.seed(1234)
+tic()
+tune_rs <- tune_grid(
+  data_wf %>% add_model(tune_model),
+  data_folds,
+  grid = lambda_grid,
+  control = control_resamples(save_pred = TRUE)
+)
+toc()
+
+# extract penalty that gives us the lowest RMSE
+lowest_rmse <- tune_rs %>%
+  select_best("rmse")
+
+# put it into a final workflow
+final_lasso <- finalize_workflow(
+  data_wf %>% add_model(tune_model),
+  lowest_rmse
+)
+
+# do a last fit
+lasso_fit <- final_lasso %>%
+  last_fit(split = data_split)
+
+return(lasso_fit)
+}
+```
+
+Then we can use this function to easily run lasso regressions on different datasets.
+
+```{r yelp_short_reviews_lasso, message=FALSE, warning=FALSE, cache=TRUE}
+
+max_length <- 125
+min_length <- 1
+
+wordcounts_yelp <- reviews_yelp %>%
+  select(text) %>%
+  rowid_to_column() %>%
+  tidytext::unnest_tokens(word, text) %>%
+  group_by(rowid) %>%
+  summarise(n = n()) %>%
+  left_join (reviews_yelp %>% rowid_to_column(), by ="rowid") %>%
+  select(-rowid)
+
+
+
+reviews_yelp_short <- wordcounts_yelp %>%
+  filter(n <= max_length & n >= min_length )
+
+
+
+lasso_results_short <- run_lasso(dataset = reviews_yelp_short, num_tokens = 1000)
+
+
+# see the metrics
+lasso_results_short %>%
+  collect_metrics()
+
+# and plot it
+lasso_results_short %>%
+  collect_predictions() %>%
+    ggplot(aes(rating_num, .pred)) +
+  geom_abline(slope=1, intercept = 0,color = "gray80", size = 1.5) +
+  geom_point(alpha = 0.3) +
+  labs(
+    x = "Truth",
+    y = "Predicted Rating",
+    color = NULL,
+    title = "Final lasso model: Predicted and true star ratings for Yelp reviews",
+    subtitle = "Short Reviews < 125 Words, 1000 Tokens"
+  )
+```
+
+This gives us an $R^2$ of 0.39, slightly better than our full dataset. But looking at the chart, we can see that this won't be useful in practice either.
+
+### Longer reviews > 125 words
+
+For completeness, we'll also try only using the long reviews > 125 words. It's possible that these reviews contain more useful information due to their length. This leaves us with 3,104 reviews.
+
+
+```{r yelp_long_reviews_lasso, message=FALSE, warning=FALSE, cache=TRUE}
+
+max_length <- 10000
+min_length <- 125
+
+wordcounts_yelp <- reviews_yelp %>%
+  select(text) %>%
+  rowid_to_column() %>%
+  tidytext::unnest_tokens(word, text) %>%
+  group_by(rowid) %>%
+  summarise(n = n()) %>%
+  left_join (reviews_yelp %>% rowid_to_column(), by ="rowid") %>%
+  select(-rowid)
+
+
+
+reviews_yelp_long <- wordcounts_yelp %>%
+  filter(n <= max_length & n >= min_length )
+
+
+
+lasso_results_long <- run_lasso(dataset = reviews_yelp_long, num_tokens = 1000)
+
+
+# see the metrics
+lasso_results_long %>%
+  collect_metrics()
+
+# and plot it
+lasso_results_long %>%
+  collect_predictions() %>%
+    ggplot(aes(rating_num, .pred)) +
+  geom_abline(slope=1, intercept = 0,color = "gray80", size = 1.5) +
+  geom_point(alpha = 0.3) +
+  labs(
+    x = "Truth",
+    y = "Predicted Rating",
+    color = NULL,
+    title = "Final lasso model: Predicted and true star ratings for Yelp reviews",
+    subtitle = "Long Reviews > 125 Words, 1000 Tokens"
+  )
+```
+
+Now our $R^2$ has gone up to 0.43, so it is possible that the longer reviews do in fact contain more information. And looking at the chart, the "cloud" of points does creep measurably higher for each true star rating. However, I'm still skeptical that this would be useful for predicting anything in practice.
+
+## Removing stop words
+
+Stop words are common words that contain little information on their own, like "the" and "to." If using a bag-of-words approach, where you're not looking at the input text in a way that considers syntax (or, really, sentence-wise semantics) then it can be helpful to remove stop words.
+
+Here I will follow @silge_supervised_2020 's [SMLTAR s6.6](https://smltar.com/mlregression.html#casestudystopwords) to try using three different sets of stopwords, to see which performs best on this dataset.
+
+First, they build a wrapper function to make it easy to build recipes with different stopword sets.
+
+```{r}
+stopword_rec <- function(stopword_name) {
+  recipe(rating_num ~ text, data = yelp_train) %>%
+    step_tokenize(text) %>%
+    step_stopwords(text, stopword_source = stopword_name) %>%
+    step_tokenfilter(text, max_tokens = 1000) %>%
+    step_tfidf(text)
+}
+```
+
+Next we set up a workflow that only has a model, using our tunable regularized regression model from before:
+
+```{r}
+tunable_wf <- workflow() %>%
+  add_model(tune_model)
+
+tunable_wf
+```
+
+Now we will combine our functionized preprocessor with this tunable model and try three different stopword sets: snowball, smart, and stopwords-iso. *This takes about 8 minutes on my machine.*
+
+```{r, message=FALSE, warning=FALSE, cache=TRUE}
+set.seed(1234)
+tic()
+snowball_rs <- tune_grid(
+  tunable_wf %>% add_recipe(stopword_rec("snowball")),
+  yelp_folds,
+  grid = lambda_grid
+)
+toc()
+
+set.seed(1234)
+tic()
+smart_rs <- tune_grid(
+  tunable_wf %>% add_recipe(stopword_rec("smart")),
+  yelp_folds,
+  grid = lambda_grid
+)
+toc()
+
+set.seed(1234)
+tic()
+stopwords_iso_rs <- tune_grid(
+  tunable_wf %>% add_recipe(stopword_rec("stopwords-iso")),
+  yelp_folds,
+  grid = lambda_grid
+)
+toc()
+
+
+
+```
+
+And we plot their performance, using code straight from SMLTAR:
+
+```{r}
+word_counts <- tibble(name = c("snowball", "smart", "stopwords-iso")) %>%
+  mutate(words = map_int(name, ~ length(stopwords::stopwords(source = .))))
+
+list(
+  snowball = snowball_rs,
+  smart = smart_rs,
+  `stopwords-iso` = stopwords_iso_rs
+) %>%
+  map_dfr(show_best, "rmse", .id = "name") %>%
+  left_join(word_counts) %>%
+  mutate(name = paste0(name, " (", words, " words)")) %>%
+  ggplot(aes(fct_reorder(name, words), mean, color = name)) +
+  geom_point(size = 3, alpha = 0.8, show.legend = FALSE) +
+  labs(
+    x = NULL, y = "mean RMSE for five best models",
+    title = "Model performance for three stop word lexicons",
+    subtitle = "For this dataset, the Snowball lexicon performed best"
+  )
+```
+
+The RMSE is marginally better using the snowball set of stopwords, but is still quite terrible!
+
+## Adjusting n-grams
+
+When tokenizing, we can in general consider text strings of any length. So far we have been considering one-word strings, which we could call "unigrams." We could also consider two-word strings and three-word strings, called "bigrams" and "trigrams" respectively. We might expect using n-grams, where n>1, to increase our accuracy because it will let us capture more of the syntactic information in our text. For example, if we only consider 1-grams then the short phrase "Not bad!" becomes "not" and "bad," and our model has no way to differentiate between cases where they occur alone (which might be negative) and together (which might be positive). But if we also consider "not bad," then the model might learn that that phrase is associated with positive reviews.
+
+As before, we follow [SMLTAR s6.7](study-varying-n-grams) and set up a wrapper function that will let us easily change our model recipe to use different n-grams:
+
+```{r ngram_recipe_function}
+ngram_rec <- function(ngram_options) {
+  recipe(rating_num ~ text, data = yelp_train) %>%
+    step_tokenize(text, token = "ngrams", options = ngram_options) %>%
+    step_tokenfilter(text, max_tokens = 1e3) %>%
+    step_tfidf(text)
+}
+```
+
+`step_tokenize()` takes two arguments, `n` for the highest-n n-grams to consider, and `n_min` for the lowest-n ngrams to consider. We will pass these values in the variable `ngram_options`.
+
+We then out these all together into a wrapper function that will let us run many different models easily:
+
+```{r}
+tune_ngram <- function(ngram_options) {
+  tune_grid(
+    tunable_wf %>%
+      add_recipe(ngram_rec(ngram_options)),
+    yelp_folds,
+    grid = lambda_grid
+  )
+}
+
+```
+
+We will try three cases, using n-grams where n=1, n=1,2, and n=1,2,3. I've added `tic()/toc()` calls for loose benchmarking. The processing time goes up with each additional n-gram:
+
+* 1-grams: 186s
+* 2-grams: 267s
+* 3-grams: 495s
+
+```{r yelp_test_ngrams, cache=TRUE}
+set.seed(123)
+tic()
+unigram_rs <- tune_ngram(list(n = 1))
+toc()
+
+tic()
+set.seed(234)
+bigram_rs <- tune_ngram(list(n = 2, n_min = 1))
+toc()
+
+tic()
+set.seed(345)
+trigram_rs <- tune_ngram(list(n = 3, n_min = 1))
+toc()
+
+```
+
+And we can plot the results using a dot-plot, as per SMLTAR:
+
+```{r plot_ngrams, message=FALSE, warning=FALSE}
+list(
+  `1` = unigram_rs,
+  `1 and 2` = bigram_rs,
+  `1, 2, and 3` = trigram_rs
+) %>%
+  map_dfr(collect_metrics, .id = "name") %>%
+  filter(.metric == "rmse") %>%
+  ggplot(aes(name, mean, fill = name)) +
+  geom_dotplot(
+    binaxis = "y", stackdir = "center", binpositions = "all",
+    show.legend = FALSE
+  ) +
+  labs(
+    x = "Degree of n-grams", y = "mean RMSE",
+    title = "Model performance for different degrees of n-gram tokenization",
+    subtitle = "For the same number of tokens, unigrams alone performed best"
+  )
+```
+
+Amusingly, the fastest & simplest approach of using only 1-grams worked best.
+
+
+## Full final regression
+
+After working through each piece of the regression preprocessing and recipe, we'll now followed [SMLTAR s6.10](https://smltar.com/mlregression.html#the-full-game-regression)'s lead and put it all together.
+
+We will:
+
+* Train on the cross-validation resamples;
+* Tune *both* the lasso regularization parameter and the number of tokens used in the model;
+* Only include unigrams;
+* Remove the snowball stop words;
+* And evaluate on the testing set.
+
+Here is our final recipe. note that we are using `tune()` as our `max_tokens` value. This will let us fit the model to a grid of values and see which one performs best.
+
+```{r final_recipe}
+ final_rec <- recipe(rating_num ~ text, data = yelp_train) %>%
+  step_tokenize(text) %>%
+  step_stopwords(text, stopword_source = "snowball") %>%
+  step_tokenfilter(text, max_tokens = tune()) %>%
+  step_tfidf(text)
+
+final_rec
+```
+
+Then we specify our model again:
+
+```{r final_model}
+tune_model <- linear_reg( penalty = tune(), mixture = 1) %>%
+  set_mode("regression") %>%
+  set_engine("glmnet")
+
+tune_model
+
+```
+
+Then we set up our workflow:
+
+```{r final_workflow}
+tune_wf <- workflow() %>%
+  add_recipe(final_rec) %>%
+  add_model(tune_model)
+
+tune_wf
+```
+
+Next we'll tune the model. To do so, we need to choose the set of parameter values for the penalty and number of tokens we'll test. We do this by setting up a "grid" of the value combinations using `grid_regular()`. With 20 steps for the penalty and with 6 steps for the tokens, we'll have 120 combinations to test in total. *This took 2180s on my machine.*
+
+```{r final_grid}
+final_grid <- grid_regular(
+  penalty(range = c(-4,0)),
+  max_tokens(range = c(1e3, 6e3)),
+  levels = c(penalty = 20, max_tokens = 6)
+)
+
+final_grid %>%
+  head(10)
+```
+
+Next we train our models using the tuning grid:
+
+```{r final_tuning, cache= TRUE}
+
+tic()
+final_rs <- tune_grid(
+  tune_wf,
+  yelp_folds,
+  grid = final_grid,
+  metrics = metric_set(rmse, mae, mape)
+)
+toc()
+```
+
+
+Now we can plot each model's performance for the different numbers of tokens and regularization penalties. We see the familiar dip-shaped graph we expect in lasso regularization but the dips are much more pronounced for larger token numbers, suggesting that regularization is much more important as we use more tokens. Also note that the best performance happens with an intermediate number of tokens: for some reason, model performace gets worse on this dataset if you use more than 3000 tokens.
+
+```{r final_rs_plot, cache= TRUE}
+final_rs %>%
+  collect_metrics() %>%
+  ggplot(aes(penalty, mean, color = as.factor(max_tokens))) +
+  geom_line(size = 1.5, alpha = 0.5) +
+  geom_point(size = 2, alpha = 0.9) +
+  facet_wrap(~.metric, scales = "free_y") +
+  scale_x_log10() +
+  labs(
+    color = "Number of tokens",
+    title = "Lasso model performance across regularization penalties and number of tokens",
+    subtitle = "The best model includes a high number of tokens but also significant regularization"
+  )
+```
+
+
+We can extract the lowest MAE value from our models:
+
+```{r, cache= TRUE}
+lowest_mae <- final_rs %>%
+  select_best("mae")
+
+lowest_mae
+```
+
+And then we can use this value to set a final workflow:
+
+```{r final_lasso_wf, cache= TRUE}
+final_wf <- finalize_workflow(
+  tune_wf,
+  lowest_mae
+)
+
+final_wf
+```
+
+Which we can then use to do one last final fit and view its metrics:
+
+```{r final_lasso_fit, cache= TRUE}
+tic()
+final_fitted <- last_fit(final_wf, yelp_split)
+toc()
+
+collect_metrics(final_fitted)
+```
+
+This plot uses the **vip** package to extract the most important positive and negative terms, so we can see what our lasso regression is picking up on. Overall, the terms look kind of random. I would have expected words like "delicious," "great," and "awesome" to have been strongly correlated with positive reviews, and so I'm not what to make of the fact that "talked," "sounded," and "dipped" are the top three most-associated-with-positive-review words. The negative words look a bit better--"unfortunate" is #1 and "worst" is #3--but there are still some head-scratchers, like "2.50" and "striploin." (Although if you spend $2.50 on a striploin you have no one to blame but yourself.)
+
+```{r, cache= TRUE}
+library(vip)
+
+scotus_imp <- pull_workflow_fit(final_fitted$.workflow[[1]]) %>%
+  vi(lambda = lowest_mae$penalty)
+
+scotus_imp %>%
+  mutate(
+    Sign = case_when(
+      Sign == "POS" ~ "Better",
+      Sign == "NEG" ~ "Worse",
+    ),
+    Importance = abs(Importance),
+    Variable = str_remove_all(Variable, "tfidf_text_")
+  ) %>%
+  group_by(Sign) %>%
+  top_n(20, Importance) %>%
+  ungroup() %>%
+  ggplot(aes(
+    x = Importance,
+    y = fct_reorder(Variable, Importance),
+    fill = Sign
+  )) +
+  geom_col(show.legend = FALSE) +
+  scale_x_continuous(expand = c(0, 0)) +
+  facet_wrap(~Sign, scales = "free") +
+  labs(
+    y = NULL,
+    title = "Variable importance for predicting Yelp review star ratings"
+  )
+```
+
+Finally, we can again plot our final lasso model's predicted ratings vs. the actual ratings to see how they compare. There is a definite improvement from the first model, but the results ultimately still aren't workable. The range of predictions is still much too wide, and true lower reviews are still predicted as much too high.
+
+```{r, cache= TRUE}
+final_fitted %>%
+  collect_predictions() %>%
+  ggplot(aes(rating_num, .pred)) +
+  geom_abline(lty = 2, color = "gray80", size = 1.5) +
+  geom_point(alpha = 0.3) +
+  labs(
+    x = "Truth",
+    y = "Predicted year",
+    title = "Predicted and true ratings for Yelp Reviews"
+  )
+```
+
+
+## Conclusion
+
+In this section I followed @silge_supervised_2020 's recipe and tried to predict a Yelp review's star rating from its text using a lasso regression model. I varied a number of parameters, including the lasso regularization penalty, the number of tokens used in the model, the number and type of n-grams, and the lengths of the reviews. Although the models' accuracy did improve as I refined them, none of the models were especially effective and none come close to being workable in practice. 
+
+There are at least two possibilities:
+
+* **The problem might be with the dataset.** The dataset may be too small, or too imbalanced (there are far fewer negative reviews than positive reviews), or have some other deficiency that makes it unsuitable for lasso regression.
+* **Linear regression may not be the right tool for the job.** Given the relatively small number of discrete rating categories, this might be better modeled as a classification problem.
+
+We will look at both of these possibilities in subsequent entries.
+
+<!--chapter:end:04-first-lasso.Rmd-->
+
+
+```{r setup_sentiment, include=FALSE}
+#knitr::opts_chunk$set(echo = TRUE)
+
+
+library(tidyverse)
+library(tidytext)
+library(textrecipes)
+library(tidymodels)
+library(tidytext)
+library(stringr)
+library(discrim)
+library(readr)
+library(tictoc)
+
+afinn <- tidytext::get_sentiments("afinn")
+```
+
+# Yelp Classification and Sentiment Test
+
+This notebook outlines my efforts to build a *classification model* that can predict Yelp star ratings based on Yelp review text. My previous attempts used linear regression to predict star rating as a real-valued function of input text. In this notebook, I will instead approach prediction as a classification problem and try to predict star ratings as discrete factors.
+
+Intead of trying to predict exact star ratings, I will follow standard practice and divide ratings into positive ("POS") and negative ("NEG") reviews. As @liu_sentiment_2015 notes, "Sentiment classification is usually formulated as a two-class classification problem: positive and negative ...A review with 4 or 5 stars is considered a positive review, and a review with 1 to 2 stars is considered a negative review. Most research papers do not use the neutral class (3-star ratings) to make the classification problem easier" (49). But if the results are good, we can always experiment with three- or five-class problems.
+
+A note on sourcing: My analysis here will closely follow the examples in @silge_supervised_2020 (which I will often refer to as "SMLTAR," for "Supervised Machine Learning and Text Analysis in R") and @silge_text_2020. In some cases I have used examples or hints from websites like Stack Overflow, and I've noted that where applicable.
+
+A note on aesthetics: in the interest of time I haven't piped my outputs through `kable()`. Most outputs are straight console printouts.
+
+## Yelp Dataset
+
+Let's begin with the Yelp dataset I collected. As a reminder, this dataset was collected in October 2020 and has 9,402 reviews for restaurants in Ottawa. Reviews were overwhelmingly positive, as can be seen in the following histogram.
+
+```{r load_data, message=FALSE, warning=FALSE}
+reviews_gr <- read_csv("../tests/data/goodreads_all.csv")
+reviews_mec <- read_csv("../tests/data/mec-reviews.csv")
+reviews_yelp <- read_csv("../tests/data/ottawa_yelp_reviews.csv") %>%
+  rename(rating_num = rating)
+
+
+ reviews_yelp %>%
+ ggplot(aes(x=rating_num)) +
+  geom_histogram(bins=5) +
+  labs(title = "Small Yelp Dataset: Histogram of Star Ratings (n=9,402)",
+       x = "Star Rating",
+       y = "Count")
+
+```
+
+The dataset is quite imbalanced: nearly 79% of reviews give 4 or 5 stars, our only about 9% give 1 or 2 stars. As we will see, this will create problems for our modeling.
+
+```{r pct_positive}
+reviews_yelp %>%
+  group_by(rating_num) %>%
+  summarise(n = n()) %>%
+  mutate(pct = n/sum(n))
+```
+
+
+
+### AFINN
+
+AFINN is a dictionary-based one-dimensional sentiment model that gives texts an integer score for how positive or negative they are. It treats texts as a "bag of words," which means it does not consider any syntax or semantics beyond the values given in its dictionary. Each word in a text is given a pre-determined positive or negative score, and those scores are summed to give an overall rating for a text.
+
+For example, here are the AFINN scores for the top 5 positive words. Strongly negative words are generally NSFW and so I won't print them here.
+
+```{r afinn_example}
+afinn %>%
+  arrange(desc(value)) %>%
+  head(5)
+
+
+```
+
+
+Following the [Tidytext](https://www.tidytextmining.com/tidytext.html) method from Silge & Robinson, we get an AFINN score for each Yelp review:
+
+```{r yelp_get_afinn, message=FALSE, warning=FALSE}
+
+
+afinn_yelp <- reviews_yelp %>%
+  select(comment, rating_num) %>%
+  rowid_to_column() %>%
+  tidytext::unnest_tokens(word, comment) %>%
+  left_join(afinn) %>%
+  group_by(rowid) %>%
+  summarise(afinn_sent = sum(value, na.rm = T),
+            rating_num = mean(rating_num))
+  
+```
+
+We can make a boxplot to show the distribution of AFINN scores for reviews grouped by star rating. This actually looks moderately promising, since we can see that higher star ratings seem to be associated with somewhat higher AFINN scores.
+
+```{r yelp_boxplot, message=FALSE, warning=FALSE}
+
+afinn_yelp %>%
+  mutate(rating_num = as.factor(rating_num)) %>%
+  ggplot(aes(x = rating_num, y=afinn_sent)) +
+  geom_boxplot() +
+  geom_smooth(method="lm") +
+  labs(
+    title = "AFINN Scores by Star Rating",
+    subtitle = "Small Yelp dataset (n=9402)",
+    x = "Star Rating",
+    y = "AFINN Sentiment Score"
+  )
+```
+
+### Classification: Naive Bayes Classifier
+
+To approach this as classification problem, we will divide reviews into two groups: positive (>3 stars) and negative (<3 stars).
+
+```{r yelp_factor}
+
+factor_yelp <- reviews_yelp %>%
+  bind_cols(afinn_yelp %>% select(afinn_sent)) %>%
+  filter(rating_num != 3) %>%
+  mutate(rating_factor = case_when(
+    rating_num <3 ~ "NEG",
+    rating_num >3 ~ "POS"),
+    rating_factor = as.factor(rating_factor))
+
+#factor_yelp
+```
+
+Here we'll follow [SMLTAR Ch 7](https://smltar.com/mlclassification.html) very closely and set up a naive Bayes classifier that takes AFINN sentiment as its only input and predicts positive or negative sentiment as its only output. The code here follows SMLTAR very closely except where otherwise specified. *Note* that SMLTAR actually uses the text itself, and not a real-valued variable like AFINN sentiment; we can try this next.
+
+First we set up testing and training split:
+
+```{r yelp_split}
+
+
+set.seed(1234)
+
+yelp_split <- initial_split(factor_yelp, strata = rating_factor)
+
+yelp_test <- testing(yelp_split)
+
+yelp_train <- training(yelp_split)
+```
+
+Then we set up a recipe, set up a workflow, specify a naive Bayes model, and fit this model to our training data:
+
+```{r yelp_recipe}
+yelp_rec <- recipe(rating_factor ~ afinn_sent,
+                   data = yelp_train)
+
+yelp_wf <- workflow() %>%
+  add_recipe(yelp_rec)
+
+nb_spec <- naive_Bayes() %>%
+  set_mode("classification") %>%
+  set_engine("naivebayes")
+
+nb_fit <- yelp_wf %>%
+  add_model(nb_spec) %>%
+  fit(data = yelp_train)
+
+nb_fit
+```
+
+We will use resampling to evaluate the model, again with 10 cross-fold validation sets.
+
+```{r relp_crossfold_validation}
+
+yelp_folds <- vfold_cv(yelp_train)
+
+nb_wf <- workflow() %>%
+  add_recipe(yelp_rec) %>%
+  add_model(nb_spec)
+
+nb_rs <- fit_resamples(
+  nb_wf,
+  yelp_folds,
+  control = control_resamples(save_pred = TRUE)
+)
+
+nb_rs_metrics <- collect_metrics(nb_rs)
+nb_rs_predictions <- collect_predictions(nb_rs)
+
+```
+
+Let's see the fit metrics:
+
+```{r yelp_nb_metrics}
+nb_rs_metrics
+```
+
+We can also plot an ROC curve, which is supposed to show a model's accuracy and how well a model trades off false positives and false negatives. Better models are associated with curves that bend farther away from the line y=x (*citation needed*). According to the standard story about ROC curves, this looks okay.
+
+```{r yelp_roc}
+nb_rs_predictions %>%
+  group_by(id) %>%
+  roc_curve(truth = rating_factor, .pred_NEG) %>%
+  autoplot() +
+  labs(
+    color = NULL,
+    title = "Receiver operator curve for small Yelp dataset",
+    subtitle = "Each resample fold is shown in a different color"
+  )
+```
+
+
+We can also look at a heat map and a confusion matrix to see how often the model was correct and incorrect.
+
+```{r yelp_confusionmatrix}
+nb_rs_predictions %>%
+  filter(id == "Fold01") %>%
+  conf_mat(rating_factor, .pred_class) %>%
+  autoplot(type = "heatmap")
+
+nb_rs_predictions %>%
+  filter(id == "Fold01") %>%
+  conf_mat(rating_factor, .pred_class)
+
+
+```
+
+But looking at the confusion matrix shows a problem: there are so many fewer true NEG cases that our model's performance doesn't mean much. The Bayes classifier achieved ~91.4% accuracy, but since ~89.7% of the data is classified as POS we could get nearly as much accuracy by just guessing "POS" in each case. The data is heavily *unbalanced*.
+
+```{r check_pct_positive}
+factor_yelp %>%
+  group_by(rating_factor) %>%
+  summarise(n = n()) %>%
+  mutate(pct = n/sum(n))
+```
+
+We need to *balance* our dataset so that there is a roughly equal number of positive and negative reviews. The easiest way is by downsampling, where you remove items from the larger set until you have two sets of about the same size. But to get a balanced dataset we would need to throw away nearly 80% of our data, and since our dataset is somewhat small we might not have enough to work with. *TODO* cite SMLTAR or Text Mining with R.
+
+There are more sophisticated balancing approaches that are out of scope here, but the easiest approach for our puposes is to find a much larger public dataset to work with.
+
+## Kaggle Yelp dataset
+
+Yelp makes a huge dataset available for teaching and research [at this link](https://www.kaggle.com/yelp-dataset/yelp-dataset) through Kaggle. A larger dataset will probably help us build a better model, especially if we need to balance our datasets to have roughly equal numbers of positive and negative reviews. The dataset is enormous: it has around 6 gigabytes of review text and around 5 million reviews. This is too big to load using conventional methods on my machine. After a few failures, I found [a discussion on StackOverflow](https://stackoverflow.com/questions/53277351/read-first-1000-lines-from-very-big-json-lines-file-r) that helped me read just the first n lines from the jsonLine file and parse them.
+
+For the present, we'll read the first 100k reviews:
+
+```{r yelp_big_load, message=FALSE, warning=FALSE}
+
+# figure out how to do it reading between the lines of this stackoverflow:
+# https://stackoverflow.com/questions/53277351/read-first-1000-lines-from-very-big-json-lines-file-r
+
+yelp_big <- readLines("../tests/data/yelp_academic_dataset_review.json", n = 100000) %>%
+  textConnection() %>%
+  jsonlite::stream_in(verbose=FALSE)
+
+yelp_big <- yelp_big %>%
+  select(stars, text)
+```
+
+And plot a histogram of the star distributions. The star distributions look very similar to the data I collected manually, but with a slight spike at 1 that we didn't find in my Yelp data. We did find this 1-spike in the MEC data, so there may be a common review phenomenon here.
+
+
+```{r yelp_big_hist}
+yelp_big %>%
+ ggplot(aes(x=stars)) +
+  geom_histogram(bins=5) +
+  labs(title = "Large Yelp Dataset: Histogram of Star Ratings (n=100,000)")
+
+```
+
+
+Let's classify the reviews into NEG and POS again, once more classifying reviews with fewer than 3 stars as negative, more than 3 stars as positive, and discarding reviews with 3 stars.
+
+```{r yelp_big_factor}
+yelp_big_factor <- yelp_big %>%
+  mutate(rating_factor = case_when(
+    stars < 3 ~ "NEG",
+    stars > 3 ~ "POS") %>%
+      as.factor()
+  ) %>%
+  select(-stars) %>%
+  drop_na()
+
+yelp_big_factor %>% summary()
+```
+
+This dataset is quite imbalanced: there are ~67k positive reviews and ~22 negative reviews. Since classification engines can have trouble with unbalanced sets, we will *downsample* our dataset by randomly removing some positive reviews so that we have around the same number of negatvie and positive reviews. This new balanced dataset will have ~22k positive and negative reviews, still far more than we had in the dataset I collected myself.
+
+
+```{r yelp_big_balance}
+set.seed(1234)
+yelp_balanced <- yelp_big_factor %>%
+  filter(rating_factor == "NEG") %>%
+  bind_rows(yelp_big_factor%>%
+              filter(rating_factor == "POS") %>%
+              slice_sample(n=yelp_big_factor %>% filter(rating_factor == "NEG") %>% nrow() ))
+
+yelp_balanced %>% summary()
+
+```
+
+
+
+Let's try AFINN again on the balanced set. First we'll get the AFINN sentiments for all our reviews.
+
+```{r yelp_big_afinn, warning=FALSE, message=FALSE}
+tic()
+afinn_yelp_big <- yelp_balanced %>%
+  rowid_to_column() %>%
+  tidytext::unnest_tokens(word, text) %>%
+  left_join(afinn) %>%
+  group_by(rowid) %>%
+  summarise(afinn_sent = sum(value, na.rm = T))
+toc()
+
+yelp_big_bal_afinn <- afinn_yelp_big %>%
+  left_join(yelp_balanced %>% rowid_to_column()) %>%
+  select(-rowid)
+```
+
+And we can make a boxplot of the AFINN distributions for POS and NEG reviews. There is enough difference between the POS and NEG reviews that this looks like it might plausibly work.
+
+```{r big_yelp_boxplot}
+yelp_big_bal_afinn %>%
+  ggplot(aes(x=rating_factor,y=afinn_sent)) +
+  geom_boxplot() +
+  labs(
+    title = "AFINN Scores by Star Rating",
+    subtitle = paste0("Big Yelp dataset (n=",nrow(yelp_big_bal_afinn),")"),
+    x = "Star Rating",
+    y = "AFINN Sentiment Score"
+  )
+```
+
+And for another view, here's a density plot:
+
+```{r big_yelp_density}
+yelp_big_bal_afinn %>%
+  ggplot(aes(x=afinn_sent, fill=rating_factor)) +
+  geom_density(alpha=0.5) +
+  labs(title = "Density Distributions of AFINN Sentiment for POS and NEG Reviews",
+       subtitle = "Large Balanced Yelp Dataset, n=43,855",
+       x = "AFINN Sentiment",
+       y ="Density")
+```
+
+
+### Naive Bayes Classifier
+
+We will again go through the tidymodels process of setting up a naive Bayes classifier. First we do a test/train split of our large balanced dataset.
+
+```{r big_split}
+set.seed(1234)
+
+yelp_split <- initial_split(yelp_big_bal_afinn, strata = rating_factor)
+
+yelp_test <- testing(yelp_split)
+
+yelp_train <- training(yelp_split)
+```
+
+Then we set up a recipe, a naive Bayes model, and a workflow, and then fit our model to our training data.
+
+```{r big_nb_rec}
+yelp_rec <- recipe(rating_factor ~ afinn_sent,
+                   data = yelp_train)
+
+yelp_wf <- workflow() %>%
+  add_recipe(yelp_rec)
+
+nb_spec <- naive_Bayes() %>%
+  set_mode("classification") %>%
+  set_engine("naivebayes")
+
+nb_fit <- yelp_wf %>%
+  add_model(nb_spec) %>%
+  fit(data = yelp_train)
+
+nb_fit
+```
+
+
+Then we use resampling to evaluate the model, again with 10 cross-fold validation sets.
+
+```{r big_nb_cfvalidation}
+
+yelp_folds <- vfold_cv(yelp_train)
+
+nb_wf <- workflow() %>%
+  add_recipe(yelp_rec) %>%
+  add_model(nb_spec)
+
+nb_rs <- fit_resamples(
+  nb_wf,
+  yelp_folds,
+  control = control_resamples(save_pred = TRUE)
+)
+
+nb_rs_metrics <- collect_metrics(nb_rs)
+nb_rs_predictions <- collect_predictions(nb_rs)
+
+```
+
+Let's see the fit metrics. Our accuracy is ~78.7%, which is quite a bit better than chance so there is good evidence that the model is getting something right.
+
+```{r big_nb_metrics}
+# create a character a vector with the accuracy % that we can use in the text later
+nb_acc <- nb_rs_metrics %>% pull(mean) %>% head(1) %>% round(3) %>% `*`(100) %>% paste0("%",.)
+
+# print out the metrics
+nb_rs_metrics
+```
+
+We can also look at the ROC curve, which again shows some good performance:
+
+```{r big_nb_ROC}
+nb_rs_predictions %>%
+  group_by(id) %>%
+  roc_curve(truth = rating_factor, .pred_NEG) %>%
+  autoplot() +
+  labs(
+    color = NULL,
+    title = "Receiver operator curve for big balanced Yelp dataset, AFINN sentiment",
+    subtitle = "Each resample fold is shown in a different color"
+  )
+```
+
+
+And a confusion matrix:
+
+```{r big_nb_confusion}
+nb_rs_predictions %>%
+  filter(id == "Fold01") %>%
+  conf_mat(rating_factor, .pred_class) %>%
+  autoplot(type = "heatmap")
+
+nb_rs_predictions %>%
+  filter(id == "Fold01") %>%
+  conf_mat(rating_factor, .pred_class)
+
+
+```
+
+Our naive Bayes classifier did quite a bit better than chance on our balanced dataset. We would have expected about 50% accuracy by chance, and it was accurate `r nb_acc` of the time on our training data.
+
+
+### Logistic Regression
+
+It's also worth trying a logistic regression, for at least two reasons:
+
+* It's good practice; and
+* It's a simple and common model.
+
+For the code here, I referred to [this website](https://rpubs.com/ryankelly/ml_logistic) to remind me of the basics of doing logistic regression in R. I elected not to do it in a tidymodels framework.
+
+We'll use the same big balanced dataset. First we'll split our data into testing and training:
+
+```{r logit_setup}
+index <- sample(c(T,F), 
+                size = nrow(yelp_big_bal_afinn),
+                replace = T,
+                prob=c(0.75,0.25))
+
+train <- yelp_big_bal_afinn[index,]
+
+test <- yelp_big_bal_afinn[!index,]
+```
+
+Then we'll use `glm()` to run a simple logistic regression, predicting the rating factor based on the AFINN sentiment score. Here is the model output:
+
+```{r run_logit}
+logit <- glm(data= train,
+             formula= rating_factor ~ afinn_sent,
+             family="binomial")
+
+summary(logit)
+
+```
+
+Our results are strongly significant, so we have some reason to take this model seriously.
+
+
+Referring to [this website for more pointers](https://www.machinelearningplus.com/machine-learning/logistic-regression-tutorial-examples-r/#:~:text=Logistic%20regression%20is%20a%20predictive,the%20probability%20of%20event%201.), we can use our logistic regression results to predict rating scores for our test dataset. The simplest way to do this is to say that we predict whichever outcome the model says is more likely. In other words, if a review has a predicted probability >0.5 of being positive, then we predict it's positive. How accurate would we be?
+
+```{r logit_predict}
+pred <- predict(logit, 
+        newdata = test,
+        type="response")
+
+test_results <- test %>%
+  bind_cols(tibble(pred = pred)) %>%
+  mutate(pred = if_else(pred > 0.5, "POS", "NEG")) %>%
+  mutate(correct = if_else (pred == rating_factor, T, F)) %>%
+  summarise(accuracy = sum(correct) / nrow(.))
+
+logit_acc <- test_results %>% `*`(100) %>% round(3) %>% paste0("%",.)
+
+```
+
+ For this data, a simple logistic regression was only a little bit less accurate than the naive Bayes classifier: `r logit_acc`, as opposed to `r nb_acc`.
+
+## NEXT STEPS
+
+* Consider another sentiment-detection algorithm / dictionary.
+* Naive Bayes classifier based on review text, intead of AFINN sentiment score.
+* Consider review length as a tuning paramter.
+
+
+```{r include=FALSE}
+# # Goodreads Sentiments
+# 
+# This section contains *preliminary* work on sentiment analysis, and is here more for discussion & debate.
+# 
+# ## AFINN
+# 
+# Looks bad
+# 
+# ```{r afinn_test}
+# 
+# afinn <- tidytext::get_sentiments("afinn")
+# 
+# afinn_gr <- reviews_gr %>%
+#   filter(genre == "scifi") %>%
+#   select(comment, rating_num) %>%
+#   rowid_to_column() %>%
+#   tidytext::unnest_tokens(word, comment) %>%
+#   left_join(afinn) %>%
+#   group_by(rowid) %>%
+#   summarise(afinn_sent = sum(value, na.rm = T),
+#             rating_num = mean(rating_num))
+#   
+# afinn_gr %>%
+#   ggplot(aes(as.factor(rating_num), afinn_sent)) +
+#   geom_boxplot() +
+#   labs(
+#   title = "scifi!"
+#   )
+# 
+# #```
+# 
+# A naive approach would be to use a linear regression to predict the star rating from the AFINN sentiment. If we do so on our scifi Goodreads dataset, we get the following model:
+# 
+# ```{r}
+# lm_gr <- lm(data = afinn_gr, formula= rating_num ~ afinn_sent )
+# 
+# summary(lm_gr)
+# 
+# #```
+# 
+# Although the p-values are excellent, the adjusted $R^2$ is terrible and this model is useless. 
+
+```
+
+
+
+```{r include=FALSE}
+
+## VADER
+
+# set.seed(1234)
+# vader_gr <- reviews_gr %>%
+#     filter(genre == "scifi") %>%
+#   select(comment, rating_num) %>%
+#   sample_n(10) %>%
+#   vader::vader_df(comment)
+# 
+# names(vader_gr)[2] <- "rating_num"
+# 
+# 
+# vader_gr %>%
+#   ggplot(aes(as.factor(rating_num), compound)) +
+#   geom_boxplot()
+# 
+# 
+# vader_gr %>%
+#   filter(compound < 0 & rating_num == 4)
+# ```
+# 
+# 
+# 
+# ```{r, eval=FALSE}
+# 
+# vader_gr <- reviews_gr %>%
+#     filter(genre == "scifi") %>%
+#   select(comment, rating_num) %>%
+#   vader::vader_df(comment)
+# 
+# names(vader_gr)[2] <- "rating_num"
+# 
+# write_csv(vader_gr, "vader_goodreads_scifi.csv")
+# ```
+# 
+# ```{r}
+# vader_gr <- read_csv("vader_goodreads_scifi.csv") %>%
+#   select(-word_scores)
+# 
+# vader_gr %>%
+#   ggplot(aes(as.factor(rating_num), (compound))) +
+#   geom_boxplot()
+# ```
+# 
+# ```{r}
+# vader_gr %>%
+#   ggplot(aes((rating_num), (compound))) +
+#   geom_point() +
+#   geom_smooth(method = "lm")
+# 
+# ```
+# 
+# ```{r}
+# vader_lm <- lm(rating_num ~ compound, data = vader_gr)
+# summary(vader_lm)
+# ```
+# 
+# 
+# 
+# 
+# ```{r}
+# vader_gr %>%
+#   ggplot(aes((rating_num), (pos))) +
+#   geom_point() +
+#   geom_smooth(method = "lm")
+# 
+# ```
+# ## negative?
+# 
+# ```{r}
+# vader_gr %>%
+#   ggplot(aes((rating_num), (neg))) +
+#   geom_point() +
+#   geom_smooth(method = "lm")
+# 
+# ```
+# ```{r, eval=F}
+# 
+# vader_lm_neg <- lm(rating_num ~ neg, data = vader_gr)
+# summary(vader_lm_neg)
+# 
+# predict.lm(vader_lm_neg)
+# ```
+# 
+# 
+# 
+# ## Testing byte compile
+# 
+# Byte-compiling `vader::get_vader()` makes no difference at all.
+# 
+# ```{r}
+# library(compiler)
+# 
+# cmp_vader <- cmpfun( vader::get_vader)
+# 
+# bench::mark(cmp_vader("Hello there. How does this do? Not bad.Not bad.Not bad.Not bad.Not bad.Not bad.Not bad.Not bad."))
+# 
+# bench::mark(vader::get_vader("Hello there. How does this do? Not bad.Not bad.Not bad.Not bad.Not bad.Not bad.Not bad.Not bad."))
+# ```
+
+```
+
+## SessionInfo
+
+```{r sessinfo}
+sessionInfo()
+```
+
+<!--chapter:end:05-sentiment.Rmd-->
+
+
+# The MVP: Classification Accuracy as a Function of Review Length and Volume
+
+```{r setup_mvp, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache=TRUE)
+rm(list=ls())
+
+library(tidyverse)
+library(tidytext)
+library(textrecipes)
+library(tidymodels)
+library(tidytext)
+library(stringr)
+library(discrim)
+library(readr)
+library(tictoc)
+library(ggridges)
+
+afinn <- tidytext::get_sentiments("afinn")
+```
+
+
+
+## Introduction
+
+In this notebook I'm trying to build a "minimum viable project" (MVP) that answers the following research questions:
+
+* **RQ1:** When using a dataset to build a model to predict review ratings based on review sentiment, how does accuracy vary with the *number* of reviews (volume)?
+* **RQ2:** When using a dataset to build a model to predict review ratings based on review sentiment, how does accuracy vary with the *word length* of those reviews?
+
+Building on the last section, I will use a logistic regression to create a *classification model* to predict Yelp reviews' star ratings based on their sentiment as measured by AFINN. I will divide ratings into positive ("POS") and negative ("NEG") reviews, again following @liu_sentiment_2015's recommendation, and use the approaches outlined in @silge_supervised_2020 and @silge_text_2020. In some cases I have used examples or hints from websites like Stack Overflow, and I've noted that where applicable.
+
+## Preparing the Data
+
+I will again work with the large Yelp dataset available [at this link](https://www.kaggle.com/yelp-dataset/yelp-dataset), this time loading the first 500k reviews:
+
+```{r yelp_big_load2, message=FALSE, warning=FALSE}
+
+# figure out how to do it reading between the lines of this stackoverflow:
+# https://stackoverflow.com/questions/53277351/read-first-1000-lines-from-very-big-json-lines-file-r
+
+yelp_big <- readLines("../tests/data/yelp_academic_dataset_review.json", n = 500000) %>%
+  textConnection() %>%
+  jsonlite::stream_in(verbose=FALSE)
+
+yelp_big <- yelp_big %>%
+  select(stars, text)
+```
+
+Plotting a histogram in Figure \@ref(fig:yelp-big-hist2), we see the now-familiar distribution of a slight bump at 1 star followed by an exponential increase towards 5 stars.
+
+```{r yelp-big-hist2, fig.cap='Histogram of star ratings for the large Yelp dataset.'}
+yelp_big %>%
+  ggplot(aes(x=stars)) +
+  geom_histogram(bins=5) +
+  labs(
+    title = paste0("Large Yelp Dataset (n=",nrow(yelp_big),")"),
+    x = "Stars",
+    y = "Count") +
+  theme_minimal()
+
+```
+
+
+Let's classify the reviews into NEG and POS again, once more classifying reviews with fewer than 3 stars as negative, more than 3 stars as positive, and discarding reviews with 3 stars.
+
+```{r yelp_big_factor2}
+yelp_big_factor <- yelp_big %>%
+  mutate(rating_factor = case_when(
+    stars < 3 ~ "NEG",
+    stars > 3 ~ "POS") %>%
+      as.factor()
+  ) %>%
+  select(-stars) %>%
+  drop_na()
+
+yelp_big_factor %>% summary()
+```
+
+Since we found that classification didn't work well with an unbalanced dataset, we will downsample the dataset so that we have the same number of positive and negative reviews.
+
+```{r yelp_big_balance2}
+set.seed(1234)
+yelp_balanced <- yelp_big_factor %>%
+  filter(rating_factor == "NEG") %>%
+  bind_rows(yelp_big_factor%>%
+              filter(rating_factor == "POS") %>%
+              slice_sample(n=yelp_big_factor %>% filter(rating_factor == "NEG") %>% nrow() ))
+
+yelp_balanced %>% summary()
+
+```
+
+
+
+Let's try AFINN again on the balanced set. First we'll get the AFINN sentiments for all our reviews.
+
+```{r yelp_big_afinn2, warning=FALSE, message=FALSE}
+tic()
+afinn_yelp_big <- yelp_balanced %>%
+  rowid_to_column() %>%
+  tidytext::unnest_tokens(word, text) %>%
+  left_join(afinn) %>%
+  group_by(rowid) %>%
+  summarise(afinn_sent = sum(value, na.rm = T))
+toc()
+
+yelp_big_bal_afinn <- afinn_yelp_big %>%
+  left_join(yelp_balanced %>% rowid_to_column()) %>%
+  select(-rowid)
+```
+
+The density plot in Figure \@ref(fig:big-yelp-density2) shows that NEG and POS reviews still have overlapping but different distributions in this dataset, which suggests that our model might reasonably be able to tell them apart.
+
+```{r big-yelp-density2, fig.cap="Density Distributions of AFINN Sentiment for POS and NEG Reviews."}
+yelp_big_bal_afinn %>%
+  ggplot(aes(x=afinn_sent, fill=rating_factor)) +
+  geom_density(alpha=0.5) +
+  labs(#title = "Density Distributions of AFINN Sentiment for POS and NEG Reviews",
+    title = paste0("Large Balanced Yelp Dataset (n=",nrow(yelp_big_bal_afinn),")"),
+    x = "AFINN Sentiment",
+    y ="Density",
+    fill="Sentiment") +
+  theme_minimal()
+```
+
+We will now compute the word length for each review so we can see how review length affects our predictions. As we can see in Figure \@ref(fig:wordcounts-bigyelp), most of our reviews are quite short--roughly 200,0000 are under 250 words--but a few extend beyond 1000 words.
+
+```{r wordcounts-bigyelp, message=FALSE, fig.cap='Large Yelp Dataset: Cumulative distribution of word lengths.'}
+wordcounts_yp <- yelp_big_bal_afinn %>%
+  select(text) %>%
+  rowid_to_column() %>%
+  tidytext::unnest_tokens(word, text) %>%
+  group_by(rowid) %>%
+  summarise(n = n()) %>%
+  arrange(n)  %>%
+  mutate(id = 1,
+         cumdist = cumsum(id)) 
+
+wordcounts_yp %>%
+  ggplot() +
+  geom_point(aes(y=cumdist, x=n)) +
+  theme_minimal() +
+  labs(title =paste0("Large Yelp Dataset (n=",nrow(yelp_big_bal_afinn),")"), #: Cumulative Distribution of Word-Lengths",
+       x = "Word Length",
+       y = "# of Reviews")
+  
+  
+
+```
+
+Next we'll join the word-length column to our balanced Yelp dataset, completing the pre-processing.
+
+```{r}
+yelp_data <- bind_cols(
+  yelp_big_bal_afinn,
+  wordcounts_yp %>% 
+    arrange(rowid) %>%
+    select(words = n)
+)
+```
+
+
+## Experiment 1: Logistic Regression on Globally Balanced Data
+
+In this section we will look at how review length and volume affect classification accuracy using a logistic regression based on review sentiment. I will divide the data into $n$  non-overlapping subsets based on their lengths, and then I will divide those subsets into $n$ overlapping subsets of increased size, and then will run a logistic regression on each of these latter subsets. The output will be an $n\times n$ matrix plotted as a heat map where each cell represents model accuracy for a given number of reviews with lengths within a given range.
+
+More precisely, here are the steps I will follow:
+
+* Choose a number of quantiles $n$, and divide reviews into $n$ quantiles by word length.
+* Find how many reviews are in each quantile. Take the smallest total number of reviews $mintotal$: for comparability, this is the largest number of reviews we will consider.
+* Within each quantile, consider $n$ overlapping subsets of increasing size ranging from $mintotal/n$ to $mintotal$.
+* For each quantile, for each group of reviews, run a logistic regression to predict review ratings and log its accuracy.
+
+After some initial experimentation, I've chosen to use $n=5$ quantiles since it gives us a good number of subsets of reasonable size.
+
+First, we set up a function to run a logistic regression on an arbitrary dataset and return the prediction accuracy. This is a functionized version of the code I used earlier.
+
+```{r logit_setup2}
+do_logit <- function (dataset) {
+
+  # for a train/test split: get a random vector as long as our dataset that is 75% TRUE and 25% FALSEe.
+  index <- sample(c(T,F), 
+                  size = nrow(dataset),
+                  replace = T,
+                  prob=c(0.75,0.25))
+  
+  # extract train and test datasets by indexing our dataset using our random index
+  train <- dataset[index,]
+  test <- dataset[!index,]
+  
+  # use `glm()` to run a logistic regression predicting the rating factor based on the AFINN score.
+  logit <- glm(data= train,
+               formula= rating_factor ~ afinn_sent,
+               family="binomial")
+  
+  pred <- predict(logit, 
+                  newdata = test,
+                  type="response")
+  
+  # now predict the outcome based on whichever has the greater probability, find out if each prediction is correct, and compute the accuracy
+  test_results <- test %>%
+    bind_cols(tibble(pred = pred)) %>%
+    mutate(pred = if_else(pred > 0.5, "POS", "NEG")) %>%
+    mutate(correct = if_else (pred == rating_factor, T, F)) %>%
+    summarise(accuracy = sum(correct) / nrow(.)) %>%
+    unlist()
+  
+  return (test_results)
+}
+
+```
+
+
+
+
+It's not quite "tidy," but we can run this analysis easily with two nested for loops. Here I break the reviews into 5 quantiles by word length, and then break each quantile down into 5 overlapping subsets of increasing length.
+
+```{r big_code_block2, warning=FALSE, message=FALSE}
+# for reproducibility, set the random number generator seed
+set.seed(1234)
+
+# how many quantiles?
+num_qtiles <- 5
+
+# get the limits of the word-quantiles for display purposes
+qtiles <- quantile(yelp_data$words, probs = seq(0, 1, (1/num_qtiles)))
+
+# find the word-quantile for each review using the fabricatr::split_quantile() function
+yelp_data <- yelp_data %>%
+  mutate(qtile = fabricatr::split_quantile(words, 
+                                           type=num_qtiles))
+
+# get the number of reviews in the smallest quantile.
+# we're going to use this to compare groups of the same/similar size.
+minn <- yelp_data %>%
+  group_by(qtile) %>%
+  summarise(n = n()) %>%
+  summarise(minn = min(n)) %>%
+  unlist()
+
+# set up an empty results tibble.
+results <- tibble()
+
+# boolean flag: will we print updates to the console?
+# I used this for testing but it should be disabled in the final knit
+verbose <- FALSE
+
+tic()
+# Consider each quantile of review word lengths one at a time
+for (word_qtile in 1:num_qtiles){
+  # within each quantile of reviews broken down by length, consider several different numbers of reviews
+  for (num_qtile in 1:num_qtiles){
+    
+    # number of reviews we will consider in this iteration.
+    num_reviews <- num_qtile * minn/num_qtiles
+    
+    # message for me to keep track
+    if (verbose == TRUE) {
+      message (paste0("Considering ", num_reviews, " reviews with word length in the range (",qtiles[[word_qtile]],",",qtiles[[word_qtile+1]],")"))
+    }
+    
+    # filter the rows we want: the right number of words, and the right number of reviews, then run a logistic regression on them
+    data_for_logit <- yelp_data %>%
+      filter(qtile==word_qtile) %>%
+      slice_sample(n = num_reviews) 
+    
+    # get true percentage of positives, so we can look at sample balance
+    pct_true_pos <- data_for_logit %>%
+      summarise(n = sum(rating_factor == "POS") / nrow(.)) %>%
+      unlist()
+    
+    # run the logistic regression on our data
+    result <- data_for_logit %>%
+      do_logit()
+    
+    # add our result to our results tibble. this wouldn't be best practice for thousands of rows, but it's fine here.
+    results <- bind_rows(
+      results,
+      tibble(word_qtile = word_qtile,
+             num_qtile = num_qtile,
+             accuracy = result,
+             pct_true_pos = pct_true_pos)
+    )
+  }
+}
+toc()
+```
+
+The code runs quickly (<5s on my machine) and gives some interesting-looking results shown below in Figure \@ref(fig:plot-first-heatmap). First, all of the accuracy metrics are quite high: our success rates ranged from around 80% to 86%. But interestingly, it looks like we get better results from *shorter* reviews!
+
+```{r plot-first-heatmap, fig.cap = "Heat map of logistic regression prediction accuracy for the large balanced Yelp dataset."}
+results %>%
+  ggplot() +
+  geom_tile(aes(x=word_qtile, y=num_qtile, fill=accuracy)) +
+  scale_x_continuous(breaks = 1:num_qtiles, 
+                     labels = paste0("Q",1:num_qtiles,": ",qtiles, "-",lead(qtiles)) %>% head(-1)) +
+  scale_y_continuous(breaks = 1:num_qtiles,
+                     labels = (1:num_qtiles * minn/num_qtiles)) +
+  labs(x = "Review Word Length by Quantile",
+       y = "Number of Reviews",
+       fill = "Accuracy")
+
+
+```
+
+However, before drawing conclusions we should look more closely at the data. As we can see below in Figure \@ref(fig:show-unbalanced), there is a big difference in each quantile's true positive rate. And based just on visual inspection, it looks like higher true positive rates in Figure \@ref(fig:show-unbalanced) are correlated with higher prediction accuracy rates in Figure \@ref(fig:plot-first-heatmap).
+
+```{r show-unbalanced, fig.cap = "Heat map of the percentage of true positive reviews in each quantile."}
+results %>%
+  ggplot() +
+  geom_tile(aes(x=word_qtile, y=num_qtile, fill=pct_true_pos)) +
+  scale_x_continuous(breaks = 1:num_qtiles, 
+                     labels = paste0("Q",1:num_qtiles,": ",qtiles, "-",lead(qtiles)) %>% head(-1)) +
+  scale_y_continuous(breaks = 1:num_qtiles,
+                     labels = (1:num_qtiles * minn/num_qtiles)) +
+  labs(x = "Review Word Length by Quantile",
+       y = "Number of Reviews",
+       fill = "True Positive Rate")
+```
+
+We can confirm this intuition by plotting each subset's true positive rate versus its quantile, as shown in Figure \@ref(fig:qtile-true-ps). We can see very strong correlation between the two variables. This correlation casts some doubt on the apparent results in Figure \@ref(fig:plot-first-heatmap), since we know from a previous experiment that an imbalanced dataset can lead to wonky predictions. Are we really seeing that shorter reviews lead to more accurate predictions, or are we actually seeing that datasets with higher true positive rates are easier to classify? There's no easy way to disentangle this.
+
+
+
+```{r qtile-true-ps, fig.cap = "True positive rates vs. review lengths for each subset, showing strong correlation."}
+results %>%
+  ggplot(aes(x = word_qtile, y  =pct_true_pos)) +
+  geom_point() +
+  labs(x =  "Review Word Length by Quantile",
+       y = "True Positive Rate") +
+    scale_x_continuous(breaks = 1:num_qtiles, 
+                     labels = paste0("Q",1:num_qtiles,": ",qtiles, "-",lead(qtiles)) %>% head(-1)) +
+  theme_minimal()
+
+
+
+```
+
+However, since our predictions were reasonably accurate (80%-86%) across a wide range of true-positive rates (0.35-0.65), we can draw one positive preliminary conclusion from this experiment: 
+
+**Preliminary Conclusion:** Logistic regression based on AFINN sentiment provides an accurate (>80%) method of predicting review sentiment on datasets across a wide range of word lengths, review counts, and true-positive rates.
+
+This is good news, but the confounding effect of the true-positive rates means we don't have a direct answer to our original question of how accuracy varies with review length and volume. This will require some additional processing so that we can operate on a collection of balanced sub-sets.
+
+## Experiment 2: Logistic Regression on Micro-Balanced Data
+
+In this experiment, I will address the correlation between each data subset's true-positive rate and review length by further balancing each subset. This probably has a technical name, but here I will call it "micro-balancing." The rest of the algorithm will be the same.
+
+Recall that in Experiment 1 above, we found that our data sub-sets were imbalanced between positive and negative reviews. This suggests that reviews tend to differ in length according to their sentiment, and as we can see in Figure \@ref(fig:plot-ecdfs), negative reviews do tend to be longer than positive reviews.
+
+```{r plot-ecdfs, fig.cap = "Empirical cumulative distribution function for lengths of positive and negative reviews."}
+
+yelp_data %>%
+  filter(rating_factor == "POS") %>% pull(words) %>% ecdf() %>% 
+  plot(col="green",
+       main = "ECDF for POS (green) and NEG (red) reviews",
+       xlab = "Review Length",
+       ylab = "Proportion")
+yelp_data %>%
+  filter(rating_factor == "NEG") %>% pull(words) %>% ecdf() %>% lines(col="red")
+
+```
+
+The simplest approach is to further downsample the data so that each subset is of the same size and balanced between positive and negative reviews. The following code block runs largely the same analysis as in Experiment 1, except this time I balance each data subset by downsampling before running through a logistic regression. To ensure that all samples are the same size, I first find the smallest number of positive or negative reviews in any subset. Then, in each step of the analysis I randomly downsample the positive and negative reviews to have exactly this many entries.
+
+
+```{r big_code_block3, warning=FALSE}
+# for reproducibility, set the random number generator seed
+set.seed(1234)
+
+# how many quantiles?
+num_qtiles <- 5
+
+# get the limits of the word-quantiles for display purposes
+qtiles <- quantile(yelp_data$words, probs = seq(0, 1, (1/num_qtiles)))
+
+# find the word-quantile for each review using the fabricatr::split_quantile() function
+yelp_data <- yelp_data %>%
+  mutate(qtile = fabricatr::split_quantile(words, 
+                                           type=num_qtiles))
+
+# get the number of reviews in the smallest subset of BOTH rating and length quintile.
+# we're going to use this to compare groups of the same/similar size.
+minn <- yelp_data %>%
+  group_by(qtile, rating_factor) %>%
+  summarise(n = n()) %>%
+  ungroup() %>%
+  summarise(minn = min(n)) %>%
+  unlist()
+
+# set up an empty results tibble.
+results <- tibble()
+
+# boolean flag: will we print updates to the console?
+# I used this for testing but it should be disabled in the final knit
+verbose <- FALSE
+
+tic()
+# Consider each quantile of review word lengths one at a time
+for (word_qtile in 1:num_qtiles){
+  # within each quantile of reviews broken down by length, consider several different numbers of reviews
+  for (num_qtile in 1:num_qtiles){
+    
+    # number of reviews we will consider in this iteration.
+    num_reviews <- num_qtile * minn/num_qtiles
+    
+    # message for me to keep track
+    if (verbose == TRUE) {
+      message (paste0("Considering ", num_reviews*2, " reviews with word length in the range (",qtiles[[word_qtile]],",",qtiles[[word_qtile+1]],")"))
+    }
+    
+    # I'm doing this in two steps to keep it simple, since we need to get the same number of positive and negative reviews.
+    # First, filter the positive rows we want: the right number of words, and the right number of reviews
+    data_pos <- yelp_data %>%
+      filter(qtile == word_qtile) %>%
+      filter(rating_factor == "POS") %>%
+      slice_sample(n = num_reviews)
+    
+    # Then filter the negative rows we want:
+    data_neg <- yelp_data %>%
+      filter(qtile == word_qtile) %>%
+      filter(rating_factor == "NEG") %>%
+      slice_sample(n = num_reviews)
+    
+    # then combine the positive and negative rows.
+    data_for_logit <- bind_rows(data_pos, data_neg) 
+    
+    # get true percentage of positives, so we can look at sample balance
+    pct_true_pos <- data_for_logit %>%
+      summarise(n = sum(rating_factor == "POS") / nrow(.)) %>%
+      unlist()
+    
+    # run the logistic regression on our data
+    result <- data_for_logit %>%
+      do_logit()
+    
+    # add our result to our results tibble. this wouldn't be best practice for thousands of rows, but it's fine here.
+    results <- bind_rows(
+      results,
+      tibble(word_qtile = word_qtile,
+             num_qtile = num_qtile,
+             accuracy = result,
+             pct_true_pos = pct_true_pos)
+    )
+  }
+}
+toc()
+```
+
+Although the additional downsampling takes a bit more time, the code still runs quickly (<10s on my machine). However, before looking at the results let's confirm that each data subset was balanced between positive and negative reviews. Figure \@ref(fig:show-unbalanced2) below shows that the data subsets were balanced, so we can look at our prediction accuracy without worrying about unbalanced data affecting our results.
+
+```{r show-unbalanced2, fig.cap = "Heat map of the percentage of true positive reviews in each quantile of the micro-balanced dataset."}
+results %>%
+  ggplot() +
+  geom_tile(aes(x=word_qtile, y=num_qtile, fill=pct_true_pos)) +
+  scale_x_continuous(breaks = 1:num_qtiles, 
+                     labels = paste0("Q",1:num_qtiles,": ",qtiles, "-",lead(qtiles)) %>% head(-1)) +
+  scale_y_continuous(breaks = 1:num_qtiles,
+                     labels = (2*round(1:num_qtiles * minn/num_qtiles))) +
+  labs(x = "Review Word Length by Quantile",
+       y = "Number of Reviews",
+       fill = "True Positive Rate")
+```
+
+The results shown below in Figure \@ref(fig:plot-second-heatmap) are promising. The accuracy metrics are still quite high, and range from around 79% to around 83%. This is a bit worse overall than in Experiment 1, but we can be more confident now that these are real results and not an artefact of any underlying imbalance in the data.
+
+```{r plot-second-heatmap, fig.cap = "Heat map of logistic regression prediction accuracy for the micro-balanced Yelp dataset."}
+results %>%
+  ggplot() +
+  geom_tile(aes(x=word_qtile, y=num_qtile, fill=accuracy)) +
+  scale_x_continuous(breaks = 1:num_qtiles, 
+                     labels = paste0("Q",1:num_qtiles,": ",qtiles, "-",lead(qtiles)) %>% head(-1)) +
+  scale_y_continuous(breaks = 1:num_qtiles,
+                     labels = (2*round(1:num_qtiles * minn/num_qtiles))) +
+  labs(x = "Review Word Length by Quantile",
+       y = "Number of Reviews",
+       fill = "Accuracy")
+
+
+```
+
+We're now in a position to draw some conclusions from our analysis. 
+
+**First, shorter reviews are effective for predicting ratings, and the longest reviews are the least effective.** We can see this trend clearly in Figure \@ref(fig:expt2-boxplot-length) below, where the first three quintiles perform reasonably well, but then accuracy degrades quickly in Q4 and Q5. We can hypothesize about why this might be. For example, shorter reviews might have more "information density" and longer reviews might tend to ramble on and be "noisier." It's much easier to get the gist of "This place sucks, I hate it" than it is of an 800-word essay that begins "Upon entering the establishment, I was first greeted by an aroma of..."
+
+```{r expt2-boxplot-length, fig.cap = "Experiment 2: Boxplots of review accuracy by word-length quintile."}
+results %>%
+  ggplot() +
+  geom_boxplot(aes(x=as.factor(word_qtile), y = accuracy)) +
+  theme_minimal() +
+  scale_x_discrete(breaks = 1:num_qtiles, 
+                     labels = paste0("Q",1:num_qtiles,": ",qtiles, "-",lead(qtiles)) %>% head(-1)) +
+  labs(x = "Review Word Length by Quantile",
+       y = "Accuracy")
+```
+
+**Second, our results were not dependent on the number of reviews, and we achieved good accuracy with even a modest number of reviews.** Figure \@ref(fig:expt2-boxplot-num) shows the distribution of model accuracy according to the number of reviews, and the distributions overlap substantially. There is no clear trend here, suggesting that this approach to classification doesn't benefit from having more than on the order of 10,000 input reviews.
+
+```{r expt2-boxplot-num, fig.cap = "Experiment 2: Boxplots of review accuracy by number of reviews."}
+results %>%
+  ggplot() +
+  geom_boxplot(aes(x=as.factor(num_qtile), y = accuracy)) +
+  theme_minimal() +
+  scale_x_discrete(breaks = 1:num_qtiles, 
+                     labels = (2*round(1:num_qtiles * minn/num_qtiles))) +
+  labs(x = "Number of Reviews",
+       y = "Accuracy")
+```
+
+If one were so inclined, one could also demonstrate this with a stylish Joy-Division-style ridge-density plot.
+
+```{r expt2-joydivision-num, message=FALSE, warning=FALSE, fig.cap = "Experiment 2: Shameless pandering to the ref with a 'Joy Division' ridge plot of review accuracy by number of reviews."}
+results %>%
+  ggplot() +
+  ggridges::geom_density_ridges(aes(x = accuracy, y=as.factor(num_qtile)))  +
+  theme_minimal() +
+  scale_y_discrete(breaks = 1:num_qtiles, 
+                     labels = (2*round(1:num_qtiles * minn/num_qtiles))) +
+  labs(y = "Number of Reviews",
+       x = "Accuracy")
+```
+
+If one were a stickler for parametric statistics, one might want to see this lack of correlation demonstrated with a linear regression. Here I will run a linear regression to predict a model's accuracy from the number of reviews it considers.
+
+```{r}
+lm.fit <- lm(data = results, accuracy ~ num_qtile)
+
+summary(lm.fit)
+```
+
+As expected, the volume of reviews is not a statistically significant predictor of accuracy: the p-value for the `num_qtile` variable is 0.8, the p-value for the model overall is roughly 0.8, and the Adjusted $R^2$ is negative(!). My results show no statistical evidence that, over these ranges, the number of input reviews is associated with a model's accuracy.
+
+## Conclusions
+
+In this section I ran two experiments to predict a Yelp review's rating based on its AFINN sentiment using logistic regression. In each experiment, I built and evaluated 25 models using subsets of my data with different word lengths and numbers of reviews. I demonstrated that you can get good accuracy (~80%) with a relatively small number of reviews (~10,000) using a simple sentiment-detection algorithm (AFINN) and a simple classification model (logistic regression).
+
+In Experiment 1 I balanced my overall dataset between positive and negative reviews by random down-sampling. However, I found that my subsets were unbalanced, and found furthermore that the degree of imbalance was strongly correlated with accuracy. Still, I noted that the overall accuracy was still quite good across the entire range of imbalance, and so one interpretation is that this method is quite robust on unbalanced datasets.
+
+In Experiment 2 I balanced each subset to have approximately the same number of positive and negative reviews, again using random down-sampling. Using these "micro-balanced" datasets, I derived the following answers to my two research questions:
+
+* **A1:** Review accuracy was better with shorter reviews, and the longest reviews were the least effective.
+* **A2:** Review accuracy was not correlated with the number of reviews used as inputs, provided the number of reviews is on the order of 10,000.
+
+Results in Experiment 2 were very good overall: accuracy ranged from around 79% to around 83% across all models.
+
+## Next Steps
+
+* Consider evaluating model performance across the entire dataset, not just the testing component of the subset used to generate the model. *For discussion.*K
+* Consider a more complex sentiment-detection algorithm.
+* Consider a more complex classification engine, e.g. Naive Bayes Classifier using text tokens instead of a real-valued sentiment score.
+
+
+## SessionInfo
+
+```{r sessinfo_mvp}
+sessionInfo()
+```
+
+## References
+
+<!--chapter:end:06-MVP.Rmd-->
+
+
+```{r setup-beyond-mvp, include=FALSE}
+rm(list = ls())
+knitr::opts_chunk$set(echo = TRUE, cache=TRUE)
+
+
+library(tidyverse)
+library(tidytext)
+library(textrecipes)
+library(tidymodels)
+library(tidytext)
+library(stringr)
+library(discrim)
+library(readr)
+library(tictoc)
+library(ggridges)
+library(sylcount)
+library(beepr)
+
+
+
+
+afinn <- tidytext::get_sentiments("afinn")
+```
+
+# Beyond the MVP: Looking at Longer Reviews
+
+## Introduction
+
+In this notebook I'll dig deeper into the last section's strange finding that *longer* reviews generated *worse* predictions. Recall that we used a logistic regression to create a *classification model* to predict Yelp reviews' star ratings based on their sentiment as measured by AFINN. After evaluating 25 models using data subsets with review lengths and volumes, the two main results were:
+
+* **A1:** Review accuracy was better with shorter reviews, and the longest reviews were the least effective.
+* **A2:** Review accuracy was not correlated with the number of reviews used as inputs, provided the number of reviews is on the order of 10,000.
+
+Here I'll test two hypotheses:
+
+* **H1:** The presence of *negators* like "but" and "not" are associated with both incorrect predictions and with increasing review length.
+* **H2:** Decreasing *readability scores* are associated with both incorrect predictions and with increasing review length. 
+
+The intuition is twofold: first, that AFINN's simple "bag-of-words" approach can't capture complex sentence structures; and second, that the number of complex sentence structures will tend to increase as the length of a review increases. As a result, we would expect more complex reviews to have worse predictions using a simple model based on AFINN scores.
+
+## Results from the Previous Section
+
+I will again work with the large Yelp dataset available [at this link](https://www.kaggle.com/yelp-dataset/yelp-dataset). For brevity I'm omitting the code here (see the previous section or .Rmd source file), but the code:
+
+* Loads the first 500k reviews;
+* Converts integer star ratings to NEG and POS factors;
+* Balances the NEG and POS reviews using random downsampling;
+* Calculates each review's AFINN sentiment score; and
+* Calculates each review's word length. 
+
+```{r yelp_big_load_beyond_mvp, message=FALSE, warning=FALSE, echo=FALSE}
+
+# figure out how to do it reading between the lines of this stackoverflow:
+# https://stackoverflow.com/questions/53277351/read-first-1000-lines-from-very-big-json-lines-file-r
+
+yelp_big <- readLines("../tests/data/yelp_academic_dataset_review.json", n = 500000) %>%
+  textConnection() %>%
+  jsonlite::stream_in(verbose=FALSE)
+
+# convert integer ratings to POS/NEG factors
+yelp_big_factor <- yelp_big %>%
+  select(stars, text) %>%
+  mutate(rating_factor = case_when(
+    stars < 3 ~ "NEG",
+    stars > 3 ~ "POS") %>%
+      as.factor()
+  ) %>%
+  select(-stars) %>%
+  drop_na()
+
+# balance the dataset
+set.seed(1234)
+yelp_balanced <- yelp_big_factor %>%
+  filter(rating_factor == "NEG") %>%
+  bind_rows(yelp_big_factor%>%
+              filter(rating_factor == "POS") %>%
+              slice_sample(n=yelp_big_factor %>% filter(rating_factor == "NEG") %>% nrow() ))
+
+# get afinn scores
+afinn_yelp_big <- yelp_balanced %>%
+  rowid_to_column() %>%
+  tidytext::unnest_tokens(word, text) %>%
+  left_join(afinn) %>%
+  group_by(rowid) %>%
+  summarise(afinn_sent = sum(value, na.rm = T))
+
+
+yelp_big_bal_afinn <- afinn_yelp_big %>%
+  left_join(yelp_balanced %>% rowid_to_column()) %>%
+  select(-rowid)
+
+# get word counts
+wordcounts_yp <- yelp_big_bal_afinn %>%
+  select(text) %>%
+  rowid_to_column() %>%
+  tidytext::unnest_tokens(word, text) %>%
+  group_by(rowid) %>%
+  summarise(n = n()) %>%
+  arrange(n)  %>%
+  mutate(id = 1,
+         cumdist = cumsum(id)) 
+
+
+# create final dataset
+yelp_data <- bind_cols(
+  yelp_big_bal_afinn,
+  wordcounts_yp %>% 
+    arrange(rowid) %>%
+    select(words = n)
+)
+
+# remove the datasets we made along the way
+rm(afinn_yelp_big, yelp_big, yelp_balanced, yelp_big_bal_afinn, yelp_big_factor, wordcounts_yp)
+
+```
+
+
+```{r logit_setup_beyond_mvp, echo=FALSE}
+do_logit <- function (dataset) {
+
+  # for a train/test split: get a random vector as long as our dataset that is 75% TRUE and 25% FALSEe.
+  index <- sample(c(T,F), 
+                  size = nrow(dataset),
+                  replace = T,
+                  prob=c(0.75,0.25))
+  
+  # extract train and test datasets by indexing our dataset using our random index
+  train <- dataset[index,]
+  test <- dataset[!index,]
+  
+  # use `glm()` to run a logistic regression predicting the rating factor based on the AFINN score.
+  logit <- glm(data= train,
+               formula= rating_factor ~ afinn_sent,
+               family="binomial")
+  
+  pred <- predict(logit, 
+                  newdata = test,
+                  type="response")
+  
+  # now predict the outcome based on whichever has the greater probability, find out if each prediction is correct, and compute the accuracy
+  test_results <- test %>%
+    bind_cols(tibble(pred = pred)) %>%
+    mutate(pred = if_else(pred > 0.5, "POS", "NEG")) %>%
+    mutate(correct = if_else (pred == rating_factor, T, F)) %>%
+    summarise(accuracy = sum(correct) / nrow(.)) %>%
+    unlist()
+  
+  return (test_results)
+}
+
+```
+
+
+
+
+
+```{r big_code_block2_beyond_mvp, warning=FALSE, message=FALSE, echo=FALSE, cache=TRUE}
+# for reproducibility, set the random number generator seed
+set.seed(1234)
+
+# how many tests to run on each subset?
+num_tests <- 30
+
+# how many quantiles?
+num_qtiles <- 5
+
+# get the limits of the word-quantiles for display purposes
+qtiles <- quantile(yelp_data$words, probs = seq(0, 1, (1/num_qtiles)))
+
+# find the word-quantile for each review using the fabricatr::split_quantile() function
+yelp_data <- yelp_data %>%
+  mutate(qtile = fabricatr::split_quantile(words, 
+                                           type=num_qtiles))
+
+# get the number of reviews in the smallest subset of BOTH rating and length quintile.
+# we're going to use this to compare groups of the same/similar size.
+minn <- yelp_data %>%
+  group_by(qtile, rating_factor) %>%
+  summarise(n = n()) %>%
+  ungroup() %>%
+  summarise(minn = min(n)) %>%
+  unlist()
+
+# set up an empty results tibble.
+results <- tibble()
+
+# boolean flag: will we print updates to the console?
+# I used this for testing but it should be disabled in the final knit
+verbose <- FALSE
+
+
+# Consider each quantile of review word lengths one at a time
+for (word_qtile in 1:num_qtiles){
+  # within each quantile of reviews broken down by length, consider several different numbers of reviews
+  for (num_qtile in 1:num_qtiles){
+    
+    # number of reviews we will consider in this iteration.
+    num_reviews <- num_qtile * minn/num_qtiles
+    
+    # message for me to keep track
+    if (verbose == TRUE) {
+      message (paste0("Considering ", num_reviews*2, " reviews with word length in the range (",qtiles[[word_qtile]],",",qtiles[[word_qtile+1]],")"))
+    }
+    
+    # I'm doing this in two steps to keep it simple, since we need to get the same number of positive and negative reviews.
+    # First, filter the positive rows we want: the right number of words, and the right number of reviews
+    data_pos <- yelp_data %>%
+      filter(qtile == word_qtile) %>%
+      filter(rating_factor == "POS") %>%
+      slice_sample(n = num_reviews)
+    
+    # Then filter the negative rows we want:
+    data_neg <- yelp_data %>%
+      filter(qtile == word_qtile) %>%
+      filter(rating_factor == "NEG") %>%
+      slice_sample(n = num_reviews)
+    
+    # then combine the positive and negative rows.
+    data_for_logit <- bind_rows(data_pos, data_neg) 
+    
+    # get true percentage of positives, so we can look at sample balance
+    pct_true_pos <- data_for_logit %>%
+      summarise(n = sum(rating_factor == "POS") / nrow(.)) %>%
+      unlist()
+    
+    # run the logistic regression on our data
+    # run the logistic regression on our data num_test times, get accuracy each time, then take the mean
+    result <- vector(mode = "numeric", length = num_tests)
+    for (i in 1:num_tests) result[[i]] <- data_for_logit %>% do_logit()
+    result <- mean(result)
+    # result <- data_for_logit %>%
+    #   do_logit()
+    
+    # add our result to our results tibble. this wouldn't be best practice for thousands of rows, but it's fine here.
+    results <- bind_rows(
+      results,
+      tibble(word_qtile = word_qtile,
+             num_qtile = num_qtile,
+             accuracy = result,
+             pct_true_pos = pct_true_pos)
+    )
+  }
+}
+
+results_oldmodel <- results
+```
+
+In the last section we found that prediction accuracy was better with shorter texts and poor with longer texts. To give a fairer analysis of the model and to smooth out any potential for us to get poor results by chance, here I extend the analysis a bit to run the model 30 times for each data subset--randomly resampling a test/train split each time--and computing the average accuracy across all trials. The results are similar to what we found in the last section and are shown below in Figure \@ref(fig:reminder-heatmap). Accuracy ranges from around 79% to around 83%, and it looks like results are worse for longer reviews.
+
+```{r reminder-heatmap, fig.cap = "Overview of results: Heat map of logistic regression prediction accuracy for the micro-balanced Yelp dataset. Each cell shows average accuracy for 30 tests on random samples.", cache=TRUE}
+results_oldmodel %>%
+  ggplot() +
+  geom_tile(aes(x=word_qtile, y=num_qtile, fill=accuracy)) +
+  scale_x_continuous(breaks = 1:num_qtiles, 
+                     labels = paste0("Q",1:num_qtiles,": ",qtiles, "-",lead(qtiles)) %>% head(-1)) +
+  scale_y_continuous(breaks = 1:num_qtiles,
+                     labels = (2*round(1:num_qtiles * minn/num_qtiles))) +
+  labs(x = "Review Word Length by Quantile",
+       y = "Number of Reviews",
+       fill = "Accuracy")
+
+
+```
+
+This trend is clear in Figure \@ref(fig:reminder-boxplot-length) below, where the first three quintiles perform reasonably well, but then accuracy degrades quickly in Q4 and Q5.
+
+```{r reminder-boxplot-length, fig.cap = "Experiment 2: Boxplots of review accuracy by word-length quintile, showing the worst performance with the longest reviews. Each point is an average of model results based on 30 random samples within the subset.", cache=TRUE}
+results_oldmodel %>%
+  ggplot() +
+  geom_boxplot(aes(x=as.factor(word_qtile), y = accuracy)) +
+  theme_minimal() +
+  scale_x_discrete(breaks = 1:num_qtiles, 
+                     labels = paste0("Q",1:num_qtiles,": ",qtiles, "-",lead(qtiles)) %>% head(-1)) +
+  labs(x = "Review Word Length by Quantile",
+       y = "Accuracy")
+```
+
+
+## Finding Misclassified Reviews
+
+We'll modify our logistic regression function so that it returns its prediction for each review, not only the accuracy for the whole set of reviews.
+
+```{r}
+logit_predict <- function (dataset) {
+
+  # for a train/test split: get a random vector as long as our dataset that is 75% TRUE and 25% FALSEe.
+  index <- sample(c(T,F), 
+                  size = nrow(dataset),
+                  replace = T,
+                  prob=c(0.75,0.25))
+  
+  # extract train and test datasets by indexing our dataset using our random index
+  train <- dataset[index,]
+  test <- dataset[!index,]
+  
+  # use `glm()` to run a logistic regression predicting the rating factor based on the AFINN score.
+  logit <- glm(data= train,
+               formula= rating_factor ~ afinn_sent,
+               family="binomial")
+  
+  pred <- predict(logit, 
+                  newdata = test,
+                  type="response")
+  
+  # now predict the outcome based on whichever has the greater probability, find out if each prediction is correct
+  test_results <- test %>%
+    bind_cols(tibble(pred = pred)) %>%
+    mutate(pred = if_else(pred > 0.5, "POS", "NEG")) %>%
+    mutate(correct = if_else (pred == rating_factor, T, F)) 
+  
+  return (test_results)
+}
+```
+
+
+For this analysis, we will look at the largest set of the longest reviews that we considered in the previous section. This code takes the full set of the longest reviews, downsamples it so that there are the same number of positive and negative reviews, and then fits a logistic regression to a training subset and returns predictions for a test subset.
+
+```{r, cache=TRUE}
+set.seed(1234)
+word_qtil <- 5
+minnnum_reviews <- 5 * minn/num_qtiles 
+   # I'm doing this in two steps to keep it simple, since we need to get the same number of positive and negative reviews.
+    # First, filter the positive rows we want: the right number of words, and the right number of reviews
+    data_pos <- yelp_data %>%
+      filter(qtile == word_qtile) %>%
+      filter(rating_factor == "POS") %>%
+      slice_sample(n = num_reviews)
+    
+    # Then filter the negative rows we want:
+    data_neg <- yelp_data %>%
+      filter(qtile == word_qtile) %>%
+      filter(rating_factor == "NEG") %>%
+      slice_sample(n = num_reviews)
+    
+    # then combine the positive and negative rows.
+    data_for_logit <- bind_rows(data_pos, data_neg) 
+    
+    # run the logistic regression on our data
+    predictions <- data_for_logit %>%
+      logit_predict()
+
+```
+
+We'll use this new dataset for the rest of this section.
+
+## Qualitative Analysis of Misclassified Reviews
+
+Let's begin by looking at a few misclassified reviews in detail. Table \@ref(tab:first-misclas) shows a review that was actually positive, but was predicted to be negative. Although it says a lot of positive-valence words like "epic" and "nice," it also uses negative-valence words like "desperate," "chintzy," and "cheesy" that balance out for an overall AFINN score of just 8. A human reader can tell that the reviewer introduces these negative words just to dismiss them (as in "Feels modern and not *too* cheesy"), but AFINN just sees these words and scores them as negative.
+
+```{r first-misclas }
+predictions[7,]$text %>% 
+  knitr::kable(col.names = "Review Text (True Pos, Misclassified)",
+               caption="True positive misclassified as negative. Note the number of negative-valence words like 'cheesy.'") %>%
+  kableExtra::kable_styling(bootstrap_options = "striped")
+```
+
+Table \@ref(tab:second-misclas) shows a true negative review that was misclassified as positive. The reviewer uses many positive-valence words like "quality," and uses few negative-valence words. Again the positive-valence words are negated or muted by modifiers ("*medium*-quality lamb"), but AFINN can't detect this subtlety.
+
+```{r second-misclas }
+set.seed(1233)
+predictions %>%
+  filter(pred=="POS" & correct==FALSE) %>%
+  slice_sample(n=1) %>% 
+  select(text) %>%
+ knitr::kable(col.names = "Review Text (True Neg, Misclassified)",
+              caption="True negative misclassified as positive. Note the number of positive-valence words like 'quality' and 'good,' and the relative absence of negative-valenec words like 'bad' or 'unpleasant.'" ) %>%
+  kableExtra::kable_styling(bootstrap_options = "striped")
+
+```
+
+As a final check, let's look at the true-negative review with the highest AFINN score to see where AFINN went most wrong. Table \@ref(tab:mostwrong) shows this review, which received an AFINN score of 113 despite being negative. The author here also uses positive-valence words with negating words (e.g. "I *wasn’t* particularly impressed"), which confuses AFINN and leads to a high score. In addition, the author does just have a lot of nice things to say about the meal, which even I find a bit confusing.
+
+
+
+```{r mostwrong}
+predictions %>%
+  filter(correct==FALSE) %>%
+  arrange(desc(afinn_sent)) %>%
+  head(1) %>%
+  select(text) %>%
+  mutate(text = gsub("\n", " ", text)) %>%
+  knitr::kable(col.names = "Review Text",
+               caption = "This review was a true negative, but because it is very long it has a very high AFINN score of 113.") %>%
+  kableExtra::kable_styling(bootstrap_options = "striped")
+```
+
+In addition, this shows a potential source of error when using raw AFINN scores: there is no weighting for review length. A review that makes 50 lukewarm statements will be rated 50 times more positive than a shorter review that only makes one. As Figure \@ref(fig:afinn-word-length) shows, there does seem to be a positive correlation between a review's word length and its AFINN score. It may therefore be worth looking at *normalizing* AFINN scores, either to word length or number of sentences, to see if we can improve our accuracy.
+
+```{r afinn-word-length, fig.cap="Longer reviews seem to have slightly higher AFINN sentiment scores on average, and it also looks like variance increases with word length.", cache=TRUE}
+
+yelp_data %>%
+  ggplot(aes(x=words, y=afinn_sent)) +
+  geom_point() +
+  geom_smooth(method="lm", formula = y~x) +
+  theme_minimal() +
+  labs(x="Words",
+       y="AFINN Sentiment")
+```
+
+```{r}
+lm_fit <- lm(data = yelp_data, formula = afinn_sent ~ words)
+
+lm_fit %>% broom::tidy() %>%
+  knitr::kable(
+    caption = "Results from a linear regrssion predicting AFINN sentiment from review length in words. Although the $R^2$ is low, the model shows good statistical significance."
+  )
+```
+
+
+
+We can draw two conclusions from this (mostly) qualitative look at misclassified reviews:
+
+* Misclassified reviews often use many opposite-valence words but *negate* them using words like "but" or "not."
+* The most-misclassified review by AFINN score was extremely long, suggesting that normalizing AFINN scores by review length might improve our accuracy.
+
+
+## Negations
+
+Let's investigate the effects of negations/negators in our review texts. It's possible, for example, that misclassified reviews could tend to have more negators like "not" or "but." Since AFINN is a pure bag-of-words approach it can't distinguish between "I am happy this is very good" and "I am *not* happy this is *not* very good." Accounting for negators might therefore give us a way to capture this information and improve our predictions.
+
+### Negations and Prediction Accuracy
+
+Let's look at "but"s and "nots" in the correct vs incorrect predictions.
+
+```{r, cache=TRUE}
+predictions <- predictions %>%
+  mutate(buts = stringr::str_count(text, "but "),
+         nots = stringr::str_count(text, "not "),
+         buts_nots = buts + nots)
+```
+
+The average numbers or buts and nots are different:
+
+```{r, message=FALSE, warning=FALSE, cache=TRUE}
+predictions %>%
+  group_by(correct) %>%
+  summarise(avg_negs = mean(buts_nots)) %>%
+  knitr::kable()
+```
+
+Let's look more closely at the number of negators in correctly and incorrectly predicted reviews. Table \@ref(tab:neg-ttest) below shows the results of three two-sided t-tests comparing the average number of "buts", "nots", and combined "buts & nots" for correct and incorrect predictions. While "buts" and "buts & nots" differ significantly, the difference in the number of "nots" is not statistically significant at the standard level of $p<0.05$. The other two results show strong significance.
+
+```{r neg-ttest, warning=FALSE, cache=TRUE, cache=TRUE}
+pred_bn <- predictions %>%
+  t_test(buts_nots ~ correct) %>%
+  mutate(measure = "buts & nots")
+
+pred_b <- predictions %>%
+  t_test(buts ~ correct) %>%
+  mutate(measure = "buts")
+
+pred_n <- predictions %>%
+  t_test(nots ~ correct) %>%
+  mutate(measure = "nots")
+
+bind_rows(pred_bn,
+          pred_b,
+          pred_n) %>%
+  select(measure, statistic, t_df, p_value, alternative) %>%
+  knitr::kable(caption = "Results for two-sided t-tests for equivalence of means in the numbers of 'nots', 'buts', and 'nots and buts' in correct and incorrect predictions for the subset of longer reviews.")
+```
+
+This suggests that negators might  play a role in lowering our model's accuracy, and that accounting for negators somehow might improve our predictions.
+
+### Negations and Word Length
+
+Let's look at the number of negations vs. word length for the longer reviews. Figure \@ref(fig:neg-word-length) below shows that the number of "buts" and "nots" tends to increase with word length.
+
+```{r neg-word-length, message=FALSE, warning=FALSE, fig.cap="The combined number of 'buts' and 'nots' tends to increase as reviews get longer.", cache=TRUE}
+predictions %>%
+  ggplot(aes(x=words, y=buts_nots)) +
+  geom_point(position = "jitter") +
+  geom_smooth(method = "lm", se = FALSE) +
+  theme_minimal()+
+  labs(x = "# Words",
+       y = "# buts and nots")
+```
+
+A linear regression shows that this association is strongly significant, with both model and coefficient p-values below $2^{-16}$. The $R^2$ is 0.295, which looks reasonable based on the plot.
+
+```{r, cache=TRUE}
+
+lm(data = predictions, formula = buts_nots ~ words) %>%
+  summary()
+```
+
+**We can conclude that "buts" and "nots" are associated with both incorrect predictions and with increasing word lengths.**
+
+## Readability
+
+In this section we'll look at how a review's readability relates to model accuracy. We'll use the **sylcount** package's `readability()` function to calculate Flesch-Kincaid (FK) readability scores and see how they interact with accuracy. FK scores are a common way to measure a text's complexity and will be familiar to anyone who uses Microsoft Word. Without going into details, texts with higher FK scores are assumed to be easier to read.
+
+```{r, cache=TRUE}
+
+predictions_re <- predictions %>%
+  pull(text) %>%
+  sylcount::readability() %>%
+  select(-words) %>%
+  bind_cols(predictions, .)
+```
+
+Figure \@ref(fig:fk-plot) shows FK readability ease vs. word length:
+
+```{r fk-plot, fig.cap="FK reading ease for the original set of long reviews. While most scores are between 0 and 100, there are many outliers as low as -250.", cache=TRUE}
+predictions_re %>%
+  ggplot(aes(x=words, y=re)) +
+  geom_point() +
+  theme_minimal() +
+  labs(x = "# Words",
+       y = "Flesch-Kincaid Reasing Ease Score")
+
+```
+
+We immediately see that the FE index has no theoretical minimum value, and this is a problem. Let's look at the shortest super low one to see what's going on. Looks like these reviewers use " . " instead of "." so the algorithm thinks it's all one sentence.
+
+```{r, cache=TRUE}
+predictions_re %>%
+  filter( re == min(re)) %>%
+  filter(words == min(words)) %>%
+  pull(text) %>%
+  stringr::str_trunc(150)
+
+
+```
+
+So we'll fix this by replacing " ." with "." and try again. Results are shown below in Figure \@ref(fig:fk-plot2).
+
+```{r fk-plot2, fig.cap="FK reading ease for the set of long reviews with non-standard period breaks removed. Note there are still many low outliers.", cache=TRUE}
+predictions_re <- predictions %>%
+  mutate(text = stringr::str_replace_all(text,  " \\.", "\\."))  %>%
+  pull(text) %>%
+  sylcount::readability() %>%
+  select(-words) %>%
+  bind_cols(predictions, .)
+
+predictions_re %>%
+  ggplot(aes(x=words, y=re)) +
+  geom_point() +
+  theme_minimal() +
+  labs(x = "# Words",
+       y = "Flesch-Kincaid Reasing Ease Score")
+
+
+```
+
+Since there are still many low outliers, the new shortest least-readable review is presented below in Table \@ref(tab:new-shortest). We can see two things: first, it's honestly full of run-on sentences; and second, it looks like the reviewer is using carriage returns as sentence markers. We can fix the second item by replacing carriage returns with periods.
+
+```{r new-shortest, cache=TRUE}
+predictions_re %>%
+  filter(re == min(re)) %>%
+         filter(words == min(words)) %>%
+  pull(text) %>%
+  stringr::str_trunc(500) %>%
+  knitr::kable(col.names = "Shortest Least-Readable Review",
+               caption = "Statistics for two-sided t-tests comparing the number of correct and incorrect predictions based on the number of nots, buts, and nots & buts they contain.")
+
+
+```
+
+As can be seen in Figure \@ref(fig:fk-plot3), there are still very low readability scores after fixing these "errors" in the dataset. This suggests that many reviews have inherent features, like run-on sentences, that result in genuinely low FK scores.
+
+```{r fk-plot3, fig.cap= "FK reading ease for the set of long reviews with non-standard period breaks and carriage returns removed. Outliers persist.", cache=TRUE}
+predictions_re <- predictions %>%
+  mutate(text = stringr::str_replace_all(text,  " \\.", "\\."),
+         text = stringr::str_replace_all(text, "\\s*\\n\\s*", ". "))  %>%
+  pull(text) %>%
+  sylcount::readability() %>%
+  select(-words) %>%
+  bind_cols(predictions, .)
+
+predictions_re %>%
+  ggplot(aes(x=words, y=re)) +
+  geom_point() + 
+  theme_minimal() +
+  labs(x = "# Words",
+       y = "Flesch-Kincaid Reasing Ease Score")
+```
+
+Note that we have one value that has -Inf readability! This review, included as Table \@ref(tab:ros) below, has a lot of text but no sentence-ending punctuation so it breaks the readability algorithms. We will filter this entry out in the rest of this section.
+
+```{r ros}
+predictions_re %>%
+  filter(re == -Inf) %>%
+  pull(text) %>%
+  stringr::str_trunc(300) %>%
+  knitr::kable(col.names = "Infinitely Unreadable Review")
+```
+
+So let's again now look at readability and prediction accuracy. The boxplots for the distributions look quite similar, as can be seen below in Figure \@ref(fig:boxplot-fk).
+
+```{r boxplot-fk, fig.cap="Distributions of FK reading ease scores for reviews with correct and incorrect predictions. The boxplots are very similar.", cache=TRUE}
+predictions_re %>%
+  filter(re > -Inf) %>%
+  ggplot() +
+  geom_boxplot(aes(x=as.factor(correct), y=re)) +
+  theme_minimal() +
+  labs(x = "Prediction Accuracy",
+       y = "Flesch-Kincaid Reasing Ease Score")
+  
+
+```
+
+Looking at the sample means, they're not so different (after removing the one value of -Inf!)
+
+```{r, message=FALSE, warning=FALSE, cache=TRUE}
+predictions_re %>%
+  group_by(correct) %>%
+  filter(re > -Inf) %>%
+  summarise(avg_re = mean(re)) %>%
+  knitr::kable()
+```
+
+And a two-sided t-test does not show statistical evidence that the distribution means are different. 
+
+```{r warning=FALSE, cache=TRUE}
+predictions_re %>%
+  filter(re > -Inf) %>%
+  t_test(re ~ correct) %>%
+  knitr::kable()
+```
+
+To sum up, I found two problems with using readability measures on this data. First, many texts use either non-standard sentence breaks (e.g. " . " or carriage returns) which confuses the algorithms. But even after fixing these data issues, many texts have little or no punctuation at all. Readability algorithms rely on sentence counts, so they won't work on informal texts without conventional punctuation.
+
+**So readability is not associated with prediction accuracy in this sample of longer reviews.** 
+
+## Summing Up So Far
+
+Let's do a quick recap on what we've learned so far in this section:
+
+* Misclassified reviews often use many opposite-valence words but *negate* them using words like "but" or "not."
+* The most-misclassified review by AFINN score was extremely long, suggesting that normalizing AFINN scores by review length might improve our accuracy.
+* Negators like "buts" and "nots" are associated with both incorrect predictions and with increasing word lengths.
+* Readability is not associated with prediction accuracy in this sample of longer reviews.
+
+## Logistic Regression on AFINN + negators
+
+Based on our findings, let's create a second model where we add negators to our logistic regression. This next code chunk defines Model 2, and the main difference is that now our logistic regression formula is `rating_factor ~ afinn_sent + buts_nots`.
+
+```{r}
+logit_predict_v2 <- function (dataset) {
+
+  # for a train/test split: get a random vector as long as our dataset that is 75% TRUE and 25% FALSE.
+  index <- sample(c(T,F), 
+                  size = nrow(dataset),
+                  replace = T,
+                  prob=c(0.75,0.25))
+  
+  # extract train and test datasets by indexing our dataset using our random index
+  train <- dataset[index,]
+  test <- dataset[!index,]
+  
+  # use `glm()` to run a logistic regression predicting the rating factor based on the AFINN score.
+  logit <- glm(data= train,
+               formula= rating_factor ~ afinn_sent + buts_nots,
+               family="binomial")
+  
+  pred <- predict(logit, 
+                  newdata = test,
+                  type="response")
+  
+  # now predict the outcome based on whichever has the greater probability, find out if each prediction is correct
+  test_results <- test %>%
+    bind_cols(tibble(pred = pred)) %>%
+    mutate(pred = if_else(pred > 0.5, "POS", "NEG")) %>%
+    mutate(correct = if_else (pred == rating_factor, T, F)) 
+  
+  return (test_results)
+}
+```
+
+Let's run the predictive algorithm again using Model 2:
+
+```{r, cache=TRUE}
+data_for_logit <- data_for_logit %>%
+  mutate(buts = stringr::str_count(text, "but "),
+         nots = stringr::str_count(text, "not "),
+         buts_nots = buts + nots) 
+
+predictions_v2 <- data_for_logit %>%
+  logit_predict_v2()
+  
+pred_v1 <- predictions %>%
+  summarise(v1_accuracy = sum(correct)/ n())
+
+pred_v2 <- predictions_v2 %>%
+  summarise(v2_accuracy = sum(correct)/ n())
+
+bind_cols(pred_v1, pred_v2) %>%
+  knitr::kable()
+```
+
+It's about 1.5% more accurate. Not a lot, but a bit.
+
+
+## Logistic Regression on Mean AFINN + negators
+
+Above, we found qualitative reasons to think that longer reviews might have more variable AFINN scores and some quantitative evidence that AFINN scores for longer reviews tended to be slightly more positive. Here we'll try using a review's *mean* AFINN score, instead of the sum of all its word-level AFINN scores, as a predictor along with the number of negators.
+
+First we'll calculate the mean AFINN score for each review.
+
+```{r, message=FALSE, warning=FALSE, cache=TRUE}
+
+afinn_mean <- data_for_logit %>%
+  select(text) %>%
+  rowid_to_column() %>%
+  tidytext::unnest_tokens(word, text) %>%
+  left_join(afinn) %>%
+  group_by(rowid) %>%
+  summarise(afinn_mean = mean(value, na.rm = T)) %>%
+  mutate(afinn_mean = if_else(is.na(afinn_mean) | is.nan(afinn_mean), 0, afinn_mean))
+
+data_for_logit <- data_for_logit %>%
+  bind_cols(afinn_mean) %>%
+  select(-rowid)
+  
+```
+
+
+```{r}
+logit_predict_v3 <- function (dataset) {
+
+  # for a train/test split: get a random vector as long as our dataset that is 75% TRUE and 25% FALSE.
+  index <- sample(c(T,F), 
+                  size = nrow(dataset),
+                  replace = T,
+                  prob=c(0.75,0.25))
+  
+  # extract train and test datasets by indexing our dataset using our random index
+  train <- dataset[index,]
+  test <- dataset[!index,]
+  
+  # use `glm()` to run a logistic regression predicting the rating factor based on the AFINN score.
+  logit <- glm(data= train,
+               formula= rating_factor ~ afinn_mean + buts_nots,
+               family="binomial")
+  
+  pred <- predict(logit, 
+                  newdata = test,
+                  type="response")
+  
+  # now predict the outcome based on whichever has the greater probability, find out if each prediction is correct
+  test_results <- test %>%
+    bind_cols(tibble(pred = pred)) %>%
+    mutate(pred = if_else(pred > 0.5, "POS", "NEG")) %>%
+    mutate(correct = if_else (pred == rating_factor, T, F)) 
+  
+  return (test_results)
+}
+```
+
+And let's run the predictive algorithm again using normalized AFINN score and buts and nots:
+
+```{r, cache=TRUE}
+predictions_v3 <- data_for_logit %>%
+  logit_predict_v3()
+  
+pred_v1 <- predictions %>%
+  summarise(v1_accuracy = sum(correct)/ n())
+
+pred_v2 <- predictions_v2 %>%
+  summarise(v2_accuracy = sum(correct)/ n())
+
+pred_v3 <- predictions_v3 %>%
+  summarise(v3_accuracy = sum(correct)/ n())
+
+bind_cols(pred_v1, pred_v2, pred_v3) %>%
+  knitr::kable()
+```
+
+It looks like these results are a little bit worse. But these are just results from one trial, so the next step would be to do a number of trials to see how results vary.
+
+## Comparing Models: Multiple Trials
+
+To get a better idea of how each model performs, we can effectively do our own cross-fold validation by re-running our trial to see how the results change as we take different test/train samples. *Note* that we'll be sampling with replacement, as opposed to setting up mutually exclusive folds. Could we call this bootstrapping, of a sort?
+
+```{r boostrap-models, fig.cap = "Distribution of results for 100 trials of each model. Model 3, Mean AFINN + Negators, outperforms the other models on average.", cache=TRUE}
+set.seed(1234)
+# logit on just afinn
+reps <- 100
+results_1 <- results_2 <- results_3 <- tibble()
+
+for (i in 1:reps) results_1 <- data_for_logit %>% logit_predict() %>% summarise(v1_accuracy = sum(correct)/ n()) %>% bind_rows(results_1)
+
+for (i in 1:reps) results_2 <- data_for_logit %>% logit_predict_v2() %>% summarise(v2_accuracy = sum(correct)/ n()) %>% bind_rows(results_2)
+
+for (i in 1:reps) results_3 <- data_for_logit %>% logit_predict_v3() %>% summarise(v3_accuracy = sum(correct)/ n()) %>% bind_rows(results_3)
+
+results <- bind_cols(results_1, results_2, results_3) %>%
+  pivot_longer(cols = everything(),
+               names_to = "model", 
+               values_to = "accuracy")
+
+results %>%
+  ggplot(aes(x=as.factor(model), y=accuracy)) +
+  geom_boxplot() +
+  labs(x="Model",
+       y="Accuracy") +
+  scale_x_discrete(labels = c("M1: Sum AFINN", "M2: Sum AFINN + Negators", "M3: Mean AFINN+ Negators")) +
+  theme_minimal()
+```
+
+Figure \@ref(fig:boostrap-models) shows the results from 100 trials each of the three models we've developed, logistic regressions based on AFINN sum, AFINN sum plus negators, and mean AFINN plus negators. Model 3, mean AFINN plus negators, clearly outperforms the other models on average for this dataset of longer reviews.
+
+We can run the full 5x5 analysis again to get a heat map and box plots and see if it helped.
+
+## Re-Running the Big Analysis
+
+Here we'll re-run the big analysis using Model 3, mean AFINN plus negators.
+
+First we'll calculate the mean AFINN score for each review in our full dataset.
+
+```{r, cache=TRUE}
+
+
+afinn_mean <- yelp_data %>%
+  select(text) %>%
+  rowid_to_column() %>%
+  tidytext::unnest_tokens(word, text) %>%
+  left_join(afinn) %>%
+  group_by(rowid) %>%
+  summarise(afinn_mean = mean(value, na.rm = T)) %>%
+  mutate(afinn_mean = if_else(is.na(afinn_mean) | is.nan(afinn_mean), 0, afinn_mean))
+
+yelp_data <- yelp_data %>%
+  bind_cols(afinn_mean) %>%
+  select(-rowid)
+  
+yelp_data <- yelp_data %>%
+  mutate(buts = stringr::str_count(text, "but "),
+         nots = stringr::str_count(text, "not "),
+         buts_nots = buts + nots) %>%
+  mutate(afinn_mean = if_else (is.na(afinn_mean), 0, afinn_mean))
+```
+
+
+```{r logit_setup_beyond_mvp_v3, echo=FALSE}
+do_logit_v3 <- function (dataset) {
+
+  # for a train/test split: get a random vector as long as our dataset that is 75% TRUE and 25% FALSEe.
+  index <- sample(c(T,F), 
+                  size = nrow(dataset),
+                  replace = T,
+                  prob=c(0.75,0.25))
+  
+  # extract train and test datasets by indexing our dataset using our random index
+  train <- dataset[index,]
+  test <- dataset[!index,]
+  
+  # use `glm()` to run a logistic regression predicting the rating factor based on the AFINN score.
+  logit <- glm(data= train,
+               formula= rating_factor ~ afinn_mean + buts_nots,
+               family="binomial")
+  
+  pred <- predict(logit, 
+                  newdata = test,
+                  type="response")
+  
+  # now predict the outcome based on whichever has the greater probability, find out if each prediction is correct, and compute the accuracy
+  test_results <- test %>%
+    bind_cols(tibble(pred = pred)) %>%
+    mutate(pred = if_else(pred > 0.5, "POS", "NEG")) %>%
+    mutate(correct = if_else (pred == rating_factor, T, F)) %>%
+    summarise(accuracy = sum(correct) / nrow(.)) %>%
+    unlist()
+  
+  return (test_results)
+}
+
+```
+
+```{r big_code_model_3, warning=FALSE, message=FALSE, echo=FALSE, cache=TRUE}
+# for reproducibility, set the random number generator seed
+set.seed(1234)
+
+# how many times to run each test?
+num_tests <- 30
+
+# how many quantiles?
+num_qtiles <- 5
+
+# get the limits of the word-quantiles for display purposes
+qtiles <- quantile(yelp_data$words, probs = seq(0, 1, (1/num_qtiles)))
+
+# find the word-quantile for each review using the fabricatr::split_quantile() function
+yelp_data <- yelp_data %>%
+  mutate(qtile = fabricatr::split_quantile(words, 
+                                           type=num_qtiles))
+
+# get the number of reviews in the smallest subset of BOTH rating and length quintile.
+# we're going to use this to compare groups of the same/similar size.
+minn <- yelp_data %>%
+  group_by(qtile, rating_factor) %>%
+  summarise(n = n()) %>%
+  ungroup() %>%
+  summarise(minn = min(n)) %>%
+  unlist()
+
+# set up an empty results tibble.
+results_model3 <- tibble()
+
+# boolean flag: will we print updates to the console?
+# I used this for testing but it should be disabled in the final knit
+verbose <- FALSE
+
+
+# Consider each quantile of review word lengths one at a time
+for (word_qtile in 1:num_qtiles){
+  # within each quantile of reviews broken down by length, consider several different numbers of reviews
+  for (num_qtile in 1:num_qtiles){
+    
+    # number of reviews we will consider in this iteration.
+    num_reviews <- num_qtile * minn/num_qtiles
+    
+    # message for me to keep track
+    if (verbose == TRUE) {
+      message (paste0("Considering ", num_reviews*2, " reviews with word length in the range (",qtiles[[word_qtile]],",",qtiles[[word_qtile+1]],")"))
+    }
+    
+    # I'm doing this in two steps to keep it simple, since we need to get the same number of positive and negative reviews.
+    # First, filter the positive rows we want: the right number of words, and the right number of reviews
+    data_pos <- yelp_data %>%
+      filter(qtile == word_qtile) %>%
+      filter(rating_factor == "POS") %>%
+      slice_sample(n = num_reviews)
+    
+    # Then filter the negative rows we want:
+    data_neg <- yelp_data %>%
+      filter(qtile == word_qtile) %>%
+      filter(rating_factor == "NEG") %>%
+      slice_sample(n = num_reviews)
+    
+    # then combine the positive and negative rows.
+    data_for_logit <- bind_rows(data_pos, data_neg) 
+    
+    # get true percentage of positives, so we can look at sample balance
+    pct_true_pos <- data_for_logit %>%
+      summarise(n = sum(rating_factor == "POS") / nrow(.)) %>%
+      unlist()
+    
+    # run the logistic regression on our data num_test times, get accuracy each time, then take the mean
+    result <- vector(mode = "numeric", length = num_tests)
+    for (i in 1:num_tests) result[[i]] <- data_for_logit %>% do_logit_v3()
+    result <- mean(result)
+    # result <- data_for_logit %>%
+    #   do_logit_v3()
+    
+    # add our result to our results tibble. this wouldn't be best practice for thousands of rows, but it's fine here.
+    results_model3 <- bind_rows(
+      results_model3,
+      tibble(word_qtile = word_qtile,
+             num_qtile = num_qtile,
+             accuracy = result,
+             pct_true_pos = pct_true_pos)
+    )
+  }
+}
+
+```
+
+Our results, shown below in Figure \@ref(fig:newmodel-heatmap), are promising. Accuracy seems to be higher across the board, and while there are some darker patches in the centre, there doesn't seem to be a drop-off as word length increases.
+
+```{r newmodel-heatmap, fig.cap = "Heat map of average accuracy for Model 3. Each cell shows average accuracy for 30 trials on random data subsets.", cache=TRUE}
+results_model3 %>%
+  ggplot() +
+  geom_tile(aes(x=word_qtile, y=num_qtile, fill=accuracy)) +
+  scale_x_continuous(breaks = 1:num_qtiles, 
+                     labels = paste0("Q",1:num_qtiles,": ",qtiles, "-",lead(qtiles)) %>% head(-1)) +
+  scale_y_continuous(breaks = 1:num_qtiles,
+                     labels = (2*round(1:num_qtiles * minn/num_qtiles))) +
+  labs(x = "Review Word Length by Quantile",
+       y = "Number of Reviews",
+       fill = "Accuracy")
+
+
+```
+
+The results are even more promising when we compare them to those from Model 1. Figure \@ref(fig:boxplot-length-model3) shows Model 1 and Model 3's results side by side, and the difference is dramatic: Model 3 gives better mean predictions across all subsets, and the differences are dramatically positive for longer reviews.
+
+```{r boxplot-length-model3, message=FALSE, warning=FALSE, fig.cap = "Comparing average accuracy rates for Model 1 and Model 3. Model 3 gives better on-average predictions for reviews of all word lengths, and some improvements are dramatic.", cache=TRUE}
+
+results_comp <- results_oldmodel %>%
+  left_join(results_model3 %>% rename(accuracy_m3 = accuracy)) %>%
+  mutate(diff = accuracy_m3 - accuracy) %>%
+  select(-pct_true_pos)
+
+results_comp %>%
+  pivot_longer(cols = c("accuracy", "accuracy_m3"), values_to = "accuracy", names_to = "model") %>%
+  ggplot() +
+  geom_boxplot(aes(x=as.factor(word_qtile), y = accuracy, fill = model)) +
+  theme_minimal() +
+  scale_x_discrete(breaks = 1:num_qtiles, 
+                     labels = paste0("Q",1:num_qtiles,": ",qtiles, "-",lead(qtiles)) %>% head(-1)) +
+  labs(x = "Review Word Length by Quantile",
+       y = "Accuracy",
+       fill = "Model") +
+  scale_fill_discrete(labels = c("M1: Sum AFINN", "M3: Mean AFINN + Negators")) +
+  theme(legend.position = "bottom")
+```
+
+Moving Model 3 to use mean AFINN and the number of negators seems to be a Pareto-improvement over Model 1. Model 3 works about as well for all review lengths, and long reviews are about as easy to predict as short ones. As with Model 1, Figure \@ref(fig:newmodel-heatmap) shows that Model 3 seems to work about as well for smaller groups as it does for larger groups.
+
+
+## Conclusion
+
+In this section we looked into last section's strange finding that longer Yelp reviews led to worse predictions using Model 1,  a logistic regression on AFINN sentiment. After a qualitative review of some misclassified long reviews, we looked into two hypotheses for what might be confusing AFINN: that longer reviews might use more negations, and that longer reviews might have lower readability scores. We didn't find any strong connection with readability scores, but we did find that longer reviews use more negations like "but" and "not." This led us to suspect that including the number of negations in our regression might improve the model. We also found that longer reviews tend to have slightly higher scores and that score variance seems to increase with length. This suggested that a normalized AFINN score based on a review's length might be more reliable.
+
+We built and tested two new models. Model 3 performed the best, and improved on Model 1 across all data subsets and did especially well on longer reviews (see Figure \@ref(fig:boxplot-length-model3)). Model 3used a logistic regression based on a review's mean AFINN score and its number of "buts" and "nots." We also improved our model evaluation by using a process similar to cross-fold evaluation, running it 30 times on each data subset using random test/train splits and taking the average accuracy across all trials.
+
+We've shown that you can build a model that is roughly 82.5% accurate at predicting Yelp ratings using fast and simple models (AFINN sentiment, logistic regression) with insights from qualitative analysis of the data (counting negators, switching to mean AFINN). The models take only a few lines of code, run in seconds, and are completely supervisable and interpretable.
+
+We've also shown two things about using Yelp review text as input data. First, ceterus paribus, review length is not a significant issue when predicting Yelp ratings. Second, our models' accuracy didn't change meaningfully based on the number of reviews we used as inputs. Our models were robust across the entire range we considered, from around 6,000 input reviews to around 31,000.
+
+## SessionInfo
+
+```{r sessinfo-beyond-mvp}
+sessionInfo()
+```
+
+<!--chapter:end:07-MVP-plus.Rmd-->
+
+```{r setup_svm, include=FALSE}
+rm(list  = ls())
+knitr::opts_chunk$set(echo = TRUE, cache=TRUE)
+
+library(tidyverse)
+library(tidytext)
+library(textrecipes)
+library(tidymodels)
+library(tidytext)
+library(stringr)
+library(discrim)
+library(readr)
+library(tictoc)
+
+afinn <- tidytext::get_sentiments("afinn")
+```
+
+# Beyond the MVP: Support Vector Machine Classification
+
+## Introduction
+
+In this section, I will extend the minimum viable project (MVP) in the last section and build a *support vector machine* (SVM) classifier to predict Yelp reviews' star ratings. This time, instead of just using AFINN sentiment as the model input, I'll predict ratings based on each review's text, its word length, and its AFINN sentiment. I will again be predicting positive ("POS") and negative ("NEG") ratings following @liu_sentiment_2015's recommendation, and use the approaches outlined in @silge_supervised_2020 and @silge_text_2020. In some cases I have used examples or hints from websites like Stack Overflow, and I've noted that where applicable.
+
+Based on some initial experiments, after loading 200,000 Yelp reviews I will use an aggressive train/test split to use 5% of the data for model training and then test its performance on the other 95%. There are two reasons for this. The first reason is pragmatic: I have much more data than processing power, and 5% of the data amounts to 11,106 reviews which already takes nearly 20 minutes to run through an SVM on my machine. The second reason is optimistic: based on some earlier experiments, I have reason to think that roughly 10,000 reviews is enough to train a decent model, so I would like to seize on this huge dataset to do a really robust test.
+
+## SVM Classifiers
+
+A support vector machine (SVM) classifier is a mathematical model that assigns observations to one of two classes. The mathematics are complicated, so here I will present a brief non-technical summary based on @hastie_elements_2009's exposition (pp. 417-438).
+
+Imagine a dataset consisting of $N$ pairs $(x_1,y_1),(x_2,y_2),\ldots,(x_N,y_N)$, where the $x_i\in\mathbb{R}^p$ and the $y_i\in\{-1,1\}$. In other words, our observations are situated somewhere in a $p$-dimensional Euclidean space with coordinates $x_i$, and also belong to one of two classes given by $y_i$. Intuitively, we could set $p=2$ and imagine throwing a handful of pennies onto a tabletop: each penny has some position on the tabletop that we could label $x_i$, and each penny is either heads or tails, which we could label $y_i$.
+
+For our tabletop example, if we're lucky we might be able to draw a straight line separating all the heads and tails. In more general cases we may be able to define a hyperplane that separates all instances of the two classes. We can call these situations "separable," and the general approach here is to find the hyperplane that divides the two classes with the widest margin $M$ possible on both sides.
+
+In other cases, however, there might be some heads mixed in with the tails, so it may be impossible to draw a straight line or hyperplane that cleanly separates the two classes. If so, we can generalize our approach to permit some misclassifications. The problem then is to find the hyperplane that minimizes the number and degree of misclassifications: in other words, to minimize the number of points on the wrong side of the dividing line and to minimize their distance from it. This is the intuition behind a *support vector classifier.*
+
+A *support vector machine* classifier generalizes the support vector classifier to the case where the boundary is non-linear. Roughly, an SVM expands the input feature space (i.e. the $x_i$) using potentially non-linear transformations and then solves the classification problem in this larger space. Linear boundaries in this larger space will generally correspond to non-linear boundaries in the original space, so intuitively this means we are now considering the possibility that we could draw *curved* lines in our original space to separate our two classes. The details, however, are highly technical, and the reader is referred to @hastie_elements_2009 (417-438) for more information.
+
+## Preparing the Data
+
+I will again work with the large Yelp dataset available [at this link](https://www.kaggle.com/yelp-dataset/yelp-dataset), this time loading the first 500k reviews.
+
+This code block does the following:
+
+* Load our data;
+* Factor it into POS (4-5 stars) and NEG (1-2 stars);
+* Balance POS and NEG by random downsampling;
+* Get each review's AFINN sentiment score; and
+* Get each review's word count.
+
+
+```{r yelp_svm_load, message=FALSE, warning=FALSE, cache=TRUE, eval=FALSE}
+set.seed(1234)
+
+# figure out how to do it reading between the lines of this stackoverflow:
+# https://stackoverflow.com/questions/53277351/read-first-1000-lines-from-very-big-json-lines-file-r
+
+yelp_big_factor <- readLines("../tests/data/yelp_academic_dataset_review.json", n = 500000) %>%
+  textConnection() %>%
+  jsonlite::stream_in(verbose=FALSE) %>%
+  select(stars, text) %>%
+  mutate(rating_factor = case_when(
+    stars < 3 ~ "NEG",
+    stars > 3 ~ "POS") %>%
+      as.factor()
+  ) %>%
+  select(-stars) %>%
+  drop_na() 
+
+# random downsampling to balance POS and NEG in the dataset
+yelp_balanced <- yelp_big_factor %>%
+  filter(rating_factor == "NEG") %>%
+  bind_rows(yelp_big_factor%>%
+              filter(rating_factor == "POS") %>%
+              slice_sample(n=yelp_big_factor %>% filter(rating_factor == "NEG") %>% nrow() ))
+
+# get AFINN scores for each review
+tic()
+afinn_yelp_big <- yelp_balanced %>%
+  rowid_to_column() %>%
+  tidytext::unnest_tokens(word, text) %>%
+  left_join(afinn) %>%
+  group_by(rowid) %>%
+  summarise(afinn_sent = sum(value, na.rm = T))
+toc()
+
+# add the AFINN scores to the original tibble
+yelp_big_bal_afinn <- afinn_yelp_big %>%
+  left_join(yelp_balanced %>% rowid_to_column()) %>%
+  select(-rowid)
+
+# get wordcounts
+wordcounts_yp <- yelp_big_bal_afinn %>%
+  select(text) %>%
+  rowid_to_column() %>%
+  tidytext::unnest_tokens(word, text) %>%
+  group_by(rowid) %>%
+  summarise(n = n()) %>%
+  arrange(n)  %>%
+  mutate(id = 1,
+         cumdist = cumsum(id)) 
+
+# add wordcounts to create final dataset
+yelp_data <- bind_cols(
+  yelp_big_bal_afinn,
+  wordcounts_yp %>% 
+    arrange(rowid) %>%
+    select(words = n))
+
+# remove transient datasets, keep only the final one
+
+rm (yelp_big, yelp_big_factor, yelp_balanced, afinn_yelp_big, yelp_big_bal_afinn, wordcounts_yp)
+```
+
+```{r secret_load_yelp_data, include=FALSE}
+# don't include this in the final version, but save the yelp data if we have it and load the yelp data if we don't have it.
+if (exists("yelp_data")) save(list="yelp_data", file="data/yelp_data.Rdata")
+
+if (!exists("yelp_data")) load("data/yelp_data.Rdata")
+```
+
+Then we'll create a train/test split on the entire dataset, using 5% for training and 95% for testing.
+
+
+```{r yelp_svm_split, cache=TRUE}
+set.seed(1234)
+
+yelp_split <- initial_split(yelp_data,
+                            strata = rating_factor,
+                            prop = 0.05)
+  
+yelp_train <- training(yelp_split)
+
+yelp_test <- testing(yelp_split)
+
+```
+
+Then we set up ten cross-validation folds that we will use to evaluate the models we build using our training data.
+
+```{r yelp_svm_folds, cache=TRUE}
+yelp_folds <- vfold_cv(yelp_train)
+```
+
+## SVM Classification
+
+First we set up our SVM model, here using the **liquidSVM** package following @silge_supervised_2020. 
+
+```{r, cache=TRUE}
+svm_model <- svm_rbf() %>%
+  set_mode("classification") %>%
+  set_engine("liquidSVM")
+
+svm_model
+```
+
+Next we'll set up an SVM recipe based on entirely on text tokens. A good next step would be to use what I've learned in earlier sections, for example by including negators, word count, and sentiment, but to keep it simple we'll leave them out here. 
+
+We'll process our text using these steps:
+
+* Tokenizing the text into words;
+* Removing stopwords from the default "snowball" dictionary;
+* Filtering out tokens that occur fewer than 50 times;
+* Choosing a maximum number of tokens, which we will tune as a hyperparameter; and,
+* Applying a TFIDF to the text.
+
+We could also consider n-grams (i.e. considering n-word strings of text), which might be useful for catching negators. I've included the code in this block but commented it out. For now we'll stick with individual words.
+
+```{r, cache=TRUE}
+
+yelp_rec <-
+  recipe(rating_factor ~ text, #+ words + afinn_sent,
+         data = yelp_train) %>%
+  step_tokenize(text) %>%
+  step_stopwords(text) %>%
+#    step_ngram(text, min_num_tokens = 1L, num_tokens = 1) %>%
+  step_tokenfilter(text,
+                   max_tokens = tune(),
+                   min_times = 50) %>%
+  step_tfidf(text)
+
+  yelp_rec
+```
+
+Next we set up our workflow:
+
+```{r, cache=TRUE}
+svm_wf <- workflow() %>%
+  add_recipe(yelp_rec) %>%
+  add_model(svm_model)
+
+svm_wf
+```
+
+We have set up our recipe to let us try several different values for the maximum number of tokens, so here we'll set up grid of values to test. Based on some scratch work, I'm going to use three values between 500 and 1250.
+
+```{r, cache=TRUE}
+param_grid <- grid_regular(
+  max_tokens(range = c(500,1250)),
+  levels=3
+)
+```
+
+
+Here we set up tuning grid and tune our model on the cv-folds we've set up. On an initial test run using 20k Yelp reviews (~9k after balancing) this took ~480 seconds (8 min). With 11,106 training inputs and only 1-grams it takes ~1200s (20 min) on my machine. With 11,106 training inputs and 1-, 2-, and 3-grams it takes ~ 2300s (38 min).
+
+```{r, message=FALSE, warning=FALSE, cache=TRUE, eval=FALSE}
+set.seed(1234)
+
+tic()
+tune_rs <- tune_grid(
+  svm_wf,
+  yelp_folds,
+  grid = param_grid,
+  metrics = metric_set(accuracy, sensitivity, specificity),
+  control = control_resamples(save_pred = TRUE)
+)
+toc()
+```
+
+```{r include=FALSE}
+if (exists("tune_rs")) save(list = "tune_rs", file = "data/tune_rs.Rdata")
+
+if (!exists("tune_rs")) load ("data/tune_rs.Rdata")
+```
+
+
+
+Now we can evaluate our modeling by looking at the accuracy across our tuning grid:
+
+```{r, cache=TRUE}
+show_best(tune_rs, metric = "accuracy") %>%
+  knitr::kable()
+```
+
+The accuracy was particularly surprisingly good across for each number of tokens. Since we got the best results using 1250 tokens, we'll use 1250 for the rest of our experiment.
+
+Then we finalize our workflow using the results of our model tuning.
+
+```{r finalize_workflow_svm_not_run, cache=TRUE, eval=FALSE}
+best_accuracy <- select_best(tune_rs, "accuracy")
+
+svm_wf_final <- finalize_workflow(
+  svm_wf,
+  best_accuracy
+)
+```
+
+At this point, @silge_supervised_2020 says we  use `last_fit()` to fit our model to our training data and evaluate it on our testing data. On initial runs, this worked and gave a final accuracy rate of roughly 83%. **But two problems arose:**
+
+1. **It stopped working reliably!** I have no idea what changed, but all of my code started to crash at the `last_fit()` stage. Even behind-the-scenes scratch work now crashes, despite working fine a few days ago. *But then it worked again when I tried to knit the final version of this document!*
+2. **When it did work, I couldn't use the final fit object to make predictions.** After reading the documentation, it does seem that objects created by `last_fit()` includes the fitted workflow in a list column called `.workflow`. However, it took me a while to figure this out, and by the time I did `last_fit()` had stopped working.
+
+When it **did** work unexpectedly I saved the results to file, and the rest of this report uses the saved results. Here is the the code that worked sporadically:
+
+```{r last_fit_svm_not_run, cache=TRUE, eval=FALSE}
+# get final results
+final_res <- svm_wf_final %>%
+  last_fit(yelp_split,
+           metrics = metric_set(accuracy))
+
+```
+
+```{r}
+#save(list = "final_res", file = "data/final_res.Rdata")
+load("data/final_res.Rdata")
+```
+
+We can then see the results which look quite good, with roughly 83% accuracy on the test data:
+
+```{r}
+
+# Then we can see results with `collect_metrics()` and `collect_predictions()`.
+final_res_metrics <- collect_metrics(final_res)
+final_res_predictions <- collect_predictions(final_res)
+
+final_res_metrics %>%
+  knitr::kable()
+```
+
+And Figure \@ref(fig:svm-heatmap-works-now) shows a heatmap of the confusion matrix. The off-diagonals look reasonably symmetric, so the model isn't biased significantly. 
+
+```{r svm-heatmap-works-now}
+
+# Visualize the model's performance with a heatmap of the confusion matrix.
+# When it worked, the results were nearly symmetric.
+final_res_predictions %>%
+  conf_mat(truth = rating_factor, estimate = .pred_class) %>%
+  autoplot(type = "heatmap")
+```
+
+## Predicting with `last_fit()`
+
+Now we'll try to use the results from `last_fit()` to predict a *new* result. Here we'll pull the fitted workflow and try to use it to predict the values for the test set.
+
+*But this code fails!*
+
+```{r, eval=FALSE}
+wf <- final_res$.workflow[[1]]
+
+test <- wf %>%
+  predict(new_data = yelp_test[1:10,])
+
+yelp_test %>%
+  bind_cols(test) %>%
+  mutate(correct = (.pred_class == rating_factor)) %>%
+  summarise(sum(correct) / n())
+
+```
+
+We get the following output:
+
+> SVM not known from cookie 35  cookies.size: 0!
+Error in test.liquidSVM(model = object, newdata = newdata, labels = 0, : Should not happen!! liquid_svm_test
+
+This concludes my experiment with `last_fit()`.
+
+## Fitting and Predicting Using `fit()`
+
+Instead of using `last_fit()`, we should be able to just use `fit()` to fit our final workflow to our training data. This creates a fitted workflow object that includes our preprocessing recipe and our fitted model. It's a 20.4 MB file when saved to disk.
+
+
+```{r pretend_to_do_final_fit, eval=FALSE}
+
+final_fit <- fit(svm_wf_final, 
+                 data = yelp_train)
+
+final_fit
+```
+
+```{r load_saved_final_fit, echo=FALSE}
+load("data/final_fit.Rdata")
+
+final_fit
+
+```
+
+Then we can use our `final_fit` object to predict rating factors for our test data.
+
+```{r pretend_to_do_predictions, eval=FALSE}
+
+preds <- final_fit %>%
+  predict(new_data = yelp_test)
+```
+
+```{r load_predictions, include=FALSE}
+load("data/preds.Rdata")
+```
+
+To evaluate our fit, we can bind our prediction columns to our test data and check to see how often the true and predicted ratings agree.
+
+```{r evaluate-predictions, cache=TRUE}
+yelp_test <- bind_cols(yelp_test, preds) %>%
+  mutate(correct = (.pred_class == rating_factor))
+
+yelp_test %>%
+  summarise(sum(correct) / n())
+
+```
+
+But now our accuracy drops to 67% and I'm not sure why! According to the help docs `last_fit()` is supposed to "[f]it the final best model to the training set and evaluate the test set," and that's exactly what I did above. But the results here are quite different.
+
+Since the SVM process is slow and since I've had some kind of toolchain breakdown, I wasn't able to get to the root of the problem in time for this week's report.
+
+## Conclusions
+
+In this section I created a support vector machine (SVM) classifier model to predict whether Yelp reviews were positive or negative based on their text. In an initial experiment, according to `tune::last_fit()` the model achieved ~89% testing accuracy on~11,000 observations, and 83% accuracy on ~211,000 testing observations. However, on subsequent runs `tune::last_fit()` stopped working. When it started to work again, I wasn't able to use the fitted model to make predictions. I then fit the final model manually on the training data and tested it against the test data, but the accuracy dropped to 67%.
+
+## SessionInfo
+
+```{r sessinfo-svm}
+sessionInfo()
+```
+
+## References
+
+<!--chapter:end:08-SVM.Rmd-->
+
+`r if (knitr:::is_html_output()) '
+# References {-}
+'`
+
+<!--chapter:end:99-references.Rmd-->
+

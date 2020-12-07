@@ -501,7 +501,7 @@ get_review <- function(x){
 
 Now that we have the product ids, we can loop through them and call the API to get the reviews.
 
-```{r}
+```{r, eval=FALSE}
 # set up our results tibble
 all_reviews <- tibble()
 
