@@ -1,11 +1,39 @@
 # A First LASSO Attempt
 
+```{r include=FALSE, eval=FALSE}
+#code used for saving things to disk
+# save (list = c(
+#   "lasso_fit1",
+# "yelp_wf1",
+# "lasso_model1",
+# "yelp_folds",
+# "lasso_rs1",
+# "tune_rs2",
+# "final_lasso1",
+# "lasso_fit2",
+# "lasso_fit3",
+# "lasso_results_short",
+# "lasso_results_long",
+# "snowball_rs",
+# "smart_rs",
+# "stopwords_iso_rs",
+# "unigram_rs",
+# "bigram_rs",
+# "trigram_rs",
+# "final_rs",
+# "final_fitted"
+# 
+# ), file = "first-lasso.Rdata")
+```
+
 ```{r setup_lasso, include=FALSE}
 library(tidyverse)
 library(tidymodels)
 library(lubridate)
 library(textrecipes)
 library(tictoc)
+
+load("first-lasso.Rdata")
 ```
 
 
@@ -65,7 +93,7 @@ Here, following SMLTAR, we will use a recipe with the following steps:
 ```{r first_recipe, cache=TRUE}
 num_tokens <- 250
 
-yelp_rec <- recipe(rating_num ~ text, data = yelp_train) %>%
+yelp_rec1 <- recipe(rating_num ~ text, data = yelp_train) %>%
   step_tokenize(text) %>%
   step_tokenfilter(text, max_tokens = num_tokens) %>%
   step_tfidf(text) %>%
@@ -73,48 +101,46 @@ yelp_rec <- recipe(rating_num ~ text, data = yelp_train) %>%
   
 rm(num_tokens)
 
-yelp_rec
+yelp_rec1
 ```
 
 Next, @silge_supervised_2020 suggest we create a `workflow()` object that combines preprocessing steps and models. 
 
 ```{r yelp_wf, cache=TRUE}
 
-yelp_wf <- workflow() %>%
-  add_recipe(yelp_rec) 
+yelp_wf1 <- workflow() %>%
+  add_recipe(yelp_rec1) 
   
-yelp_wf
+yelp_wf1
 ```
 
 We now define a lasso regression model using `parsnip`. My understanding is that this acts as a "tidy wrapper" around other functions/packages, in this case `glmnet`, that lets you use them in a tidy way. I believe it can also make it easier to swap out models or parameters without having to completely rewrite your codebase.
 
 Note that `penalty = 0.1` is arbitrary and we'll look into that parameter more closely later.
 
-```{r, cache=TRUE}
-lasso_model <- parsnip::linear_reg(penalty = 0.1, mixture = 1) %>%
+```{r, eval=FALSE}
+lasso_model1 <- parsnip::linear_reg(penalty = 0.1, mixture = 1) %>%
   set_mode("regression") %>%
   set_engine("glmnet")
 
-lasso_model
+lasso_model1
 
 ```
 
-Now we add the lasso model to the workflow and run the model. This takes about 9 seconds on my machine using only 250 tokens. (I expect we'll need to use more to get a good result.)
+Now we add the lasso model to the workflow and run the model. This takes about 10 seconds on my machine using only 250 tokens. (I expect we'll need to use more to get a good result.)
 
-```{r, cache=TRUE}
-tic()
-lasso_fit <- yelp_wf %>%
-  add_model(lasso_model) %>%
+```{r, eval=FALSE}
+
+lasso_fit1 <- yelp_wf1 %>%
+  add_model(lasso_model1) %>%
   fit(data = yelp_train)
-toc()
-
 
 ```
 
 We can look at the terms with the highest coefficients in the model:
 
 ```{r yelp_fit_terms, cache=TRUE}
-lasso_fit %>%
+lasso_fit1 %>%
   pull_workflow_fit() %>%
   tidy() %>%
   arrange(-estimate)
@@ -126,32 +152,34 @@ This already doesn't look too promising; only 5 terms have positive coefficients
 
 Following @silge_supervised_2020, we'll evaluate the model using cross-fold validation, which is a way of trying to squeeze as much validation as you can out of a finite dataset. We will resample our training dataset to create 10 *new* datasets, and in each one we'll use 90% for training and 10% for assessment.
 
-```{r fit_first_lasso_resamples, cache=TRUE}
+```{r fit_first_lasso_resamples, eval=FALSE}
 set.seed(1234)
 yelp_folds <- vfold_cv(yelp_train)
 
-lasso_rs <- fit_resamples(
-  yelp_wf %>% add_model(lasso_model),
+lasso_rs1 <- fit_resamples(
+  yelp_wf1 %>% add_model(lasso_model1),
   yelp_folds,
   control = control_resamples(save_pred = TRUE)
 )
+```
 
-tic()
-lasso_rs
-toc()
+```{r}
+
+lasso_rs1
+
 ```
 
 Our $R^2$ and RMSEs look really quite terrible:
 
 ```{r, cache=TRUE}
-lasso_rs %>%
+lasso_rs1 %>%
   collect_metrics()
 ```
 
 And when we plot predictions vs. true values, that also looks quite terrible:
 
 ```{r, cache=TRUE}
-lasso_rs %>%
+lasso_rs1 %>%
   collect_predictions() %>%
   ggplot(aes(rating_num, .pred, color = id)) +
   geom_abline(slope=1, intercept = 0,color = "gray80", size = 1.5) +
@@ -177,11 +205,11 @@ We can repeat the process but use *model tuning* to set the paramters in our las
 
 
 ```{r, cache=TRUE}
-tune_model <- linear_reg(penalty = tune(), mixture = 1) %>%
+tune_model1 <- linear_reg(penalty = tune(), mixture = 1) %>%
   set_mode("regression") %>%
   set_engine("glmnet")
 
-tune_model
+tune_model1
 ```
 
 We create a grid of values to try:
@@ -192,26 +220,26 @@ lambda_grid <- grid_regular(penalty(), levels = 30)
 
 And now we use the function `tune_grid()` to fit our model at many different parameter values to see how they fare on our cross-fold validation set. *Note: this takes a long time, 81.5 seconds for the 250-token model on my machine.*
 
-```{r, cache=TRUE}
+```{r, eval=FALSE}
 set.seed(1234)
-tic()
-tune_rs <- tune_grid(
-  yelp_wf %>% add_model(tune_model),
+
+tune_rs2 <- tune_grid(
+  yelp_wf1 %>% add_model(tune_model1),
   yelp_folds,
   grid = lambda_grid,
   control = control_resamples(save_pred = TRUE)
 )
-toc()
-tune_rs
+```
 
-
+```{r}
+tune_rs2
 ```
 
 
 We can visualize our lasso model's performance for each parameter value:
 
 ```{r, cache=TRUE}
-tune_rs %>%
+tune_rs2 %>%
   collect_metrics() %>%
   ggplot(aes(penalty, mean, color = .metric)) +
   geom_errorbar(aes(
@@ -234,22 +262,22 @@ Since we want the best model performance possible, we'll follow @silge_supervise
 
 
 ```{r, cache=TRUE}
-tune_rs %>%
+tune_rs2 %>%
   show_best("rmse")
 ```
 
 And we can extract the penalty that gives us the lowest RMSE using the `select_best()` function as follows:
 
 ```{r, cache=TRUE}
-lowest_rmse <- tune_rs %>%
+lowest_rmse <- tune_rs2 %>%
   select_best("rmse")
 ```
 
 And we can put it all together into a final workflow:
 
-```{r, cache=TRUE}
-final_lasso <- finalize_workflow(
-  yelp_wf %>% add_model(tune_model),
+```{r, eval=FALSE}
+final_lasso1 <- finalize_workflow(
+  yelp_wf1 %>% add_model(tune_model1),
   lowest_rmse
 )
 
@@ -257,8 +285,8 @@ final_lasso <- finalize_workflow(
 
 We can then do a final fit by testing our model's predictions against our testing data using the following command.
 
-```{r, cache=TRUE}
-lasso_fit <- final_lasso %>%
+```{r, eval=FALSE}
+lasso_fit2 <- final_lasso1 %>%
   last_fit(split = yelp_split)
   
 ```
@@ -266,7 +294,7 @@ lasso_fit <- final_lasso %>%
 And then we can extract its predictions and plot them against the true values to see how it looks.
 
 ```{r, cache=TRUE}
-lasso_fit %>%
+lasso_fit2 %>%
   collect_predictions() %>%
     ggplot(aes(rating_num, .pred)) +
   geom_abline(slope=1, intercept = 0,color = "gray80", size = 1.5) +
@@ -287,7 +315,7 @@ This model looks better in some ways but worse in others. It's better in that it
 
 Here is the whole process again in a single code block using 1000 tokens.
 
-```{r yelp_lasso_1000_tokens, message=FALSE, warning=FALSE, cache=TRUE}
+```{r yelp_lasso_1000_tokens,eval=FALSE}
 
 num_tokens <- 1000
 
@@ -331,14 +359,14 @@ yelp_folds <- vfold_cv(yelp_train)
 
 # fit our model at many different parameter values using the cross-fold validation set
 set.seed(1234)
-tic()
+
 tune_rs <- tune_grid(
   yelp_wf %>% add_model(tune_model),
   yelp_folds,
   grid = lambda_grid,
   control = control_resamples(save_pred = TRUE)
 )
-toc()
+
 
 # extract penalty that gives us the lowest RMSE
 lowest_rmse <- tune_rs %>%
@@ -351,15 +379,19 @@ final_lasso <- finalize_workflow(
 )
 
 # do a last fit
-lasso_fit <- final_lasso %>%
+lasso_fit3 <- final_lasso %>%
   last_fit(split = yelp_split)
+```
 
+```{r}
 # see the metrics
-lasso_fit %>%
+lasso_fit3 %>%
   collect_metrics()
+```
 
+```{r}
 # and plot it
-lasso_fit %>%
+lasso_fit3 %>%
   collect_predictions() %>%
     ggplot(aes(rating_num, .pred)) +
   geom_abline(slope=1, intercept = 0,color = "gray80", size = 1.5) +
@@ -449,7 +481,7 @@ return(lasso_fit)
 
 Then we can use this function to easily run lasso regressions on different datasets.
 
-```{r yelp_short_reviews_lasso, message=FALSE, warning=FALSE, cache=TRUE}
+```{r yelp_short_reviews_lasso, eval=FALSE}
 
 max_length <- 125
 min_length <- 1
@@ -471,12 +503,15 @@ reviews_yelp_short <- wordcounts_yelp %>%
 
 
 lasso_results_short <- run_lasso(dataset = reviews_yelp_short, num_tokens = 1000)
+```
 
-
+```{r}
 # see the metrics
 lasso_results_short %>%
   collect_metrics()
+```
 
+```{r}
 # and plot it
 lasso_results_short %>%
   collect_predictions() %>%
@@ -499,7 +534,7 @@ This gives us an $R^2$ of 0.39, slightly better than our full dataset. But looki
 For completeness, we'll also try only using the long reviews > 125 words. It's possible that these reviews contain more useful information due to their length. This leaves us with 3,104 reviews.
 
 
-```{r yelp_long_reviews_lasso, message=FALSE, warning=FALSE, cache=TRUE}
+```{r yelp_long_reviews_lasso,eval=FALSE}
 
 max_length <- 10000
 min_length <- 125
@@ -513,20 +548,19 @@ wordcounts_yelp <- reviews_yelp %>%
   left_join (reviews_yelp %>% rowid_to_column(), by ="rowid") %>%
   select(-rowid)
 
-
-
 reviews_yelp_long <- wordcounts_yelp %>%
   filter(n <= max_length & n >= min_length )
 
-
-
 lasso_results_long <- run_lasso(dataset = reviews_yelp_long, num_tokens = 1000)
+```
 
-
+```{r}
 # see the metrics
 lasso_results_long %>%
   collect_metrics()
+```
 
+```{r}
 # and plot it
 lasso_results_long %>%
   collect_predictions() %>%
@@ -566,43 +600,34 @@ Next we set up a workflow that only has a model, using our tunable regularized r
 
 ```{r}
 tunable_wf <- workflow() %>%
-  add_model(tune_model)
+  add_model(tune_model1)
 
 tunable_wf
 ```
 
 Now we will combine our functionized preprocessor with this tunable model and try three different stopword sets: snowball, smart, and stopwords-iso. *This takes about 8 minutes on my machine.*
 
-```{r, message=FALSE, warning=FALSE, cache=TRUE}
+```{r, eval=FALSE}
 set.seed(1234)
-tic()
 snowball_rs <- tune_grid(
   tunable_wf %>% add_recipe(stopword_rec("snowball")),
   yelp_folds,
   grid = lambda_grid
 )
-toc()
 
 set.seed(1234)
-tic()
 smart_rs <- tune_grid(
   tunable_wf %>% add_recipe(stopword_rec("smart")),
   yelp_folds,
   grid = lambda_grid
 )
-toc()
 
 set.seed(1234)
-tic()
 stopwords_iso_rs <- tune_grid(
   tunable_wf %>% add_recipe(stopword_rec("stopwords-iso")),
   yelp_folds,
   grid = lambda_grid
 )
-toc()
-
-
-
 ```
 
 And we plot their performance, using code straight from SMLTAR:
@@ -667,21 +692,15 @@ We will try three cases, using n-grams where n=1, n=1,2, and n=1,2,3. I've added
 * 2-grams: 267s
 * 3-grams: 495s
 
-```{r yelp_test_ngrams, cache=TRUE}
+```{r yelp_test_ngrams, eval=FALSE}
 set.seed(123)
-tic()
 unigram_rs <- tune_ngram(list(n = 1))
-toc()
 
-tic()
 set.seed(234)
 bigram_rs <- tune_ngram(list(n = 2, n_min = 1))
-toc()
 
-tic()
 set.seed(345)
 trigram_rs <- tune_ngram(list(n = 3, n_min = 1))
-toc()
 
 ```
 
@@ -770,16 +789,14 @@ final_grid %>%
 
 Next we train our models using the tuning grid:
 
-```{r final_tuning, cache= TRUE}
-
-tic()
+```{r final_tuning, eval=FALSE}
 final_rs <- tune_grid(
   tune_wf,
   yelp_folds,
   grid = final_grid,
   metrics = metric_set(rmse, mae, mape)
 )
-toc()
+
 ```
 
 
@@ -823,11 +840,11 @@ final_wf
 
 Which we can then use to do one last final fit and view its metrics:
 
-```{r final_lasso_fit, cache= TRUE}
-tic()
+```{r final_lasso_fit, eval=FALSE}
 final_fitted <- last_fit(final_wf, yelp_split)
-toc()
+```
 
+```{r}
 collect_metrics(final_fitted)
 ```
 
@@ -836,10 +853,10 @@ This plot uses the **vip** package to extract the most important positive and ne
 ```{r, cache= TRUE}
 library(vip)
 
-scotus_imp <- pull_workflow_fit(final_fitted$.workflow[[1]]) %>%
+imp <- pull_workflow_fit(final_fitted$.workflow[[1]]) %>%
   vi(lambda = lowest_mae$penalty)
 
-scotus_imp %>%
+imp %>%
   mutate(
     Sign = case_when(
       Sign == "POS" ~ "Better",

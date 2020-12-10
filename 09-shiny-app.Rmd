@@ -1,0 +1,241 @@
+```{r, include=FALSE}
+rm (list = ls())
+library(tidyverse)
+
+load("data/yelp_data.Rdata")
+load("data/model_specs.Rdata")
+load("data/predictions.Rdata")
+
+afinn <- tidytext::get_sentiments("afinn")
+```
+
+
+# Building a Shiny App
+
+## The App!
+
+Let's start with the fun stuff: the completed app. If the app doesn't load in the window below, [see it in action at this link.](https://chris31415926535.shinyapps.io/11-shiny-app/)
+
+```{r load_app}
+knitr::include_app(url="https://chris31415926535.shinyapps.io/11-shiny-app/", height = "600px")
+```
+
+
+
+## Exporting Our Models
+
+To start, we'll train the model on the *full* balanced Yelp dataset of ~211k reviews. Recall that we broke input data into five quantiles and fit a logistic regression on each quantile. Then we'll save the information we need to run this model in an app, namely the logistic regression coefficients and the quantile boundaries in word numbers.
+
+But the model objects that we get from `glm` are enormous! Their size in memory is approximately 282 megabytes.
+
+```{r models_for_shiny}
+# create and extract a list of 5 models, one for each quintile
+models <- yelp_data %>%
+  group_by(qtile) %>%
+  nest() %>%
+  mutate(logit = purrr::map(data, glm, 
+                     formula = rating_factor ~ afinn_mean + buts_nots,
+                     family = "binomial")) %>%
+  select(qtile, logit) %>%
+  arrange(qtile)
+```
+
+```{r object_size}
+object.size(models) %>% format(units = "Kb")
+```
+
+And according to [this link](https://blogs.oracle.com/r/is-the-size-of-your-lm-model-causing-you-headaches), it's actually the *even larger* serialized size that matters. Either way that's way too big, since all we actually need is some numeric coefficients.
+
+The `glm` objects have a bunch of extra baggage in them including the entire dataset used to create the model and the residuals. I tried setting a lot of model pieces to `NULL` to get the size down, but I couldn't get the 5 model objects below about 20 megs.
+
+But all we need is the coefficients, so let's try extracting those. Since we've `arranged()` the models by quantile, we can extract the coefficients into an ordered list. 
+
+```{r}
+
+model_coefs <- models %>%
+  pull(logit) %>%
+  purrr::map(coefficients)
+
+model_coefs %>%
+  object.size() %>% format(units = "Kb")
+```
+
+This fits into about 2.4 Kb, for a compression ratio of roughly `r 2.4 / 276215.9`.
+
+## Prepping and Testing Our Models
+
+Of course then to use these coefficients we need to put them into the right equation. A quick trip to [the Wikipedia page for logistic regression](https://en.wikipedia.org/wiki/Logistic_regression) will remind us that, in this case, the probability that a text input has classification "POS" is:
+
+$P = \frac{1}{1 + e^{-(\beta_0 + \beta_1x_1 + \beta_2x_2 )}}$
+
+So we can define a function to get this probability given some prepared input data and a named vector of coefficients:
+
+```{r}
+# function to get probability of classification
+get_prob <- function (input_data, coefs){
+  
+  # first get log odds
+  log_odds <- coefs["(Intercept)"] + coefs["afinn_mean"] * input_data$afinn_mean + coefs["buts_nots"] * input_data$buts_nots %>%
+    unname()
+  
+  # then get prob
+  prob <- 1 / (1 + exp(-log_odds)) %>%
+    unname()
+  
+  return (prob)
+}
+```
+
+Before we can test `get_prob()`, we need to define a helper function to prepare some input text by calculating its mean AFINN score and the number of buts and nots.
+
+```{r}
+# function to prepare a text vector and return a prepared tibble with afinn_mean and buts_nots
+prepare <- function(text) {
+  input_data <- tibble(text = text) 
+  
+  input_data <- input_data %>%
+    tidytext::unnest_tokens(output = word, input = text) %>%
+    left_join(afinn, by="word") %>%
+    summarise(afinn_mean = mean(value, na.rm = T)) %>%
+    mutate(afinn_mean = if_else(is.na(afinn_mean) | is.nan(afinn_mean), 0, afinn_mean)) %>%
+    bind_cols(input_data) %>%
+    mutate(buts = stringr::str_count(text, "but "),
+           nots = stringr::str_count(text, "not "),
+           buts_nots = buts + nots)
+  
+  return(input_data)
+}
+```
+
+Now we can use our model to calculate the probability that a sample input text, say "I am happy," is a positive review:
+
+```{r}
+get_prob(prepare("I am happy"), model_coefs[[1]])
+```
+
+95% seems good enough for me. As a check, we can calculate the same probability using our `glm` object and `predict()`:
+
+```{r}
+models$logit[[1]] %>% predict(prepare("I am happy"),
+                              type = "response") %>%
+  unname()
+```
+
+We get the exact same result down to 7 decimal points, so we can be confident that we've set up the equations right.
+
+We also need to extract the quantile boundaries, so that we know which model to apply to a given input text:
+
+```{r}
+# how many quantiles?
+num_qtiles <- 5
+# get the limits of the word-quantiles for display purposes
+qtiles <- quantile(yelp_data$words, probs = seq(0, 1, (1/num_qtiles)))
+
+qtiles
+```
+
+## Saving the Data
+
+Now we can save all of these values to file so we can load them and use them later. The final file size is about 13 kilobytes.
+
+```{r, eval=FALSE}
+# save the models and quantile boundaries
+
+#save(list = c("model_coefs","qtiles"), file = "model_specs.Rdata")
+
+```
+
+
+
+## The Logic of the App
+
+The app should have two inputs:
+
+* A text box for entering a review.
+* A button that says something like "Predict".
+
+When the user pushes the button, the app should do the following:
+
+* Take the text in the input box.
+* `prepare()` it using our function.
+* Figure out which model applies (i.e. how many words is it, which quantile does it fall into).
+* Use the right model to predict the probability of a `POS` review.
+* Display the probability, and either `POS` or `NEG` depending on whether $p>0.5$.
+
+
+Let's define a function to get a text's quintile:
+
+```{r}
+# function to get quintile
+get_qtile <- function(text, qtiles = qtiles){
+  # count words: count the number of spaces and add 1
+  words <- stringr::str_count(text, " ") + 1
+  
+  qtile <- case_when(
+    words %in% qtiles[1]:qtiles[2] ~ 1,
+    words %in% qtiles[2]:qtiles[3] ~ 2,
+    words %in% qtiles[3]:qtiles[4] ~ 3,
+    words %in% qtiles[4]:qtiles[5] ~ 4,
+    words > qtiles[5] ~ 5
+  )  
+  
+  return(qtile)
+}
+
+```
+
+And a function that pulls it all together to predict the probability that a given review is positive:
+
+```{r}
+
+prob_text <- function(text, model_coefs, qtiles){
+  # get quintile for text based on word length  
+  qtile <- get_qtile(text, qtiles = qtiles)
+  
+  # prepare the text by getting afinn sentiment and counting buts/nots
+  prepped_text <- prepare(text)
+  
+  # get the probability this text is positive
+  prob <- get_prob(prepped_text, model_coefs[[qtile]])
+  
+  # return the probability
+  return(prob)
+}
+```
+
+Let's test:
+
+```{r}
+user_text <- "I am happy."
+prob_text(user_text, model_coefs, qtiles)
+
+```
+
+And one with some negative words and a negator:
+
+```{r}
+user_text <- "I am not happy, this place sucks."
+prob_text(user_text, model_coefs, qtiles)
+```
+
+And let's make another very simple function that returns POS or NEG based on the probability. In practice it will give POS if the probability is >50%, but in principle we could set the threshold anywhere depending on our cost function. We'll test this function with the same negative review we just used.
+
+```{r}
+pred_text <- function(prob, threshold = 0.5){
+    if (prob >= threshold) result <- "POS"
+    if (prob <= threshold) result <- "NEG"
+  return (result)
+}
+
+prob_text(user_text, model_coefs, qtiles) %>%
+  pred_text()
+
+```
+
+## Putting it All Together
+
+Now that we have our logic and basic design, the next step is to build and deploy the Shiny app. This is easier to show than it is to tell, so please check out:
+
+* [The deployed app here on Shinyapps.io](https://chris31415926535.shinyapps.io/11-shiny-app/)
+* [The app code here on GitHub](https://github.com/chris31415926535/yelp-shiny-app)
+

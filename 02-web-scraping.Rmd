@@ -1,27 +1,29 @@
 # Web Scraping Our Data
 
-This section will describe the three different approaches I used to scrape datasets from Yelp, Goodreads, and MEC. 
+In this section I will discuss ethical concerns related to web scraping and describe three different approaches I used to scrape datasets from Yelp, Goodreads, and MEC. 
 
-thing reviewed, reviewer, date, text, and star rating.
+## Foreword: Ethics
+```{r, include=FALSE}
+# There's a lot of worrying about if and when web scraping is legal. I am not qualified to give legal advice, but it seems like the legal system is grappling with this question. Some authors have declared it illegal in Canada: @lifshitz_federal_2019, for example, asserts that "we all know it is not a good idea to scrape content from a website, yet some companies persist in this behaviour contrary to law and best practice." Lifshitz's analysis turns on a Federal Court of Canada (FCC) decision regarding Mongohouse.com and the Toronto Real Estate Board (TREB) which ruled in TREB's favour. As a non-lawyer, it seems to me that the FCC's decision relied on the facts that Mongohouse.com was scraping copyrighted and password-protected data from TREB and and then using it for commercial purposes. @scassa_data_2018 gives a more nuanced overview of issues related to web-scraping from a Canadian copyright law perspective, albeit one from before the Mongohouse.com decision. And in the United States, a court ruled in 2019 that web scraping *is* legal for public information posted on Linkedin [@woollacott_linkedin_2019]. Since I'm not a lawyer, then, the answer to "Is web scraping legal?" is "It's complicated, and you should probably ask a lawyer!"
+```
 
-## Foreword: Ethics & Legality
+I this section I will briefly consider some ethical aspects of web scraping. Although it's a rich topic, my treatment here will be superficial and my conclusion will be that this project is fine. 
 
-Web scraping is ubiquitous. As a rough working definition, let's say that web scraping--which can also be called crawling, trawling, harvesting, or any number of other terms--means automatically visiting websites to collect and store the information there so it can be used for a later purpose. So at one extreme, browsing Facebook at work doesn't count since it's not automatic; on the other extreme, automatically sending billions of requests to a server in an attempt to overload (i.e. a DDoS attack) doesn't count either, since nothing is being done with the information the server sends back.   To take the most obvious example, Google's entire business is based on @google-2020
+What is web scraping? As a working definition, let's say that web scraping--which can also be called crawling, trawling, indexing, harvesting, or any number of other terms--means automatically visiting websites to collect and store information. So at one extreme, browsing Facebook at work doesn't count since it's not automatic. On the other extreme, automatically sending billions of requests to a server in an attempt to overload (i.e. a DDoS attack) doesn't count either, since nothing is being done with the information the server sends back.   
 
-It's also widespread--it's how Google gets its information,  something like 50% of page visits are for scraping? source this. There are many commercial web-scraping companies, and programming languages like R have web-scraping libraries. 
+Why might web scraping be wrong? Here I'll consider three potential objections based on access, burdening the scrapee, and purpose, and show how I've designed this project to mitigate those concerns. 
 
-Lots of worrying about this
+Web scraping might be wrong if we're taking things we're not supposed to have access to. For example, if data were held on a password-protected server, one might think it wrong to collect it all automatically and re-create that dataset elsewhere. To mitigate this concern, we will only scrape publicly accessible data.
 
-@scasa-2018 gives a good overview of the legal situation from a Canadian perspective, although it came out before the Mongohouse case.
+Web scraping might be wrong if it posed an undue burden on the sites we're scraping. For example, if we were to scrape millions of pages or records from a single site in a short time, it might overload their servers or disrupt other people's access. To mitigate this concern, we can scrape a smallish number of pages and spread our requests out so that we don't overload any servers.
 
-[mongodb opinion piece](https://www.canadianlawyermag.com/news/opinion/federal-court-makes-clear-website-scraping-is-illegal/276128)
+Web scraping might be wrong if we were to use the data we collect unethically. As an example, one might think it would be unethical to scrape data and use it for political or financial purposes. To mitigate this concern, we will only use the data we collect for non-commercial educational purposes.
 
-[Apparently it's legal!](https://www.forbes.com/sites/emmawoollacott/2019/09/10/linkedin-data-scraping-ruled-legal/#56172d721b54)
+Note also that web scraping is an extremely common business model. To take an obvious example, Google's entire search business is based on information it has extracted from websites--in other words, web scraping [@google_how_2020]. Beyond Google, news agencies report that between 30% and 50% of all web traffic may be from automated web-scraping bots [@bruell_fraudulent_2018, @lafrance_internet_2017]. And programming languages, including R, ship with packages that make web scraping relatively easy [e.g. @wickham_package_2020]. So we can say at least that in some cases, web scraping on a massive scale is a commonly accepted business practice.
 
+In summary, in this project I've made the following choices to mitigate ethical concerns about web scraping:
 
-
-To mitigate any ethical concerns, in this project we've made the following choices:
-
+* We're only scraping publicly accessible information;
 * We're scraping a reasonably small number of pages/reviews;
 * We're being considerate of their servers by spacing out our requests; and,
 * We're collecting and using the data for educational non-commercial purposes.
