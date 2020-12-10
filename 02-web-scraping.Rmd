@@ -19,7 +19,7 @@ Web scraping might be wrong if it posed an undue burden on the sites we're scrap
 
 Web scraping might be wrong if we were to use the data we collect unethically. As an example, one might think it would be unethical to scrape data and use it for political or financial purposes. To mitigate this concern, we will only use the data we collect for non-commercial educational purposes.
 
-Note also that web scraping is an extremely common business model. To take an obvious example, Google's entire search business is based on information it has extracted from websites--in other words, web scraping [@google_how_2020]. Beyond Google, news agencies report that between 30% and 50% of all web traffic may be from automated web-scraping bots [@bruell_fraudulent_2018, @lafrance_internet_2017]. And programming languages, including R, ship with packages that make web scraping relatively easy [e.g. @wickham_package_2020]. So we can say at least that in some cases, web scraping on a massive scale is a commonly accepted business practice.
+Note also that web scraping is an extremely common business model. To take an obvious example, Google's entire search business is based on information it has extracted from websites--in other words, web scraping [@google_how_2020]. Beyond Google, news agencies report that between 30% and 50% of all web traffic may be from automated web-scraping bots [@bruell_fraudulent_2018; @lafrance_internet_2017]. And programming languages, including R, ship with packages that make web scraping relatively easy [@wickham_package_2020]. So we can say at least that in some cases, web scraping on a massive scale is a commonly accepted business practice.
 
 In summary, in this project I've made the following choices to mitigate ethical concerns about web scraping:
 
@@ -41,9 +41,9 @@ Since different sites have different structures, we'll need custom code for the 
 
 ## Goodreads: CSS Selectors
 
-[Goodreads](www.goodreads.com) describes itself as "the world’s largest site for readers and book recommendations" (@goodreads-2020). Registered users can leave reviews and ratings for books, any anyone can use the site to browse user-submitted reviews and a variety of information about books. 
+[Goodreads](www.goodreads.com) describes itself as "the world’s largest site for readers and book recommendations" (@goodreads_about_2020). Registered users can leave reviews and ratings for books, any anyone can use the site to browse user-submitted reviews and a variety of information about books. 
 
-Goodreads' pages are standard html, so we can use css selectors to isolate the exact parts of the page we're interested in. I used R's **rvest** package, and the package documentation has details about the methods and about css selectors in general [@wickham-package-2020]. To find the css selectors I used [SelectorGadget](https://selectorgadget.com/), a point-and-click Chrome extension.
+Goodreads' pages are standard html, so we can use css selectors to isolate the exact parts of the page we're interested in. I used R's **rvest** package, and the package documentation has details about the methods and about css selectors in general [@wickham_package_2020]. To find the css selectors I used [SelectorGadget](https://selectorgadget.com/), a point-and-click Chrome extension.
 
 ### Scraping the Index
 
@@ -164,7 +164,7 @@ results %>%
 
 ## Yelp: Embedded JSON
 
-[Yelp](www.yelp.com), according to its website, "connects people with great local businesses" [@yelp-about-2020]. Businesses can upload information like their location, hours, and services, and registered users can can leave reviews with text, star ratings, and pictures. 
+[Yelp](www.yelp.com), according to its website, "connects people with great local businesses" [@yelp_about_2020]. Businesses can upload information like their location, hours, and services, and registered users can can leave reviews with text, star ratings, and pictures. 
 
 Yelp's web design includes structured json data within its html. In other words, each Yelp review page has machine-readable data hidden inside it if you know where to look. We'll exploit this by using a regular expression to extract the json from the html, then parse the json and work with it directly.
 

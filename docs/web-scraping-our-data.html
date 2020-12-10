@@ -53,7 +53,6 @@
 <script src="libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
 <link href="libs/anchor-sections-1.0/anchor-sections.css" rel="stylesheet" />
 <script src="libs/anchor-sections-1.0/anchor-sections.js"></script>
-<script src="libs/kePrint-0.0.1/kePrint.js"></script>
 
 
 <style type="text/css">
@@ -294,7 +293,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>Web scraping might be wrong if we’re taking things we’re not supposed to have access to. For example, if data were held on a password-protected server, one might think it wrong to collect it all automatically and re-create that dataset elsewhere. To mitigate this concern, we will only scrape publicly accessible data.</p>
 <p>Web scraping might be wrong if it posed an undue burden on the sites we’re scraping. For example, if we were to scrape millions of pages or records from a single site in a short time, it might overload their servers or disrupt other people’s access. To mitigate this concern, we can scrape a smallish number of pages and spread our requests out so that we don’t overload any servers.</p>
 <p>Web scraping might be wrong if we were to use the data we collect unethically. As an example, one might think it would be unethical to scrape data and use it for political or financial purposes. To mitigate this concern, we will only use the data we collect for non-commercial educational purposes.</p>
-<p>Note also that web scraping is an extremely common business model. To take an obvious example, Google’s entire search business is based on information it has extracted from websites–in other words, web scraping <span class="citation">(Google <a href="#ref-google_how_2020" role="doc-biblioref">2020</a>)</span>. Beyond Google, news agencies report that between 30% and 50% of all web traffic may be from automated web-scraping bots <span class="citation">(Bruell <a href="#ref-bruell_fraudulent_2018" role="doc-biblioref">2018</a>, @lafrance_internet_2017)</span>. And programming languages, including R, ship with packages that make web scraping relatively easy <span class="citation">(e.g. Wickham <a href="#ref-wickham_package_2020" role="doc-biblioref">2020</a>)</span>. So we can say at least that in some cases, web scraping on a massive scale is a commonly accepted business practice.</p>
+<p>Note also that web scraping is an extremely common business model. To take an obvious example, Google’s entire search business is based on information it has extracted from websites–in other words, web scraping <span class="citation">(Google <a href="#ref-google_how_2020" role="doc-biblioref">2020</a>)</span>. Beyond Google, news agencies report that between 30% and 50% of all web traffic may be from automated web-scraping bots <span class="citation">(Bruell <a href="#ref-bruell_fraudulent_2018" role="doc-biblioref">2018</a>; LaFrance <a href="#ref-lafrance_internet_2017" role="doc-biblioref">2017</a>)</span>. And programming languages, including R, ship with packages that make web scraping relatively easy <span class="citation">(Wickham <a href="#ref-wickham_package_2020" role="doc-biblioref">2020</a>)</span>. So we can say at least that in some cases, web scraping on a massive scale is a commonly accepted business practice.</p>
 <p>In summary, in this project I’ve made the following choices to mitigate ethical concerns about web scraping:</p>
 <ul>
 <li>We’re only scraping publicly accessible information;</li>
@@ -319,8 +318,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 <div id="goodreads-css-selectors" class="section level2">
 <h2><span class="header-section-number">3.3</span> Goodreads: CSS Selectors</h2>
-<p><a href="www.goodreads.com">Goodreads</a> describes itself as “the world’s largest site for readers and book recommendations” (<span class="citation">(<span class="citeproc-not-found" data-reference-id="goodreads-2020"><strong>???</strong></span>)</span>). Registered users can leave reviews and ratings for books, any anyone can use the site to browse user-submitted reviews and a variety of information about books.</p>
-<p>Goodreads’ pages are standard html, so we can use css selectors to isolate the exact parts of the page we’re interested in. I used R’s <strong>rvest</strong> package, and the package documentation has details about the methods and about css selectors in general <span class="citation">(<span class="citeproc-not-found" data-reference-id="wickham-package-2020"><strong>???</strong></span>)</span>. To find the css selectors I used <a href="https://selectorgadget.com/">SelectorGadget</a>, a point-and-click Chrome extension.</p>
+<p><a href="www.goodreads.com">Goodreads</a> describes itself as “the world’s largest site for readers and book recommendations” (<span class="citation">Goodreads (<a href="#ref-goodreads_about_2020" role="doc-biblioref">2020</a>)</span>). Registered users can leave reviews and ratings for books, any anyone can use the site to browse user-submitted reviews and a variety of information about books.</p>
+<p>Goodreads’ pages are standard html, so we can use css selectors to isolate the exact parts of the page we’re interested in. I used R’s <strong>rvest</strong> package, and the package documentation has details about the methods and about css selectors in general <span class="citation">(Wickham <a href="#ref-wickham_package_2020" role="doc-biblioref">2020</a>)</span>. To find the css selectors I used <a href="https://selectorgadget.com/">SelectorGadget</a>, a point-and-click Chrome extension.</p>
 <div id="scraping-the-index" class="section level3">
 <h3><span class="header-section-number">3.3.1</span> Scraping the Index</h3>
 <p>Goodreads assigns books to genres like “sci-fi” and “romance,” and curates lists of each genre’s 100 most-read books in the past week. By scraping these pages, we can get links to content pages for hundreds of books across different genres.</p>
@@ -431,7 +430,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 <div id="yelp-embedded-json" class="section level2">
 <h2><span class="header-section-number">3.4</span> Yelp: Embedded JSON</h2>
-<p><a href="www.yelp.com">Yelp</a>, according to its website, “connects people with great local businesses” <span class="citation">(<span class="citeproc-not-found" data-reference-id="yelp-about-2020"><strong>???</strong></span>)</span>. Businesses can upload information like their location, hours, and services, and registered users can can leave reviews with text, star ratings, and pictures.</p>
+<p><a href="www.yelp.com">Yelp</a>, according to its website, “connects people with great local businesses” <span class="citation">(Yelp <a href="#ref-yelp_about_2020" role="doc-biblioref">2020</a>)</span>. Businesses can upload information like their location, hours, and services, and registered users can can leave reviews with text, star ratings, and pictures.</p>
 <p>Yelp’s web design includes structured json data within its html. In other words, each Yelp review page has machine-readable data hidden inside it if you know where to look. We’ll exploit this by using a regular expression to extract the json from the html, then parse the json and work with it directly.</p>
 <div id="scraping-the-index-1" class="section level3">
 <h3><span class="header-section-number">3.4.1</span> Scraping the Index</h3>
@@ -827,11 +826,20 @@ note it’s stopping me every 136 or so and giving a 503 error, so i’m either 
 <div id="ref-bruell_fraudulent_2018">
 <p>Bruell, Alexandra. 2018. “Fraudulent Web Traffic Continues to Plague Advertisers, Other Businesses.” <em>Wall Street Journal</em>, March. <a href="https://www.wsj.com/articles/fraudulent-web-traffic-continues-to-plague-advertisers-other-businesses-1522234801">https://www.wsj.com/articles/fraudulent-web-traffic-continues-to-plague-advertisers-other-businesses-1522234801</a>.</p>
 </div>
+<div id="ref-goodreads_about_2020">
+<p>Goodreads. 2020. “About Goodreads.” <a href="https://www.goodreads.com/about/us">https://www.goodreads.com/about/us</a>.</p>
+</div>
 <div id="ref-google_how_2020">
 <p>Google. 2020. “How Google’s Site Crawlers Index Your Site - Google Search.” <a href="https://www.google.com/search/howsearchworks/crawling-indexing/">https://www.google.com/search/howsearchworks/crawling-indexing/</a>.</p>
 </div>
+<div id="ref-lafrance_internet_2017">
+<p>LaFrance, Adrienne. 2017. “The Internet Is Mostly Bots.” <em>The Atlantic</em>. <a href="https://www.theatlantic.com/technology/archive/2017/01/bots-bots-bots/515043/">https://www.theatlantic.com/technology/archive/2017/01/bots-bots-bots/515043/</a>.</p>
+</div>
 <div id="ref-wickham_package_2020">
 <p>Wickham, Hadley. 2020. “Package ‘Rvest’.” <a href="https://cran.r-project.org/web/packages/rvest/rvest.pdf">https://cran.r-project.org/web/packages/rvest/rvest.pdf</a>.</p>
+</div>
+<div id="ref-yelp_about_2020">
+<p>Yelp. 2020. “About Us.” <em>Yelp</em>. <a href="https://www.yelp.ca/about">https://www.yelp.ca/about</a>.</p>
 </div>
 </div>
             </section>
@@ -890,20 +898,6 @@ gitbook.start({
 });
 </script>
 
-<!-- dynamically load mathjax for compatibility with self-contained -->
-<script>
-  (function () {
-    var script = document.createElement("script");
-    script.type = "text/javascript";
-    var src = "true";
-    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
-    if (location.protocol !== "file:")
-      if (/^https?:/.test(src))
-        src = src.replace(/^https?:/, '');
-    script.src = src;
-    document.getElementsByTagName("head")[0].appendChild(script);
-  })();
-</script>
 </body>
 
 </html>
